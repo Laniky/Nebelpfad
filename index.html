@@ -1,0 +1,2502 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f1420"><style>*,*::before,*::after{box-sizing:border-box}:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Nebelpfad: Dornenwald</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fondamento&family=Nunito:wght@400;600;700&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Märchenbuch bei Nacht; Ort (Dorf/Stadt/…) als Startseite, Dungeons als Spielfeld mit Begleiter-Leiste */
+:root {
+  --night: #0f1420;
+  --moss: #1b2a26;
+  --mist: #c9d3e6;
+  --muted: #8d97ad;
+  --lantern: #f2c76b;
+  --magic: #b48cf2;
+  --line: #2a3446;
+  --panel: #151c2b;
+  --font-display: "Fondamento", "Palatino Linotype", Georgia, serif;
+  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+html, body { background: var(--night); color: var(--mist); }
+body { font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 460px; margin: 0 auto; padding-block: 18px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 14px; }
+.view { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.eyebrow { margin: 0; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--magic); font-weight: 700; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: 2rem; line-height: 1.1; margin: 0; color: var(--lantern); text-wrap: balance; }
+h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; margin: 0; color: var(--lantern); }
+.sub { color: var(--muted); margin: 2px 0 0; font-size: .92rem; }
+
+/* Orte-Leiste */
+.places { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.place { font: inherit; flex: none; background: var(--panel); color: var(--mist); border: 1.5px solid var(--line); border-radius: 99px;
+  padding: 5px 12px; cursor: pointer; font-size: .82rem; white-space: nowrap; }
+.place small { color: var(--muted); }
+.place[aria-current="true"] { border-color: var(--lantern); background: #2a2516; }
+.place.locked { color: var(--muted); cursor: default; border-style: dashed; }
+
+/* Ort-Szene */
+.village { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--line);
+  background: linear-gradient(var(--sky1, #0d1426) 0%, var(--sky2, #17213a) 55%, #1b2a26 56%, #15221e 100%); aspect-ratio: 4 / 3.3; max-width: 100%; }
+.moon { position: absolute; top: 9%; right: 12%; width: 12%; aspect-ratio: 1; border-radius: 50%; background: #efe6c8; box-shadow: 0 0 30px #efe6c880; }
+.star { position: absolute; width: 2px; height: 2px; background: #dfe6ff; border-radius: 50%; opacity: .7; }
+.float { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--lantern); box-shadow: 0 0 9px var(--lantern);
+  animation: rise 5s ease-in-out infinite alternate; }
+@keyframes rise { to { transform: translateY(-16px); opacity: .5; } }
+.house { position: absolute; bottom: 44%; aspect-ratio: 1 / .8; background: #2c2438; }
+.house::before { content: ""; position: absolute; left: -12%; right: -12%; bottom: 100%; height: 70%; background: #3d2f4f; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.house::after { content: ""; position: absolute; left: 35%; top: 30%; width: 30%; height: 30%; background: var(--lantern); box-shadow: 0 0 10px var(--lantern); border-radius: 2px; }
+.house.tower { aspect-ratio: 1 / 2.2; }
+.house.tower::before { height: 55%; left: -18%; right: -18%; }
+.house.tower::after { top: 18%; height: 14%; }
+.house.gold::before { background: #6b5530; }
+.keep { position: absolute; bottom: 44%; aspect-ratio: 1 / .85; background: #3a2f4d; }
+.keep::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 12%;
+  background: repeating-linear-gradient(90deg, #3a2f4d 0 14%, transparent 14% 24%); }
+.keep::after { content: ""; position: absolute; left: 40%; bottom: 0; width: 20%; height: 40%; background: var(--lantern); border-radius: 40% 40% 0 0; box-shadow: 0 0 14px var(--lantern); }
+.bigstar { position: absolute; top: 7%; left: 10%; font-size: 2.4rem; line-height: 1; filter: drop-shadow(0 0 14px #f2c76b); animation: twinkle 3s ease-in-out infinite alternate; }
+@keyframes twinkle { to { transform: scale(1.12) rotate(8deg); } }
+@media (prefers-reduced-motion: reduce) { .bigstar { animation: none; } }
+.ground { position: absolute; bottom: 0; height: 28%; border-radius: 50% 50% 0 0; }
+.spot { position: absolute; bottom: 5%; width: 30%; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.spot .a { font-size: 2.1rem; line-height: 1; filter: drop-shadow(0 0 10px #f2c76b70); }
+.spot .a.locked { filter: grayscale(1) brightness(.25); opacity: .6; }
+.spot .l { font-size: .72rem; color: var(--muted); line-height: 1.3; }
+.spot .l b { color: var(--mist); font-weight: 700; }
+.saved-line { margin: 0; font-size: .92rem; }
+.saved-line b { color: var(--lantern); }
+
+.banner { background: #241f12; border: 1.5px solid var(--lantern); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.banner p { margin: 0; }
+.banner b { color: var(--lantern); }
+
+.trips { display: flex; flex-direction: column; gap: 8px; }
+.trip { font: inherit; text-align: left; display: flex; align-items: center; gap: 12px; background: var(--panel); color: var(--mist);
+  border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer; width: 100%; }
+.trip .ic { font-size: 1.8rem; flex: none; }
+.trip .t { min-width: 0; flex: 1; }
+.trip .t strong { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.15rem; color: var(--lantern); }
+.trip .t span { font-size: .85rem; color: var(--muted); }
+.trip .st { font-size: .75rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #23304a; color: var(--mist); white-space: nowrap; }
+.trip .st.ok { background: #1f3a2a; color: #8fe0ad; }
+.trip:hover { border-color: #4a5670; }
+.trip.is-locked { cursor: default; opacity: .75; }
+
+/* Dungeon */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.topbar h1 { font-size: 1.5rem; min-width: 0; }
+.back { font: inherit; font-weight: 700; background: transparent; color: var(--mist); border: 1.5px solid var(--line); border-radius: 99px; padding: 6px 14px; cursor: pointer; flex: none; }
+.board { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--moss); }
+canvas { display: block; width: 100%; height: auto; touch-action: manipulation; cursor: pointer; }
+.msg { min-height: 3.2em; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: .95rem; }
+.msg b { color: var(--lantern); font-weight: 700; }
+.roles { display: grid; grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr)); gap: 6px; }
+.role { font: inherit; background: var(--panel); color: var(--mist); border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 8px 2px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; min-width: 0; }
+.role .ic { font-size: 1.5rem; line-height: 1; }
+.role .nm { font-size: .72rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.role { position: relative; }
+.role .rn { position: absolute; top: -7px; right: -4px; font-size: .95rem; line-height: 1; background: #0b0f18; border: 1.5px solid var(--lantern); border-radius: 99px; padding: 3px 4px; }
+.runes { font-size: 1.5em; letter-spacing: .05em; white-space: nowrap; }
+.role .rl { font-size: .64rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.role[aria-pressed="true"] { border-color: var(--lantern); background: #2a2516; box-shadow: 0 0 14px #f2c76b40; }
+.role:focus-visible, .btn:focus-visible, .trip:focus-visible, .back:focus-visible, .place:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
+.help { color: var(--muted); font-size: .85rem; margin: 0; }
+.lives { margin: 0; display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--muted); }
+.lives .h { font-size: 1.2rem; line-height: 1; transition: opacity .3s, transform .3s; }
+.lives .h.off { opacity: .25; transform: scale(.8); filter: grayscale(1); }
+.win { position: absolute; inset: 0; background: #0b0f18ee; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center; padding: 20px; }
+.win h2 { font-size: 1.7rem; }
+.win p { margin: 0; max-width: 32ch; }
+.win b { color: var(--lantern); }
+.win .big { font-size: 3.4rem; filter: drop-shadow(0 0 16px #f2c76b80); }
+.btn { font: inherit; font-weight: 700; background: var(--lantern); color: #1a1408; border: 0; border-radius: 99px; padding: 9px 20px; cursor: pointer; }
+.reset-all { align-self: flex-start; font: inherit; font-size: .8rem; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; padding: 0; }
+@media (prefers-reduced-motion: reduce) { .float { animation: none; } }
+
+/* Geheimaufgaben, Hexenhaus */
+.tasks { display: flex; flex-direction: column; gap: 6px; }
+.task { display: flex; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: .88rem; }
+.task .ck { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line); display: grid; place-items: center; flex: none; font-weight: 700; font-size: .8rem; }
+.task.ok .ck { background: #2f9e5b; border-color: #2f9e5b; color: #fff; }
+.task .tt { flex: 1; min-width: 0; }
+.task .pg { color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+.trip.secret { border-color: var(--magic); box-shadow: 0 0 16px #b48cf233; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.trip.col { flex-direction: column; align-items: flex-start; gap: 4px; }
+.plots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.plot { position: relative; overflow: hidden; transition: transform .15s, border-color .3s;
+  background: radial-gradient(circle at 22% 30%, #3e2e20 0 2px, transparent 3px), radial-gradient(circle at 72% 62%, #3e2e20 0 2px, transparent 3px),
+    radial-gradient(circle at 48% 18%, #3e2e20 0 1.5px, transparent 2.5px), radial-gradient(circle at 80% 22%, #3e2e20 0 1.5px, transparent 2.5px),
+    linear-gradient(#30241a, #20180f) !important; }
+.plot:active { transform: scale(.95); }
+.plot .e { display: inline-block; transform-origin: 50% 90%; transition: transform .45s cubic-bezier(.3,1.6,.5,1); }
+.plot[data-w="0"] .e { transform: scale(.6); }
+.plot[data-w="1"] .e { transform: scale(.8); }
+.plot[data-w="2"] .e { transform: scale(1); }
+.plot .e.hole { width: 36px; height: 14px; border-radius: 50%; background: #140d08; box-shadow: inset 0 3px 5px #000c; margin: 8px 0; }
+.plot.ready .e { animation: sway 2.4s ease-in-out infinite; }
+.plot.ready::after { content: "✨"; position: absolute; top: 8%; right: 10%; font-size: .9rem; animation: twinkle2 1.6s ease-in-out infinite; }
+.plot.pop .e { animation: pop .55s cubic-bezier(.3,1.6,.5,1); }
+.plot.grow .e { animation: grow .6s cubic-bezier(.3,1.6,.5,1); }
+.plot.ripe .e { animation: ripe .8s cubic-bezier(.3,1.6,.5,1), sway 2.4s ease-in-out .8s infinite; }
+.plot.dig .e { animation: pop .45s ease-out; }
+.plot.grow::before, .plot.ripe::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 70%, #5f93c766, transparent 65%); animation: fadeOut 1.4s forwards; }
+.wdots { display: flex; gap: 4px; justify-content: center; }
+.wdots i { width: 7px; height: 7px; border-radius: 50%; background: #4a3a28; }
+.wdots i.on { background: #7fb6e8; box-shadow: 0 0 6px #7fb6e8; }
+@keyframes sway { 0%, 100% { transform: rotate(-6deg) scale(1.1); } 50% { transform: rotate(6deg) scale(1.15); } }
+@keyframes twinkle2 { 0%, 100% { opacity: .2; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes pop { 0% { transform: scale(0); } }
+@keyframes grow { 0% { transform: scale(.5) translateY(6px); } 60% { transform: scale(1.2); } }
+@keyframes ripe { 0% { transform: scale(.4); } 65% { transform: scale(1.4) rotate(-8deg); } 100% { transform: scale(1.1); } }
+@keyframes fadeOut { to { opacity: 0; } }
+
+/* Fliegende Effekte */
+#fxLayer { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
+.fly { position: fixed; font-size: 1.5rem; line-height: 1; transform: translate(-50%, -50%); opacity: 0; animation: fly var(--ms, 1000ms) cubic-bezier(.3,.7,.4,1) forwards; }
+@keyframes fly { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); } 15% { opacity: 1; transform: translate(-50%, -60%) scale(1.25); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.8); } }
+.fly.drop { font-size: .95rem; animation-name: drop; animation-timing-function: ease-in; }
+@keyframes drop { 0% { opacity: 0; transform: translate(-50%, -220%); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 60%); } }
+.fly.txt { font-size: 1.05rem; font-weight: 800; color: var(--lantern); text-shadow: 0 0 10px #000; font-family: var(--font-body); }
+.bag.bump { animation: bump .6s cubic-bezier(.3,1.6,.5,1); }
+@keyframes bump { 40% { transform: scale(1.06); } }
+
+/* Kessel */
+.cauldron-wrap { position: relative; height: 170px; display: flex; justify-content: center; align-items: flex-end;
+  background: radial-gradient(ellipse at 50% 100%, #ff8a3a22, transparent 60%); border-radius: 16px; }
+.cauldron { position: relative; width: 150px; height: 104px; margin-bottom: 22px; z-index: 2;
+  background: radial-gradient(ellipse at 35% 30%, #50506a, #1c1c26 72%); border-radius: 20px 20px 75px 75px / 20px 20px 90px 90px;
+  box-shadow: inset 0 -12px 22px #000a, 0 8px 20px #0008; }
+.cauldron::before { content: ""; position: absolute; left: -9px; right: -9px; top: -9px; height: 24px; border-radius: 50%; background: linear-gradient(#64647c, #2a2a36); }
+.cauldron .brew { position: absolute; left: 3px; right: 3px; top: -4px; height: 16px; border-radius: 50%; background: var(--brew, #6fd8a8);
+  box-shadow: 0 0 24px var(--brew, #6fd8a8), inset 0 -3px 6px #0005; transition: background .7s, box-shadow .7s; }
+.cauldron .bubbles i { position: absolute; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--brew, #6fd8a8); opacity: 0; animation: bubble 2.4s ease-in infinite; transition: background .7s; }
+.cauldron .bubbles i:nth-child(1) { left: 28%; }
+.cauldron .bubbles i:nth-child(2) { left: 46%; animation-delay: .6s; width: 7px; height: 7px; }
+.cauldron .bubbles i:nth-child(3) { left: 62%; animation-delay: 1.1s; }
+.cauldron .bubbles i:nth-child(4) { left: 38%; animation-delay: 1.7s; width: 6px; height: 6px; }
+.cauldron .bubbles i:nth-child(5) { left: 70%; animation-delay: 2s; width: 8px; height: 8px; }
+.cauldron .steam i { position: absolute; top: -26px; width: 18px; height: 18px; border-radius: 50%; background: #c9d3e630; filter: blur(4px); animation: steam 4s ease-out infinite; }
+.cauldron .steam i:nth-child(1) { left: 30%; }
+.cauldron .steam i:nth-child(2) { left: 50%; animation-delay: 1.3s; }
+.cauldron .steam i:nth-child(3) { left: 64%; animation-delay: 2.6s; }
+.fire { position: absolute; bottom: 2px; display: flex; gap: 3px; z-index: 1; }
+.fire i { width: 20px; height: 28px; border-radius: 50% 50% 40% 40%; background: radial-gradient(ellipse at 50% 80%, #ffe08a, #ff8a3a 55%, transparent 72%);
+  transform-origin: 50% 100%; animation: flick .45s ease-in-out infinite alternate; }
+.fire i:nth-child(2) { animation-delay: .15s; height: 34px; }
+.fire i:nth-child(3) { animation-delay: .3s; }
+.fire i:nth-child(4) { animation-delay: .1s; height: 24px; }
+@keyframes bubble { 0% { transform: translateY(0) scale(.4); opacity: 0; } 20% { opacity: .95; } 100% { transform: translateY(-44px) scale(1.1); opacity: 0; } }
+@keyframes steam { 0% { transform: translateY(0) scale(.6); opacity: 0; } 30% { opacity: .8; } 100% { transform: translateY(-56px) scale(2.2); opacity: 0; } }
+@keyframes flick { to { transform: scaleY(1.25) scaleX(.88); opacity: .8; } }
+.cauldron.boil { animation: shake .7s ease-in-out; }
+.cauldron.boil .bubbles i { animation-duration: .7s; }
+.cauldron.boil .brew { animation: flash 1s ease-out; }
+@keyframes shake { 0%, 100% { transform: none; } 20% { transform: rotate(-4deg); } 45% { transform: rotate(4deg); } 70% { transform: rotate(-2deg); } }
+@keyframes flash { 30% { transform: scaleY(1.8); box-shadow: 0 0 60px var(--brew, #6fd8a8); } }
+.cauldron-cap { text-align: center; margin: 0; color: var(--muted); font-size: .85rem; padding-bottom: 6px; }
+/* Kessel bleibt beim Scrollen durch die Rezepte oben sichtbar */
+.cauldron-sticky { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--night);
+  box-shadow: 0 10px 14px -8px #000c; border-radius: 0 0 16px 16px; }
+.cauldron-sticky .cauldron-wrap { height: 200px; }
+/* Kessel größer und heller, Rauch in der Farbe des Suds */
+.cauldron { width: 170px; height: 116px; margin-bottom: 30px; background: radial-gradient(ellipse at 32% 28%, #6a6a88, #2a2a3a 55%, #16161f 80%); border: 2px solid #7a7a96; border-top: 0; }
+.cauldron::before { background: linear-gradient(#8a8aa6, #3a3a4c); box-shadow: 0 0 18px color-mix(in srgb, var(--brew, #6fd8a8) 55%, transparent); }
+
+.cauldron .brew { height: 20px; }
+.cauldron-wrap { background: radial-gradient(ellipse at 50% 85%, #ff8a3a33, transparent 55%), radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--cbrew, #6fd8a8) 18%, transparent), transparent 60%); }
+.cauldron .steam i { top: -34px; width: 26px; height: 26px; filter: blur(6px);
+  background: color-mix(in srgb, var(--brew, #6fd8a8) 75%, transparent); animation: steam 3.6s ease-out infinite; transition: background .7s; }
+.cauldron .steam i:nth-child(1) { left: 22%; }
+.cauldron .steam i:nth-child(2) { left: 42%; animation-delay: .7s; }
+.cauldron .steam i:nth-child(3) { left: 60%; animation-delay: 1.4s; }
+.cauldron .steam i:nth-child(4) { left: 32%; animation-delay: 2.1s; width: 20px; height: 20px; }
+.cauldron .steam i:nth-child(5) { left: 54%; animation-delay: 2.8s; width: 22px; height: 22px; }
+@keyframes steam { 0% { transform: translate(0, 0) scale(.5); opacity: 0; } 25% { opacity: .9; } 60% { transform: translate(6px, -45px) scale(1.6); } 100% { transform: translate(-8px, -85px) scale(2.4); opacity: 0; } }
+.cauldron.boil .steam i { animation-duration: 1.4s; }
+.fire i { width: 24px; height: 32px; }
+.fire i:nth-child(2) { height: 40px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--night); }
+@media (prefers-reduced-motion: reduce) {
+  .plot .e, .plot.ready::after, .plot::before, .cauldron, .cauldron *, .fire i, .bag.bump { animation: none !important; }
+}
+.plot { font: inherit; aspect-ratio: 1; max-width: 100%; background: #261e16; border: 1.5px solid #4a3a28; border-radius: 14px; color: var(--mist);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; text-align: center; padding: 4px; min-width: 0; }
+.plot .e { font-size: 2rem; line-height: 1; }
+.plot .s { font-size: .72rem; color: var(--muted); line-height: 1.3; }
+.plot .s b { color: var(--lantern); }
+.plot.ready { border-color: var(--lantern); box-shadow: 0 0 14px #f2c76b40; }
+.plot:focus-visible, .chip:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
+.bag { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { font: inherit; font-size: .82rem; background: var(--panel); color: var(--mist); border: 1.5px solid var(--line); border-radius: 99px; padding: 5px 11px; }
+button.chip { cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--lantern); background: #2a2516; }
+.none { color: var(--muted); font-size: .85rem; }
+h3 { margin: 4px 0 0; font-size: .95rem; color: var(--mist); }
+.btn.sm { padding: 6px 14px; font-size: .85rem; flex: none; }
+.btn:disabled { opacity: .35; cursor: default; }
+small.rare { color: var(--magic); font-weight: 700; font-size: .7rem; }
+/* Mitspieler */
+.tabs { display: flex; gap: 6px; overflow-x: auto; }
+.tab { font: inherit; flex: none; background: var(--panel); color: var(--mist); border: 1.5px solid var(--line); border-radius: 99px; padding: 7px 14px; cursor: pointer; font-size: .88rem; }
+.tab[aria-selected="true"] { border-color: var(--lantern); background: #2a2516; }
+.tab .badge { background: var(--magic); color: #160f24; border-radius: 99px; padding: 0 6px; font-size: .72rem; font-weight: 700; margin-left: 4px; }
+.pane { display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.card label { font-size: .8rem; color: var(--muted); font-weight: 700; }
+select, .chatform input { font: inherit; background: #0c111b; color: var(--mist); border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 10px; width: 100%; min-width: 0; }
+.acts { display: flex; flex-direction: column; gap: 4px; flex: none; align-items: flex-end; }
+.chatlog { background: #0c111b; border: 1px solid var(--line); border-radius: 12px; padding: 10px; height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.cm { font-size: .9rem; overflow-wrap: anywhere; }
+.cm b { color: var(--lantern); }
+.cm.me b { color: var(--magic); }
+.cm time { color: var(--muted); font-size: .7rem; margin-left: 6px; }
+.chatform { display: flex; gap: 6px; }
+.on { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #5fd18c; margin-right: 6px; }
+.note { background: #241f12; border: 1px solid #6b5530; border-radius: 12px; padding: 10px 14px; font-size: .9rem; }
+select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
+.maintabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 4px; }
+.mtab { font: inherit; font-weight: 700; background: transparent; color: var(--muted); border: 0; border-radius: 99px; padding: 9px 8px; cursor: pointer; }
+.mtab[aria-selected="true"] { background: var(--lantern); color: #1a1408; }
+.mtab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
+/* Spielfeld und Begleiter passen auf einen Bildschirm */
+.board { width: min(100%, calc((100vh - 395px) * .7)); width: min(100%, calc((100dvh - 395px) * .7)); min-width: min(100%, 240px); align-self: center; }
+.dock { display: flex; flex-direction: column; gap: 6px; margin-top: -4px; }
+.dock .roles { padding-top: 6px; }
+.dock-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 1.6rem; }
+.dock .msg { min-height: 0; max-height: 5.4em; overflow-y: auto; padding: 7px 12px; font-size: .88rem; }
+.dock .timer { font-size: 1.35rem; }
+.roles.compact .role { padding: 7px 0 5px; }
+.role.theirs { border-style: dashed; border-color: #6a5a9a; opacity: .85; }
+.role .who { position: absolute; bottom: -6px; right: -4px; font-size: .8rem; line-height: 1; background: #0b0f18; border-radius: 99px; padding: 2px; }
+.role .kb { position: absolute; top: -6px; left: -3px; font-size: .62rem; font-weight: 800; line-height: 1; padding: 3px 5px; border-radius: 6px;
+  background: #23304a; color: var(--mist); border: 1px solid #3a4866; }
+.acts-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; align-items: center; scrollbar-width: none; }
+.acts-row:empty { display: none; }
+.toggles { display: flex; gap: 6px; }
+.toggles .tg { flex: 1; font-weight: 700; text-align: center; padding: 6px 8px; }
+.toggles .tg[aria-expanded="true"] { border-color: var(--lantern); background: #2a2516; }
+.toggles .tg[hidden] { display: none; }
+.acts-row .lbl { flex: none; font-size: .75rem; color: var(--muted); font-weight: 700; }
+.acts-row .chip { flex: none; white-space: nowrap; border-color: var(--magic); font-size: .8rem; padding: 5px 10px; }
+.acts-row .chip:disabled { opacity: .35; border-color: var(--line); cursor: default; }
+.fxsum .chip { font-size: .76rem; padding: 3px 9px; border-color: #2f5a3a; color: #bfe9cc; }
+.roles.compact .role .rl { display: none; }
+.roles.compact .role .ic { font-size: 1.4rem; }
+.timer { margin: 0; font-family: var(--font-display); font-size: 1.6rem; color: var(--lantern); text-align: center; font-variant-numeric: tabular-nums; }
+.timer.low { color: #ff9a8a; }
+.potbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .85rem; color: var(--muted); }
+
+/* Wiki */
+.vhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.vhead > div { min-width: 0; }
+.btns { display: flex; gap: 6px; flex: none; }
+.wk-nav { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.wk-nav a { flex: none; font-size: .82rem; color: var(--mist); text-decoration: none; background: var(--panel); border: 1.5px solid var(--line); border-radius: 99px; padding: 5px 12px; }
+.wk-sec { display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 12px; }
+.wk-sec > p { margin: 0; color: var(--muted); font-size: .92rem; }
+.wk-list { display: flex; flex-direction: column; gap: 6px; }
+.wk-row { display: flex; gap: 12px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.wk-row .ic { font-size: 1.6rem; flex: none; width: 2rem; text-align: center; }
+.wk-row .t { min-width: 0; flex: 1; font-size: .9rem; }
+.wk-row .t strong { display: block; color: var(--mist); font-size: .98rem; }
+.wk-row .t span { color: var(--muted); }
+.wk-row .need { flex: none; font-size: .8rem; text-align: right; color: var(--lantern); font-weight: 700; max-width: 40%; }
+.beasts { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+.beast { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 4px; text-align: center; font-size: .75rem; min-width: 0; }
+.beast .e { font-size: 1.8rem; display: block; line-height: 1.2; }
+.beast.unk .e { filter: grayscale(1) brightness(.2); }
+.beast.unk { color: var(--muted); }
+.wk-table { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+.wk-table table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+.wk-table td:last-child { white-space: nowrap; }
+.wk-table .te { color: var(--muted); }
+.wk-table th { text-align: left; color: var(--lantern); font-weight: 700; padding: 8px 10px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.wk-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--mist); }
+.wk-table tr:last-child td { border-bottom: 0; }
+.wk-table .tn { font-weight: 700; }
+.wk-table small.ok { color: #8fe0ad; font-weight: 700; font-size: .7rem; }
+.beast .where { display: block; color: var(--muted); font-size: .64rem; line-height: 1.3; margin-top: 2px; }
+.beast .nm2 { display: block; font-weight: 700; }
+.vhead .btns { flex-wrap: wrap; justify-content: flex-end; max-width: 58%; }
+#villageView .vhead { flex-direction: column; gap: 10px; }
+#villageView .vhead .btns { max-width: none; justify-content: flex-start; }
+.beast .rare { display: block; color: var(--magic); font-size: .65rem; font-weight: 700; }
+.wk-tip { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 4px; font-size: .92rem; }
+</style>
+
+<div class="wrap">
+  <nav class="maintabs" id="mainTabs" role="tablist" aria-label="Spielbereiche">
+    <button class="mtab" id="mtab-ort" type="button" role="tab" aria-selected="true">🏡 Abenteuer</button>
+    <button class="mtab" id="mtab-time" type="button" role="tab" aria-selected="false">⏳ Zeitdungeons</button>
+  </nav>
+
+  <!-- ORT -->
+  <section class="view" id="villageView">
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1 id="vName">Mondtal</h1>
+        <p class="sub" id="vSub"></p>
+      </div>
+      <div class="btns"><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button></div>
+    </header>
+    <div class="places" id="places" aria-label="Deine Orte"></div>
+    <div class="village" id="village" aria-label="Dein Ort bei Nacht"></div>
+    <p class="saved-line">Hier gerettet: <b id="savedHere">0</b> von 3 · Insgesamt: <b id="savedAll">0</b> Tiere · Sterne hier: <b id="starsHere">0</b>/3</p>
+    <div class="banner" id="banner" hidden>
+      <p id="bannerText"></p>
+      <button class="btn" id="travel" type="button">Weiterreisen</button>
+    </div>
+    <h2>Wohin geht die Reise?</h2>
+    <div class="trips" id="trips"></div>
+    <h2>Geheimaufgaben</h2>
+    <p class="sub" style="margin:0">Freiwillig: Erfülle alle drei, dann öffnet sich die versteckte Geheimstadt dieses Ortes.</p>
+    <div class="tasks" id="tasks"></div>
+    <button class="trip" id="secretBtn" type="button"></button>
+    <h2>Hexenhaus</h2>
+    <div class="two">
+      <button class="trip col" id="toGarden" type="button"><span class="ic" aria-hidden="true">🌱</span><span class="t"><strong>Kräutergarten</strong><span>Pflanzen, gießen, ernten</span></span></button>
+      <button class="trip col" id="toAlchemy" type="button"><span class="ic" aria-hidden="true">⚗️</span><span class="t"><strong>Alchemietisch</strong><span>Tränke brauen</span></span></button>
+    </div>
+    <button class="reset-all" id="resetAll" type="button">Spielstand zurücksetzen</button>
+  </section>
+
+  <!-- DUNGEON -->
+  <section class="view" id="dungeonView" hidden>
+    <div class="topbar">
+      <h1 id="dTitle">Der Dornenwald</h1>
+      <div class="btns"><button class="back" id="wikiFromDungeon" type="button" aria-label="Wiki öffnen">📖</button><button class="back" id="back" type="button">Zurück</button></div>
+    </div>
+    <div class="board">
+      <canvas id="c" width="420" height="600" aria-label="Spielfeld"></canvas>
+      <div class="win" id="win" hidden>
+        <div class="big" id="winIcon">🦊</div>
+        <h2 id="winTitle">Frei!</h2>
+        <p id="winText"></p>
+        <button class="btn" id="home" type="button">Zurück</button>
+      </div>
+      <div class="win" id="fail" hidden>
+        <div class="big">🌫️</div>
+        <h2>Der Nebel holt dich zurück</h2>
+        <p id="failText">Drei Versuche sind aufgebraucht. Ein sanfter Wind trägt dich zurück an den Anfang. Der Weg ist wieder verschlossen, aber du kennst ihn jetzt schon ein bisschen.</p>
+        <button class="btn" id="retry" type="button">Neu beginnen</button>
+        <button class="back" id="failHome" type="button">Zurück zum Ort</button>
+      </div>
+    </div>
+    <div class="dock" id="dock">
+      <div class="roles" id="roles" role="group" aria-label="Begleiter wählen"></div>
+      <div class="toggles">
+        <button class="chip tg" id="tgActs" type="button" aria-expanded="false" aria-controls="actBar"></button>
+        <button class="chip tg" id="tgPots" type="button" aria-expanded="false" aria-controls="potbar"></button>
+      </div>
+      <div class="acts-row" id="actBar" role="group" aria-label="Tierkräfte" hidden></div>
+      <div class="potbar" id="potbar" hidden></div>
+      <div class="dock-top"><p class="lives" id="lives" aria-live="polite"></p><p class="timer" id="timer" hidden></p></div>
+      <div class="msg" id="msg" aria-live="polite"></div>
+    </div>
+    <div class="potbar" id="teamBar"></div>
+    <p class="help">Wähle oben einen Begleiter und tippe dann auf ein Hindernis neben dir. Pass auf: Du hast 3 Versuche für falsche Begleiter. Am Computer: Pfeiltasten oder W A S D zum Laufen, 1 bis 7 für die Begleiter, K für Kräfte, T für Tränke. Ändern kannst du die Tasten im Wiki unter „Tastatur“.</p>
+  </section>
+
+  <!-- WIKI -->
+  <section class="view" id="wikiView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Das Wiki</h1>
+        <p class="sub">Alles über Begleiter, Hindernisse, Runen, Orte und Tiere.</p>
+      </div>
+      <button class="back" id="wikiBack" type="button">Zurück</button>
+    </header>
+    <nav class="wk-nav" aria-label="Wiki-Kapitel">
+      <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a>
+    </nav>
+    <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
+  </section>
+
+  <!-- TIERBUCH -->
+  <section class="view" id="beastView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Tierbuch</h1>
+        <p class="sub" id="beastSum"></p>
+      </div>
+      <button class="back" id="beastBack" type="button">Zurück</button>
+    </header>
+    <div class="msg" id="beastMsg" aria-live="polite">Nimm bis zu 3 gerettete Tiere als Gefährten mit. Ihre Fähigkeiten helfen dir in jedem Abenteuer.</div>
+    <h2 id="teamHead">Dein Team</h2>
+    <div class="bag" id="teamChips"></div>
+    <h2>Gerettete Tiere</h2>
+    <div class="wk-list" id="beastKnown"></div>
+    <h2>Noch zu entdecken</h2>
+    <div class="beasts" id="beastGrid"></div>
+    <p class="help">Unbekannte Tiere bleiben im Schatten, bis du sie rettest. Seltene Tiere warten in den großen Abenteuern der Hauptstädte und weiter oben.</p>
+  </section>
+
+  <!-- ZEITDUNGEONS -->
+  <section class="view" id="timeView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Zeitdungeons</h1>
+        <p class="sub">Erreiche die Zeitsanduhr, bevor sie abläuft. Je schneller, desto besser die Medaille.</p>
+      </div>
+    </header>
+    <div class="trips" id="timeList"></div>
+    <div class="wk-list">
+      <div class="wk-row"><span class="ic" aria-hidden="true">🥇</span><span class="t"><strong>Gold</strong><span>Mehr als die Hälfte der Zeit übrig: 3 Samen, einer davon sicher selten</span></span></div>
+      <div class="wk-row"><span class="ic" aria-hidden="true">🥈</span><span class="t"><strong>Silber</strong><span>Mehr als ein Viertel der Zeit übrig: 2 Samen</span></span></div>
+      <div class="wk-row"><span class="ic" aria-hidden="true">🥉</span><span class="t"><strong>Bronze</strong><span>Gerade noch geschafft: 1 Samen</span></span></div>
+    </div>
+    <p class="help">Jeder Zeitdungeon wird bei jedem Start neu gewürfelt. Deine 3 Herzen gelten auch hier, und bis zu 2 Tränke darfst du benutzen.</p>
+  </section>
+
+  <!-- MITSPIELER -->
+  <section class="view" id="socialView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Mitspieler</h1>
+        <p class="sub">Gruppen finden, Freunde treffen, chatten.</p>
+      </div>
+      <button class="back" id="socialBack" type="button">Zurück</button>
+    </header>
+    <div class="note" id="socNote" hidden></div>
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tab-lfg" type="button" role="tab" aria-selected="true">⚔️ Dungeonbrowser</button>
+      <button class="tab" id="tab-friends" type="button" role="tab" aria-selected="false">💛 Freunde<span id="reqBadge"></span></button>
+      <button class="tab" id="tab-chat" type="button" role="tab" aria-selected="false">💬 Chat</button>
+    </div>
+    <div class="msg" id="socMsg" aria-live="polite">Wähle eine Mission und lass dir automatisch Mitspieler suchen.</div>
+
+    <div class="pane" id="pane-lfg">
+      <div class="card">
+        <label for="mSel">Mission</label>
+        <select id="mSel"></select>
+        <label for="rSel">Deine Rolle</label>
+        <select id="rSel"></select>
+        <button class="btn" id="autoFind" type="button">Automatisch Gruppe finden</button>
+      </div>
+      <h2>Deine Gruppe</h2>
+      <div class="wk-list" id="myGroup"></div>
+      <h2>Offene Gruppen</h2>
+      <div class="wk-list" id="groupList"></div>
+      <h2>Gerade online</h2>
+      <div class="wk-list" id="onlineList"></div>
+    </div>
+
+    <div class="pane" id="pane-friends" hidden>
+      <div class="wk-list" id="friendList"></div>
+    </div>
+
+    <div class="pane" id="pane-chat" hidden>
+      <div class="bag" id="chatRooms"></div>
+      <div class="chatlog" id="chatLog"></div>
+      <form class="chatform" id="chatForm">
+        <input id="chatIn" maxlength="300" placeholder="Nachricht schreiben …" autocomplete="off" aria-label="Nachricht">
+        <button class="btn sm" type="submit">Senden</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- HEXENHAUS -->
+  <section class="view" id="houseView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad · Hexenhaus</p>
+        <h1>Garten und Alchemie</h1>
+        <p class="sub" id="hSub"></p>
+      </div>
+      <button class="back" id="houseBack" type="button">Zurück</button>
+    </header>
+    <div class="msg" id="hMsg" aria-live="polite"></div>
+    <section class="wk-sec" id="gardenSec">
+      <h2>🌱 Kräutergarten</h2>
+      <p>Wähle einen Samen, tippe auf ein leeres Beet, gieße dreimal und ernte zwei Kräuter.</p>
+      <div class="plots" id="plots"></div>
+      <h3>Deine Samen</h3>
+      <div class="bag" id="seedBag"></div>
+    </section>
+    <section class="wk-sec" id="alchSec">
+      <h2>⚗️ Alchemietisch</h2>
+      <p>Aus deinen Kräutern braust du Tränke. Im Abenteuer trinkst du sie über die Tränke-Leiste unter dem Spielfeld, höchstens 2 pro Abenteuer.</p>
+      <div class="cauldron-sticky">
+      <div class="cauldron-wrap" aria-hidden="true">
+        <div class="cauldron" id="cauldron">
+          <div class="brew"></div>
+          <div class="bubbles"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="steam"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="fire"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <p class="cauldron-cap" id="cauldronCap" aria-live="polite">Der Kessel blubbert leise und wartet auf Kräuter.</p>
+      </div>
+      <h3>Deine Kräuter</h3>
+      <div class="bag" id="herbBag"></div>
+      <h3>Rezepte</h3>
+      <div class="wk-list" id="recipes"></div>
+      <h3>Deine Tränke</h3>
+      <div class="bag" id="potBag"></div>
+    </section>
+  </section>
+  <div id="fxLayer" aria-hidden="true"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- Begleiter ---------- */
+const BASE_ROLES = [
+  { id: "schutz", ic: "🐻", nm: "Bruno", rl: "Beschützer" },
+  { id: "spur",   ic: "🦔", nm: "Pip",   rl: "Spurenleser" },
+  { id: "bau",    ic: "🦫", nm: "Holm",  rl: "Bastler" },
+  { id: "licht",  ic: "🦉", nm: "Luna",  rl: "Lichtmagier" },
+  { id: "heil",   ic: "✨", nm: "Du",    rl: "Heilerin" }
+];
+const PET_ROLES = [
+  { id: "fuchs", ic: "🦊", nm: "Funke", rl: "Schleicher", from: "wald" },
+  { id: "otter", ic: "🦦", nm: "Ole",   rl: "Taucher",    from: "see" }
+];
+const ROLE = Object.fromEntries([...BASE_ROLES, ...PET_ROLES].map(r => [r.id, r]));
+const RUNE = { schutz: "🛡️", spur: "🐾", bau: "🔨", licht: "☀️", fuchs: "🌾", otter: "💧" };
+const RUNE_ROLES = Object.keys(RUNE);
+let ROLES = BASE_ROLES.slice();
+
+/* ---------- Hindernisse ---------- */
+const OBST = {
+  T: { needs: ["schutz"], after: ".", hint: "Dichte Dornenranken. Jemand Starkes müsste sie zurückhalten …",
+       solve: ["<b>Bruno</b> stemmt sich gegen die Dornenranken und hält sie zur Seite. Der Weg ist frei."] },
+  H: { needs: ["spur"], after: ".", hint: "Im Nebel laufen viele Spuren durcheinander. Wer findet die richtige?",
+       solve: ["<b>Pip</b> schnuppert am Boden, findet die richtige Spur und führt dich sicher hindurch."] },
+  W: { needs: ["bau"], after: "B", hint: "Rauschendes Wasser. Ohne Brücke kommst du nicht hinüber.",
+       solve: ["<b>Holm</b> schleppt Äste heran und baut eine kleine Brücke."] },
+  D: { needs: ["licht"], after: ".", hint: "Eine Wand aus Schatten. Hier braucht es Licht.",
+       solve: ["<b>Luna</b> breitet die Flügel aus. Silbernes Licht vertreibt die Schatten."] },
+  R: { needs: ["schutz"], after: ".", hint: "Ein schwerer, moosiger Felsbrocken versperrt den Weg.",
+       solve: ["<b>Bruno</b> schiebt den Felsbrocken mit einem zufriedenen Brummen zur Seite."] },
+  N: { needs: ["licht", "spur"], after: ".", hint: "Dicker, kalter Nebel. Erst braucht es Licht, dann jemanden, der Spuren lesen kann.",
+       solve: ["<b>Luna</b> leuchtet in den Nebel. Jetzt sieht man Spuren, aber viele laufen durcheinander …",
+               "<b>Pip</b> findet die richtige Spur und führt dich sicher durch den Nebel."],
+       mid: "Im Licht sieht man viele Spuren durcheinander. Wer findet die richtige?" },
+  G: { needs: ["fuchs"], after: ".", hint: "Eine dichte Hecke mit einem winzigen Spalt. Da passt nur jemand Kleines und Flinkes durch.",
+       solve: ["<b>Funke</b> huscht durch den Spalt, zieht von innen am Riegel und die Heckentür schwingt auf."] },
+  U: { needs: ["otter"], after: "B", hint: "Ein tiefer Seerosenteich. Auf der anderen Seite schaukelt ein altes Floß.",
+       solve: ["<b>Ole</b> taucht hinüber und schiebt das Floß zu dir. Jetzt kommst du trocken ans andere Ufer."] },
+  X: { needs: ["licht", "spur", "bau"], after: ".", hint: "Ein uraltes Sterntor. Drei Sternsteine darauf sind erloschen. Vielleicht kann Licht helfen?",
+       solve: ["<b>Luna</b> leuchtet die Sternsteine an. Sie flackern, aber das Tor bleibt zu …",
+               "<b>Pip</b> entdeckt alte Zeichen im Moos: Die Steine müssen in der richtigen Reihenfolge gedreht werden!",
+               "<b>Holm</b> dreht die Steine. Klick, klick, klick … das Sterntor öffnet sich!"],
+       mid: "Die Sternsteine flackern. Hier braucht es jetzt noch mehr Hilfe." },
+  Z: { needs: ["heil"], animal: true, hint: "Ein Hirsch mit einem Geweih aus Sternenlicht, gefangen in einem Schattenkreis. Nur eine Heilerin kann ihn befreien.",
+       solve: ["Du gehst ganz langsam auf ihn zu. Dein Licht und das seines Geweihs fließen zusammen …"] },
+  F: { needs: ["heil"], animal: true, hint: "Der Fuchs ist in einem Dornenkreis gefangen. Nur eine Heilerin kann den Zauber lösen.",
+       solve: ["Du legst die Hände auf den Dornenkreis. Der Zauber zerfällt zu Glitzerstaub …"] },
+  O: { needs: ["heil"], animal: true, hint: "Ein kleiner Otter, eingefroren in schimmerndem Zaubereis. Nur eine Heilerin kann ihn befreien.",
+       solve: ["Deine Hände werden warm. Das Zaubereis schmilzt Tropfen für Tropfen …"] }
+};
+const BASIC = ["T", "H", "W", "D", "R", "G", "U"];
+
+/* ---------- Welt ---------- */
+const THEMES = {
+  wald:   { noun: "wald",   art: "Der", ic: "🌲", path: ["#2b3a33", "#34463d"], wall: "tree", spot: "Waldrand",   home: "im Wald" },
+  see:    { noun: "see",    art: "Der", ic: "🌫️", path: ["#2c3540", "#3a4552"], wall: "lake", spot: "Teich",      home: "am Teich" },
+  hoehle: { noun: "höhle",  art: "Die", ic: "🕯️", path: ["#2e2a33", "#3a3540"], wall: "rock", spot: "Felsen",     home: "in den Felsen" },
+  wiese:  { noun: "wiese",  art: "Die", ic: "🌙", path: ["#26352a", "#2f4133"], wall: "tree", spot: "Wiese",      home: "auf der Wiese" },
+  sumpf:  { noun: "sumpf",  art: "Der", ic: "🌿", path: ["#29342a", "#334033"], wall: "lake", spot: "Schilfufer", home: "am Schilfufer" },
+  ruine:  { noun: "ruine",  art: "Die", ic: "🏛️", path: ["#33323a", "#403e48"], wall: "rock", spot: "Alter Turm", home: "im alten Turm" },
+  gipfel: { noun: "gipfel", art: "Der", ic: "⛰️", path: ["#30343c", "#3c414b"], wall: "rock", spot: "Hügel",      home: "auf dem Hügel" }
+};
+const WALL_MSG = {
+  tree: "Alte, knorrige Bäume. Hier geht es nicht weiter.",
+  lake: "Tiefes, dunkles Wasser. Da schwimmst du lieber nicht hinein.",
+  rock: "Kalter, harter Fels. Hier geht es nicht weiter."
+};
+const TIERS = [
+  { name: "Dorf",         first: "",                          suf: ["tal", "bach", "au", "hain", "wiesen", "feld"], houses: 3 },
+  { name: "Stadt",        first: "deine erste Stadt",         suf: ["burg", "stedt", "brück", "hafen", "heim"],    houses: 6 },
+  { name: "Hauptstadt",   first: "deine erste Hauptstadt",    suf: ["krone", "feste", "thron", "glanz"],          houses: 8,  castle: true },
+  { name: "Sternenstadt", first: "deine erste Sternenstadt",  suf: ["licht", "stern", "schein"],                  houses: 9,  castle: true, glow: true },
+  { name: "Himmelsreich", first: "dein erstes Himmelsreich",  suf: ["himmel", "reich", "sphäre"],                 houses: 10, castle: true, glow: true }
+];
+const PREFIX = ["Stern", "Nebel", "Silber", "Moos", "Dämmer", "Eulen", "Farn", "Tau", "Glüh", "Wolken", "Kristall", "Laternen", "Mondschein", "Funken", "Birken", "Rosen"];
+const ANIMALS = [
+  ["🐇", "Hase", "Der Hase"], ["🐿️", "Eichhörnchen", "Das Eichhörnchen"], ["🦡", "Dachs", "Der Dachs"], ["🐢", "Schildkröte", "Die Schildkröte"],
+  ["🦢", "Schwan", "Der Schwan"], ["🐸", "Frosch", "Der Frosch"], ["🦝", "Waschbär", "Der Waschbär"], ["🐈", "Katze", "Die Katze"],
+  ["🐑", "Schaf", "Das Schaf"], ["🦋", "Schmetterling", "Der Schmetterling"], ["🐺", "Wolf", "Der Wolf"], ["🦅", "Adler", "Der Adler"],
+  ["🦚", "Pfau", "Der Pfau"], ["🦩", "Flamingo", "Der Flamingo"], ["🐼", "Panda", "Der Panda"], ["🐧", "Pinguin", "Der Pinguin"]
+];
+const RARE = [["🦄", "Einhorn", "Das Einhorn"], ["🐉", "Sterndrache", "Der Sterndrache"], ["🦁", "Löwe", "Der Löwe"], ["🐳", "Wolkenwal", "Der Wolkenwal"]];
+const ENCH = [["einem Dornenkreis", "#b48cf2"], ["schimmerndem Zaubereis", "#9fd8ff"], ["einem Schattenkreis", "#f2c76b"],
+  ["einem Netz aus Mondfäden", "#c9d3e6"], ["einem tiefen Zauberschlaf", "#e9a0c8"]];
+const MODES = ["Solo", "Zu zweit", "Zu fünft"];
+
+/* ---------- Kräuter und Tränke ---------- */
+const HERBS = {
+  mond:  { ic: "🌿", nm: "Mondkraut",    from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
+  tau:   { ic: "🍃", nm: "Tauwurz",      from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
+  stern: { ic: "🌼", nm: "Sternblume",   from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
+  sonne: { ic: "🌻", nm: "Sonnenkraut",  from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
+  tulpe: { ic: "🌷", nm: "Mondtulpe",    from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
+  pilz:  { ic: "🍄", nm: "Glühpilz",     from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte, Geheimstädte" },
+  kleeb: { ic: "🍀", nm: "Glücksklee",   from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte" },
+  feuer: { ic: "🌺", nm: "Feuerblüte",   from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte" },
+  beere: { ic: "🫐", nm: "Nebelbeere",   from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte" },
+  rose:  { ic: "🌹", nm: "Nebelrose",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
+  klee:  { ic: "☘️", nm: "Kristallklee", from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
+  frost: { ic: "❄️", nm: "Frostfarn",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
+  moos:  { ic: "🌟", nm: "Sternmoos",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true }
+};
+const POTIONS = {
+  gluck: { ic: "🍵", nm: "Glückstee",        eff: "Der nächste falsche Begleiter kostet kein Herz.", need: { mond: 1, tau: 1 } },
+  spur:  { ic: "🔮", nm: "Spürsinn-Elixier", eff: "Zeigt in diesem Abenteuer über jedem Hindernis, wer helfen kann.", need: { stern: 1, tau: 1 } },
+  herz:  { ic: "💛", nm: "Herztrank",        eff: "Schenkt dir ein weiteres Leben, auch über 3 Herzen hinaus.", need: { mond: 3, pilz: 2, rose: 2 }, rare: true },
+  nebel: { ic: "🌫️", nm: "Nebelflug-Trank",  eff: "Das nächste Hindernis öffnet sich ganz ohne Begleiter.", need: { klee: 2, rose: 2, stern: 3 }, rare: true },
+  sonnen: { ic: "🌞", nm: "Sonnentrunk",     eff: "Deine Laterne leuchtet in diesem Abenteuer viel weiter.", need: { sonne: 1, tau: 1 } },
+  tulpen: { ic: "🌸", nm: "Tulpentau",       eff: "Jeder Samenfund in diesem Abenteuer gibt doppelt so viele Samen.", need: { tulpe: 1, mond: 1 } },
+  kleeg:  { ic: "🍀", nm: "Kleeglückstrank", eff: "Am Ende dieses Abenteuers gibt es doppelt so viele Belohnungs-Samen.", need: { kleeb: 1, stern: 1 } },
+  feuerel:{ ic: "🔥", nm: "Feuerelixier",    eff: "Verbrennt sofort alle Dornenranken in diesem Abenteuer.", need: { feuer: 1, pilz: 1 } },
+  beeren: { ic: "🧃", nm: "Beerenkraft",     eff: "Heilt ein verlorenes Herz (bis zu 3 Herzen).", need: { beere: 1, mond: 1 } },
+  voll:  { ic: "💖", nm: "Vollherz-Trank",   eff: "Füllt alle verlorenen Herzen wieder auf.", need: { klee: 3, pilz: 2, mond: 3 }, rare: true },
+  frostat:{ ic: "🧊", nm: "Frostatem",       eff: "Friert alles Wasser ein: Bäche und Teiche werden sofort zu Wegen.", need: { frost: 2, beere: 2, klee: 2 }, rare: true },
+  sterne: { ic: "💫", nm: "Sternenelixier",  eff: "Alle verwunschenen Felder in diesem Abenteuer öffnen sich sofort.", need: { moos: 2, rose: 2, sonne: 3 }, rare: true },
+  regen:  { ic: "🌈", nm: "Regenbogentrank", eff: "Zwei Extra-Herzen und Schutz vor dem nächsten Fehler.", need: { moos: 2, frost: 2, feuer: 2, kleeb: 2 }, rare: true }
+};
+const BASIC_RECIPES = ["gluck", "spur", "sonnen", "tulpen", "kleeg", "feuerel", "beeren"];
+const RARE_ORDER = ["herz", "nebel", "voll", "frostat", "sterne", "regen"];
+const SEED_POOL = ["mond", "mond", "tau", "tau", "stern", "stern", "sonne", "sonne", "tulpe", "tulpe", "pilz", "kleeb", "feuer", "beere"];
+const RARE_SEEDS = ["rose", "klee", "frost", "moos"];
+const rollSeed = () => SEED_POOL[Math.floor(Math.random() * SEED_POOL.length)];
+// Zufälliger Fund: meist normale Samen, manchmal selten
+const rollDrop = (rare = 0.1) => Math.random() < rare ? RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)] : rollSeed();
+const SECRET_NAMES = ["Nebelhort", "Schattenkrone", "Mondgruft", "Sternenkeller", "Silberschlund", "Dämmerhallen", "Eulenschlucht", "Kristallgrotte"];
+
+const MONDTAL = [
+  { id: "wald", name: "Der Dornenwald", ic: "🌲", theme: "wald", wall: "tree", mode: 0, gen: { count: 3, tier: 0 }, fixedFirst: true, animalTile: "F", animal: "🦊", animalName: "Fuchs", who: "Der Fuchs",
+    home: "am Waldrand", spot: "Waldrand", desc: "Ein verzauberter Fuchs, Dornen und Schatten.",
+    intro: "Ein kleiner Fuchs ist tief im Wald verzaubert worden. <b>Tippe auf ein Feld neben dir</b>, um zu laufen.",
+    map: ["#####F#", "#####.#", "#####D#", "#..W..#", "#H#####", "#.#####", "#...###", "###T###", "###.###", "###P###"] },
+  { id: "see", name: "Der Nebelsee", ic: "🌫️", theme: "see", wall: "tree", mode: 1, gen: { count: 4, tier: 0 }, fixedFirst: true, animalTile: "O", animal: "🦦", animalName: "Otter", who: "Der Otter",
+    home: "am Dorfteich", spot: "Dorfteich", desc: "Ein eingefrorener Otter hinter dichtem Nebel.",
+    intro: "Über dem See liegt ein seltsamer Nebel. Irgendwo dort draußen ist ein Otter gefangen. <b>Tippe auf ein Feld neben dir</b>, um zu laufen.",
+    map: ["~~O~~~~", "~~N~~~~", "#~.~~~#", "#~H~.~#", "#~...~#", "#~~W~~#", "#~~.~~#", "###R###", "###.###", "###P###"] },
+  { id: "wiese", name: "Die Sternwiese", ic: "🌙", theme: "wiese", wall: "tree", mode: 2, gen: { count: 6, tier: 0 }, fixedFirst: true, animalTile: "Z", animal: "🦌", animalName: "Hirsch", who: "Der Sternenhirsch",
+    home: "auf der Wiese", spot: "Wiese", requires: ["wald", "see"],
+    desc: "Der Wächter des Waldes. Du brauchst alle deine Begleiter.",
+    lockedDesc: "Rette zuerst Fuchs und Otter. Ihre Fähigkeiten brauchst du hier.",
+    intro: "Über der Sternwiese funkelt der Himmel. Ganz oben wartet der Sternenhirsch. Heute brauchst du <b>alle</b> deine Begleiter, auch Funke und Ole!",
+    map: ["#Z#####", "#X#####", "#.....#", "#####G#", "#.....#", "#U#####", "#.#####", "#...T.#", "#####.#", "#####P#"] }
+];
+
+function rngFor(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
+const tierOf = n => Math.min(Math.floor((n - 1) / 3), TIERS.length - 1);
+
+// Weg vom Start (unten) zum Tier (oben): abwechselnd Gänge und einzelne Durchgänge, ohne Abkürzungen
+function genMap(rng) {
+  const g = Array.from({ length: 10 }, () => Array(7).fill("#"));
+  const path = [];
+  let x = 1 + Math.floor(rng() * 5);
+  g[9][x] = "P"; path.push([x, 9]);
+  g[8][x] = "."; path.push([x, 8]);
+  for (let r = 7; r >= 1; r -= 2) {
+    let nx; do { nx = 1 + Math.floor(rng() * 5); } while (nx === x && rng() < 0.85);
+    const step = nx > x ? 1 : -1;
+    g[r][x] = "."; path.push([x, r]);
+    for (let cx = x; cx !== nx;) { cx += step; g[r][cx] = "."; path.push([cx, r]); }
+    x = nx;
+    if (r > 1) { g[r - 1][x] = "."; path.push([x, r - 1]); }
+  }
+  g[0][x] = "A"; path.push([x, 0]);
+  return { g, path };
+}
+
+function genLevel(n, i, tier, rng, used) {
+  const tk = pick(rng, Object.keys(THEMES)), th = THEMES[tk];
+  const name = `${th.art} ${pick(rng, PREFIX)}${th.noun}`;
+  const pool = i === 2 && tier >= 2 ? RARE : ANIMALS;
+  let a, guard = 0; do { a = pick(rng, pool); } while (used.has(a[1]) && guard++ < 30); used.add(a[1]);
+  const [ench, ring] = pick(rng, ENCH);
+  const { g, path } = genMap(rng);
+  const count = Math.min(3 + Math.floor(n / 2) + i, 10);
+  const cand = []; for (let k = 1; k < path.length - 1; k++) cand.push(k);
+  for (let k = cand.length - 1; k > 0; k--) { const j = Math.floor(rng() * (k + 1)); [cand[k], cand[j]] = [cand[j], cand[k]]; }
+  const chosen = cand.slice(0, Math.min(count, cand.length));
+  const custom = {}, multiP = Math.min(0.15 + 0.12 * tier, 0.6);
+  chosen.forEach(k => {
+    const [x, y] = path[k];
+    let t = rng() < multiP ? pick(rng, tier >= 1 ? ["N", "X", "Q", "Q"] : ["N", "Q"]) : pick(rng, BASIC);
+    if (t === "Q") {
+      const len = 2 + Math.min(tier, 2), seq = [];
+      while (seq.length < len) { const r = pick(rng, RUNE_ROLES); if (r !== seq[seq.length - 1]) seq.push(r); }
+      custom[x + "," + y] = seq;
+    }
+    g[y][x] = t;
+  });
+  const who = a[2], whoL = who[0].toLowerCase() + who.slice(1);
+  return {
+    id: `${n}-${i}`, name, ic: th.ic, theme: tk, wall: th.wall, mode: i,
+    animal: a[0], animalName: a[1], who, home: th.home, spot: th.spot,
+    requires: i === 2 ? [`${n}-0`, `${n}-1`] : null,
+    desc: `${a[1]} retten · jedes Mal ein neuer Weg`,
+    lockedDesc: "Rette zuerst die anderen beiden Tiere hier.",
+    intro: `${name}: Irgendwo hier ist ${whoL} gefangen. <b>Tippe auf ein Feld neben dir</b>, um zu laufen.`,
+    animalHint: `${who} ist gefangen in ${ench}. Nur eine Heilerin kann den Zauber lösen.`,
+    ring, map: g.map(r => r.join("")), custom, gen: { count: chosen.length, tier }
+  };
+}
+
+// Irrgarten mit mehreren Wegen zum Ziel (Labyrinth mit Schleifen)
+function genMaze(rng) {
+  const g = Array.from({ length: 10 }, () => Array(7).fill("#"));
+  const CX = [1, 3, 5], CY = [1, 3, 5, 7, 9], seen = new Set(), key = (i, j) => i + "," + j;
+  const open = (x, y) => { if (g[y][x] === "#") g[y][x] = "."; };
+  const st0 = [Math.floor(rng() * 3), 4], stack = [st0]; seen.add(key(...st0)); open(CX[st0[0]], CY[4]);
+  while (stack.length) {
+    const [i, j] = stack[stack.length - 1];
+    const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([a, b]) => [i + a, j + b]).filter(([a, b]) => a >= 0 && a < 3 && b >= 0 && b < 5 && !seen.has(key(a, b)));
+    if (!nb.length) { stack.pop(); continue; }
+    const [a, b] = nb[Math.floor(rng() * nb.length)];
+    seen.add(key(a, b)); open(CX[a], CY[b]); open((CX[i] + CX[a]) / 2, (CY[j] + CY[b]) / 2); stack.push([a, b]);
+  }
+  // zusätzliche Verbindungen: so entstehen mehrere Wege
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 5; j++) {
+    if (i < 2 && g[CY[j]][CX[i] + 1] === "#" && rng() < 0.45) g[CY[j]][CX[i] + 1] = ".";
+    if (j < 4 && g[CY[j] + 1][CX[i]] === "#" && rng() < 0.45) g[CY[j] + 1][CX[i]] = ".";
+  }
+  const sx = CX[Math.floor(rng() * 3)], gx = CX[Math.floor(rng() * 3)];
+  g[9][sx] = "P"; g[0][gx] = "A";
+  const opens = [];
+  for (let y = 0; y < 10; y++) for (let x = 0; x < 7; x++) if (g[y][x] === ".") opens.push([x, y]);
+  for (let k = opens.length - 1; k > 0; k--) { const j = Math.floor(rng() * (k + 1)); [opens[k], opens[j]] = [opens[j], opens[k]]; }
+  return { g, path: [[sx, 9], ...opens, [gx, 0]] };
+}
+
+// Bei jedem Betreten ein neuer Weg mit neuen Hindernissen, nur mit Begleitern, die man schon hat
+function randomMap(l) {
+  const rng = rngFor(Math.floor(Math.random() * 2147483647));
+  const avail = new Set(ROLES.map(r => r.id)), p = l.gen, tier = p.tier;
+  const basic = BASIC.filter(t => OBST[t].needs.every(r => avail.has(r)));
+  const runeRoles = RUNE_ROLES.filter(r => avail.has(r));
+  const { g, path } = p.maze ? genMaze(rng) : genMap(rng);
+  if (l.animalTile) { const [ax, ay] = path[path.length - 1]; g[ay][ax] = l.animalTile; }
+  const cand = []; for (let k = 1; k < path.length - 1; k++) cand.push(k);
+  for (let k = cand.length - 1; k > 0; k--) { const j = Math.floor(rng() * (k + 1)); [cand[k], cand[j]] = [cand[j], cand[k]]; }
+  const chosen = p.secret ? cand.filter(() => rng() >= 0.2) : cand.slice(0, Math.min(p.count, cand.length));
+  const multiP = p.multiP != null ? p.multiP : p.secret ? 0.7 : Math.min(0.15 + 0.12 * tier, 0.6);
+  const multiPool = p.secret ? ["N", "X", "Q", "Q", "Q"] : tier >= 1 ? ["N", "X", "Q", "Q"] : ["N", "Q"];
+  const custom = {};
+  chosen.forEach(k => {
+    const [x, y] = path[k];
+    const t = rng() < multiP ? pick(rng, multiPool) : pick(rng, basic);
+    if (t === "Q") {
+      const len = (p.secret ? 3 : 2) + Math.min(tier, 2), seq = [];
+      while (seq.length < len) { const r = pick(rng, runeRoles); if (r !== seq[seq.length - 1]) seq.push(r); }
+      custom[x + "," + y] = seq;
+    }
+    g[y][x] = t;
+  });
+  return { map: g.map(r => r.join("")), custom };
+}
+
+const settlements = {};
+function getSettlement(n) {
+  if (settlements[n]) return settlements[n];
+  let s;
+  if (n === 1) s = { n, name: "Mondtal", tier: 0, levels: MONDTAL };
+  else {
+    const rng = rngFor(n * 9973 + 17), tier = tierOf(n), used = new Set();
+    const name = pick(rng, PREFIX) + pick(rng, TIERS[tier].suf);
+    s = { n, name, tier, levels: [0, 1, 2].map(i => genLevel(n, i, tier, rng, used)) };
+  }
+  return (settlements[n] = s);
+}
+
+/* ---------- Spielstand (nur in diesem Browser) ---------- */
+const KEY = "nebelpfad-v1", KEY_CUR = "nebelpfad-ort";
+let rescued = {};
+try { rescued = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { rescued = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(rescued)); localStorage.setItem(KEY_CUR, String(cur)); } catch (e) {} };
+const isDone = s => s.levels.every(l => rescued[l.id]);
+const isLocked = l => l.requires && !l.requires.every(r => rescued[r]);
+function unlockedMax() { let n = 1; while (isDone(getSettlement(n))) n++; return n; }
+let cur = 1;
+try { cur = parseInt(localStorage.getItem(KEY_CUR) || "1", 10) || 1; } catch (e) {}
+cur = Math.max(1, Math.min(cur, unlockedMax()));
+
+// Hexenhaus-Spielstand
+const KEY_H = "nebelpfad-haus";
+const defaultH = () => ({ v: 1, v2: true, seeds: { mond: 3, tau: 3, stern: 2, pilz: 1, sonne: 2, tulpe: 2, kleeb: 1 }, herbs: {}, potions: {}, recipes: BASIC_RECIPES.slice(),
+  plots: Array(9).fill(null), stats: {}, secret: {} });
+let H = null;
+try { H = JSON.parse(localStorage.getItem(KEY_H) || "null"); } catch (e) { H = null; }
+if (!H || !H.v) H = defaultH();
+// Neue Kräuter und Rezepte auch für bestehende Spielstände
+if (!H.v2) {
+  H.v2 = true;
+  BASIC_RECIPES.forEach(r => { if (!H.recipes.includes(r)) H.recipes.push(r); });
+  H.seeds.sonne = (H.seeds.sonne || 0) + 2; H.seeds.tulpe = (H.seeds.tulpe || 0) + 2; H.seeds.kleeb = (H.seeds.kleeb || 0) + 1;
+}
+while (H.plots.length < 9) H.plots.push(null);
+const saveH = () => { try { localStorage.setItem(KEY_H, JSON.stringify(H)); } catch (e) {} };
+const add = (bag, k, n = 1) => { bag[k] = (bag[k] || 0) + n; if (bag[k] <= 0) delete bag[k]; };
+const statsOf = n => H.stats[n] || (H.stats[n] = { perfect: false, harvest: 0, brew: 0 });
+
+/* ---------- Geheimaufgaben und Geheimstädte ---------- */
+function tasksOf(s) {
+  const st = statsOf(s.n), hv = 3 + s.n, bw = 1 + Math.floor(s.n / 2);
+  const all = {
+    rescue:  { txt: `Rette alle drei Tiere in ${s.name}`, done: isDone(s), prog: `${s.levels.filter(l => rescued[l.id]).length}/3` },
+    perfect: { txt: "Schaffe ein Abenteuer hier, ohne ein Herz zu verlieren", done: !!st.perfect, prog: st.perfect ? "1/1" : "0/1" },
+    harvest: { txt: `Ernte ${hv} Kräuter im Garten, während du hier bist`, done: st.harvest >= hv, prog: `${Math.min(st.harvest, hv)}/${hv}` },
+    brew:    { txt: `Braue ${bw} ${bw === 1 ? "Trank" : "Tränke"} am Alchemietisch, während du hier bist`, done: st.brew >= bw, prog: `${Math.min(st.brew, bw)}/${bw}` }
+  };
+  const rng = rngFor(s.n * 577 + 3), opts = ["perfect", "harvest", "brew"], drop = opts[Math.floor(rng() * 3)];
+  return ["rescue", ...opts.filter(o => o !== drop)].map(id => ({ id, ...all[id] }));
+}
+const secretOpen = s => tasksOf(s).every(t => t.done);
+
+const superCache = {};
+function getSuper(n) {
+  if (superCache[n]) return superCache[n];
+  const rng = rngFor(n * 7919 + 5), tier = tierOf(n), keys = Object.keys(THEMES), tk = pick(rng, keys), th = THEMES[tk];
+  const name = "Irrgarten " + pick(rng, SECRET_NAMES);
+  return (superCache[n] = {
+    id: `x${n}`, superD: true, name, ic: "🌀", theme: tk, wall: th.wall, mode: 2, map: [],
+    animal: "💎", animalName: "Kristallherz", who: "Das Kristallherz", ring: "#9fe4ff",
+    gen: { maze: true, count: Math.min(14 + tier * 2, 22), tier: Math.min(tier + 2, 4), multiP: 0.55 },
+    intro: `${name}: <b>Superschwer!</b> Viele Wege führen durch den Irrgarten, und überall warten Hindernisse. Finde den besten Weg zum Kristallherz.`,
+    animalHint: "Das Kristallherz, eingeschlossen in einem Zauber. Nur deine heilenden Hände können es befreien."
+  });
+}
+function superWin() {
+  done = true;
+  const s = getSettlement(cur); H.superDone = H.superDone || {};
+  const first = !H.superDone[s.n]; H.superDone[s.n] = true;
+  const seeds = [0, 1, 2].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
+  seeds.forEach(k => add(H.seeds, k)); if (first) add(H.potions, "voll"); saveH();
+  $("winIcon").textContent = "💎";
+  $("winTitle").textContent = `${level.name} bezwungen!`;
+  $("winText").innerHTML = (first ? `🏆 Das Meisterabzeichen von ${s.name} gehört dir!<br><br>` : "Du hast den Irrgarten wieder bezwungen.<br><br>")
+    + `🎁 Belohnung: ${seeds.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als seltene Samen${first ? ", dazu ein 💖 Vollherz-Trank" : ""}.`;
+  $("home").textContent = `Zurück nach ${s.name}`;
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+}
+const secretCache = {};
+function getSecret(n) {
+  if (secretCache[n]) return secretCache[n];
+  const rng = rngFor(n * 4241 + 99), tier = Math.min(tierOf(n) + 1, TIERS.length - 1);
+  const tk = pick(rng, ["hoehle", "ruine", "sumpf", "gipfel"]), th = THEMES[tk];
+  const name = "Geheimstadt " + pick(rng, SECRET_NAMES);
+  const { g, path } = genMap(rng), custom = {};
+  for (let k = 1; k < path.length - 1; k++) {
+    if (rng() < 0.2) continue;
+    const [x, y] = path[k];
+    const t = rng() < 0.7 ? pick(rng, ["N", "X", "Q", "Q", "Q"]) : pick(rng, BASIC);
+    if (t === "Q") {
+      const len = 3 + Math.min(tier, 2), seq = [];
+      while (seq.length < len) { const r = pick(rng, RUNE_ROLES); if (r !== seq[seq.length - 1]) seq.push(r); }
+      custom[x + "," + y] = seq;
+    }
+    g[y][x] = t;
+  }
+  return (secretCache[n] = {
+    id: `g${n}`, secret: true, name, ic: "🗝️", theme: tk, wall: th.wall, mode: 2,
+    animal: "📜", animalName: "Rezeptrolle", who: "Die Rezeptrolle", ring: "#f2c76b",
+    intro: `${name}: Tief unter dem Ort liegt eine vergessene Stadt. Hier ist es <b>richtig schwer</b>. Ganz am Ende wartet eine alte Rezeptrolle.`,
+    animalHint: "Eine uralte Rezeptrolle, verschlossen mit einem Zaubersiegel. Nur deine heilenden Hände können es öffnen.",
+    map: g.map(r => r.join("")), custom, gen: { tier, secret: true }
+  });
+}
+
+/* ---------- Ort ---------- */
+function drawVillage(s) {
+  const T = TIERS[s.tier], rng = rngFor(s.n * 31 + 5), v = $("village");
+  v.style.setProperty("--sky1", ["#0d1426", "#101630", "#161437", "#1c1240", "#22104a"][s.tier]);
+  v.style.setProperty("--sky2", ["#17213a", "#1b2442", "#221f4a", "#2a1d55", "#331c60"][s.tier]);
+  let h = `<div class="moon"></div>`;
+  for (let i = 0; i < 28; i++) h += `<i class="star" style="left:${(rng() * 96 + 2).toFixed(1)}%;top:${(rng() * 38 + 2).toFixed(1)}%"></i>`;
+  if (T.glow) for (let i = 0; i < 9; i++) h += `<i class="float" style="left:${(rng() * 90 + 5).toFixed(1)}%;top:${(rng() * 30 + 18).toFixed(1)}%;animation-delay:${(rng() * 4).toFixed(1)}s"></i>`;
+  h += `<div class="ground" style="left:-5%;width:45%;background:#1d3a2a"></div>
+        <div class="ground" style="left:33%;width:38%;background:#1a3048;height:22%"></div>
+        <div class="ground" style="left:64%;width:42%;background:#24331f"></div>`;
+  const spans = T.castle ? [[2, 35], [65, 98]] : [[4, 96]];
+  const per = Math.ceil(T.houses / spans.length);
+  spans.forEach(([a, b]) => {
+    const step = (b - a) / per;
+    for (let i = 0; i < per; i++) {
+      const tower = s.tier >= 1 && rng() < 0.35;
+      const w = tower ? Math.min(step * .55, 6) : Math.min(step * .8, 13);
+      const left = a + step * i + (step - w) / 2;
+      h += `<div class="house${tower ? " tower" : ""}${T.glow && tower ? " gold" : ""}" style="left:${left.toFixed(1)}%;width:${w.toFixed(1)}%"></div>`;
+    }
+  });
+  if (T.castle) {
+    h += `<div class="house tower${T.glow ? " gold" : ""}" style="left:37%;width:6%"></div>
+          <div class="keep" style="left:42%;width:16%"></div>
+          <div class="house tower${T.glow ? " gold" : ""}" style="left:57%;width:6%"></div>`;
+  }
+  ["2%", "35%", "68%"].forEach((pos, i) => {
+    const l = s.levels[i], has = rescued[l.id];
+    h += `<div class="spot" style="left:${pos}"><div class="a ${has ? "" : "locked"}" aria-hidden="true">${l.animal}</div>
+          <div class="l">${has ? `<b>${l.animalName}</b>` : "noch leer"}<br>${l.spot}</div></div>`;
+  });
+  if (H.starOrt && H.starOrt[s.n]) h += `<div class="bigstar" title="Alle Sterne geholt" aria-hidden="true">🌟</div>`;
+  v.innerHTML = h;
+}
+
+function renderVillage() {
+  const s = getSettlement(cur), T = TIERS[s.tier];
+  $("vName").textContent = s.name;
+  $("vSub").textContent = `${T.name} · Ort ${s.n}. Jedes Tier, das du rettest, findet hier ein Zuhause.`;
+
+  const max = unlockedMax(), pl = $("places"); pl.innerHTML = "";
+  for (let n = 1; n <= max; n++) {
+    const p = getSettlement(n), b = document.createElement("button");
+    b.type = "button"; b.className = "place"; b.id = "place-" + n;
+    b.innerHTML = `${H.starOrt && H.starOrt[n] ? "🌟 " : ""}${p.name} <small>${TIERS[p.tier].name}</small>`;
+    b.setAttribute("aria-current", String(n === cur));
+    b.addEventListener("click", () => { cur = n; save(); renderVillage(); });
+    pl.appendChild(b);
+  }
+  const lk = document.createElement("span"); lk.className = "place locked"; lk.textContent = "🔒 ???"; pl.appendChild(lk);
+  const act = $("place-" + cur); if (act) pl.scrollLeft = act.offsetLeft - 20;
+
+  drawVillage(s);
+  $("savedHere").textContent = s.levels.filter(l => rescued[l.id]).length;
+  $("savedAll").textContent = Object.keys(rescued).length;
+  $("starsHere").textContent = s.levels.filter(l => H.stars && H.stars[l.id]).length + (H.starOrt && H.starOrt[s.n] ? " 🌟" : "");
+
+  if (isDone(s)) {
+    const nx = getSettlement(s.n + 1);
+    $("bannerText").innerHTML = `Alle Tiere in ${s.name} sind gerettet! Ein neuer Weg ist frei: <b>${nx.name}</b> (${TIERS[nx.tier].name}).`;
+    $("travel").textContent = `Weiterreisen nach ${nx.name}`;
+    $("banner").hidden = false;
+  } else $("banner").hidden = true;
+
+  const tr = $("trips"); tr.innerHTML = "";
+  s.levels.forEach(l => {
+    const locked = isLocked(l), b = document.createElement("button");
+    b.type = "button"; b.className = "trip" + (locked ? " is-locked" : ""); b.id = "trip-" + l.id;
+    const st = locked ? `<span class="st">🔒</span>` : rescued[l.id] ? `<span class="st ok">${H.stars && H.stars[l.id] ? "⭐ " : ""}gerettet</span>` : `<span class="st">offen</span>`;
+    b.innerHTML = `<span class="ic" aria-hidden="true">${l.ic}</span><span class="t"><strong>${l.name}</strong><span>${MODES[l.mode]} · ${locked ? l.lockedDesc : l.desc}</span></span>${st}`;
+    b.addEventListener("click", () => { if (!locked) startLevel(l); });
+    tr.appendChild(b);
+  });
+
+  // Superschwerer Irrgarten: öffnet sich, wenn alle drei Tiere hier gerettet sind
+  const sup = getSuper(s.n), supOpen = isDone(s), sb2 = document.createElement("button");
+  sb2.type = "button"; sb2.className = "trip" + (supOpen ? " secret" : " is-locked"); sb2.id = "trip-super";
+  const stS = !supOpen ? `<span class="st">🔒</span>` : H.superDone && H.superDone[s.n] ? `<span class="st ok">🏆 geschafft</span>` : `<span class="st">offen</span>`;
+  sb2.innerHTML = `<span class="ic" aria-hidden="true">🌀</span><span class="t"><strong>${sup.name}</strong><span>Superschwer · ${supOpen ? "ein Irrgarten mit mehreren Wegen, am Ende wartet das Kristallherz 💎" : "öffnet sich, wenn alle drei Tiere hier gerettet sind"}</span></span>${stS}`;
+  sb2.addEventListener("click", () => { if (supOpen) startLevel(sup); });
+  tr.appendChild(sb2);
+
+  const tasks = tasksOf(s), open = tasks.every(t => t.done), sec = getSecret(s.n);
+  $("tasks").innerHTML = tasks.map(t => `<div class="task${t.done ? " ok" : ""}"><span class="ck" aria-hidden="true">${t.done ? "✓" : ""}</span><span class="tt">${t.txt}</span><span class="pg">${t.prog}</span></div>`).join("");
+  const sb = $("secretBtn");
+  sb.className = "trip" + (open ? " secret" : " is-locked");
+  const st2 = !open ? `<span class="st">🔒</span>` : H.secret[s.n] ? `<span class="st ok">${H.stars && H.stars[sec.id] ? "⭐ " : ""}geschafft</span>` : `<span class="st">offen</span>`;
+  sb.innerHTML = `<span class="ic" aria-hidden="true">🗝️</span><span class="t"><strong>${sec.name}</strong><span>${open ? "Freiwillig und richtig schwer. Am Ende wartet ein seltenes Rezept." : "Erfülle alle drei Geheimaufgaben, um sie zu öffnen."}</span></span>${st2}`;
+  sb.onclick = () => { if (open) startLevel(sec); };
+}
+$("travel").addEventListener("click", () => { cur = getSettlement(cur).n + 1; save(); renderVillage(); scrollTo(0, 0); });
+$("resetAll").addEventListener("click", () => { rescued = {}; cur = 1; save(); H = defaultH(); saveH(); renderVillage(); });
+
+function show(id) {
+  if (id !== "dungeonView") stopTimer();
+  $("mainTabs").hidden = !(id === "villageView" || id === "timeView");
+  $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0); }
+function showVillage() { renderVillage(); show("villageView"); }
+function showDungeon() { show("dungeonView"); if (level && level.timed && !done) startTimer(); }
+
+/* ---------- Zeitdungeons ---------- */
+const TIME_MODES = [
+  { id: "leicht", ic: "🌱", nm: "Leicht", limit: 100, gen: { count: 7, tier: 0, maze: true } },
+  { id: "mittel", ic: "🔥", nm: "Mittel", limit: 90, gen: { count: 10, tier: 1, maze: true } },
+  { id: "schwer", ic: "🌙", nm: "Schwer", limit: 80, gen: { count: 13, tier: 2, maze: true } }
+];
+const FAIL_HEARTS = "Drei Versuche sind aufgebraucht. Ein sanfter Wind trägt dich zurück an den Anfang. Der Weg ist wieder verschlossen, aber du kennst ihn jetzt schon ein bisschen.";
+let timeLeft = 0, timerId = null, timerEnd = 0;
+function startTimer() {
+  if (timerId) clearInterval(timerId);
+  timerEnd = Date.now() + timeLeft * 1000; timerId = setInterval(tick, 100); tick();
+}
+function stopTimer() {
+  if (!timerId) return;
+  clearInterval(timerId); timerId = null; timeLeft = Math.max(0, (timerEnd - Date.now()) / 1000);
+}
+function tick() {
+  timeLeft = Math.max(0, (timerEnd - Date.now()) / 1000);
+  const s = Math.ceil(timeLeft);
+  $("timer").textContent = `⏳ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  $("timer").classList.toggle("low", s <= 10);
+  if (timeLeft <= 0 && !done) {
+    stopTimer(); done = true;
+    say("⏳ Die Sanduhr ist abgelaufen …");
+    $("failText").textContent = "Die Sanduhr ist abgelaufen. Der Nebel trägt dich sanft zurück. Versuch es gleich noch einmal, der Weg wird neu gewürfelt.";
+    setTimeout(() => { $("fail").hidden = false; }, reduce ? 0 : 400);
+  }
+}
+function showTime() {
+  const box = $("timeList"); box.innerHTML = "";
+  TIME_MODES.forEach(m => {
+    const best = (H.timeBest || {})[m.id], b = document.createElement("button");
+    b.type = "button"; b.className = "trip"; b.id = "time-" + m.id;
+    b.innerHTML = `<span class="ic" aria-hidden="true">${m.ic}</span><span class="t"><strong>${m.nm}</strong><span>${m.limit} Sekunden · ${best ? `Bestzeit ${best.t.toFixed(1).replace(".", ",")} s ${best.medal}` : "noch keine Zeit"}</span></span><span class="st">Start</span>`;
+    b.addEventListener("click", () => openTime(m));
+    box.appendChild(b);
+  });
+  show("timeView");
+}
+function openTime(m) {
+  const keys = Object.keys(THEMES), tk = keys[Math.floor(Math.random() * keys.length)], th = THEMES[tk];
+  startLevel({
+    id: "t-" + m.id, timed: true, limit: m.limit, tm: m, mode: 0, gen: m.gen,
+    name: `${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: "⏳", theme: tk, wall: th.wall,
+    animal: "⏳", animalName: "Zeitsanduhr", who: "Die Zeitsanduhr", ring: "#9fd8ff",
+    intro: `⏳ <b>Zeitdungeon ${m.nm}:</b> Erreiche die Zeitsanduhr in ${m.limit} Sekunden! <b>Tippe auf ein Feld neben dir</b>, um zu laufen.`,
+    animalHint: "Die Zeitsanduhr, umhüllt von einem Zauber. Nur deine heilenden Hände können sie lösen."
+  });
+}
+function timeWin() {
+  stopTimer(); done = true;
+  const m = level.tm, used = m.limit - timeLeft, ratio = timeLeft / m.limit;
+  const medal = ratio >= 0.5 ? ["🥇", "Gold", 3] : ratio >= 0.25 ? ["🥈", "Silber", 2] : ["🥉", "Bronze", 1];
+  const gift = Array.from({ length: medal[2] }, (_, i) => i === 2 ? RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)] : rollDrop(0.15));
+  gift.forEach(k => add(H.seeds, k));
+  H.timeBest = H.timeBest || {};
+  const prev = H.timeBest[m.id], rec = !prev || used < prev.t;
+  if (rec) H.timeBest[m.id] = { t: used, medal: medal[0] };
+  saveH();
+  $("winIcon").textContent = medal[0];
+  $("winTitle").textContent = `Zeitdungeon geschafft!`;
+  $("winText").innerHTML = `Geschafft in <b>${used.toFixed(1).replace(".", ",")} Sekunden</b>. Medaille: ${medal[0]} ${medal[1]}.`
+    + (rec ? "<br>🎉 Neue Bestzeit!" : `<br>Deine Bestzeit: ${prev.t.toFixed(1).replace(".", ",")} Sekunden`)
+    + `<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen.`;
+  $("home").textContent = "Zurück zu den Zeitdungeons";
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 900);
+}
+$("mtab-ort").addEventListener("click", showVillage);
+$("mtab-time").addEventListener("click", showTime);
+
+/* ---------- Hexenhaus ---------- */
+let selSeed = null;
+const hsay = h => { $("hMsg").innerHTML = h; };
+const bagHtml = (bag, defs, empty) => {
+  const ks = Object.keys(defs).filter(k => bag[k]);
+  return ks.length ? ks.map(k => `<span class="chip">${defs[k].ic} ${defs[k].nm} ×${bag[k]}</span>`).join("") : `<span class="none">${empty}</span>`;
+};
+const canBrew = id => Object.entries(POTIONS[id].need).every(([h, n]) => (H.herbs[h] || 0) >= n);
+const openNote = (s, was) => !was && secretOpen(s) ? `<br>🗝️ Alle Geheimaufgaben in ${s.name} erfüllt! <b>${getSecret(s.n).name}</b> ist jetzt offen.` : "";
+
+function renderHouse() {
+  const s = getSettlement(cur);
+  if (selSeed && !H.seeds[selSeed]) selSeed = null;
+  $("hSub").textContent = `Dein Hexenhaus in ${s.name}.`;
+  const pl = $("plots"); pl.innerHTML = "";
+  H.plots.forEach((p, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "plot"; b.id = "plot-" + i;
+    if (!p) b.innerHTML = `<span class="e hole" aria-hidden="true"></span><span class="s">${selSeed ? `${HERBS[selSeed].ic} hier pflanzen` : "Leeres Beet"}</span>`;
+    else if (p.w < 3) {
+      b.dataset.w = p.w;
+      b.innerHTML = `<span class="e" aria-hidden="true">${p.w < 2 ? "🌱" : "🌿"}</span><span class="s">${HERBS[p.h].nm}</span><span class="wdots" aria-label="${p.w} von 3 Mal gegossen">${[0, 1, 2].map(k => `<i class="${k < p.w ? "on" : ""}"></i>`).join("")}</span>`;
+    }
+    else { b.classList.add("ready"); b.innerHTML = `<span class="e" aria-hidden="true">${HERBS[p.h].ic}</span><span class="s">${HERBS[p.h].nm}<br><b>Ernten!</b></span>`; }
+    if (lastAct && lastAct.i === i) b.classList.add(lastAct.t);
+    b.addEventListener("click", () => plotClick(i));
+    pl.appendChild(b);
+  });
+  const sb = $("seedBag"); sb.innerHTML = "";
+  const seedKeys = Object.keys(HERBS).filter(k => H.seeds[k]);
+  if (!seedKeys.length) sb.innerHTML = `<span class="none">Keine Samen mehr. Gerettete Tiere und Geheimstädte schenken dir neue.</span>`;
+  seedKeys.forEach(k => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "chip"; c.id = "seed-" + k;
+    c.setAttribute("aria-pressed", String(selSeed === k));
+    c.textContent = `${HERBS[k].ic} ${HERBS[k].nm} ×${H.seeds[k]}`;
+    c.addEventListener("click", () => { selSeed = selSeed === k ? null : k; renderHouse(); hsay(selSeed ? `${HERBS[k].ic} ${HERBS[k].nm} ausgewählt. Tippe auf ein leeres Beet.` : "Kein Samen ausgewählt."); });
+    sb.appendChild(c);
+  });
+  $("herbBag").innerHTML = bagHtml(H.herbs, HERBS, "Noch keine Kräuter. Ernte welche im Garten.");
+  const rl = $("recipes"); rl.innerHTML = "";
+  Object.entries(POTIONS).forEach(([id, p]) => {
+    const row = document.createElement("div"); row.className = "wk-row";
+    if (!H.recipes.includes(id)) {
+      row.innerHTML = `<span class="ic" aria-hidden="true">❔</span><span class="t"><strong>Seltenes Rezept</strong><span>Versteckt in einer Geheimstadt.</span></span>`;
+      rl.appendChild(row); return;
+    }
+    const ing = Object.entries(p.need).map(([h, n]) => `${HERBS[h].ic} ${Math.min(H.herbs[h] || 0, n)}/${n}`).join(" · ");
+    row.innerHTML = `<span class="ic" aria-hidden="true">${p.ic}</span><span class="t"><strong>${p.nm}${p.rare ? ' <small class="rare">selten</small>' : ""}</strong><span>${p.eff}<br>${ing}</span></span>`;
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn sm"; b.id = "brew-" + id; b.textContent = "Brauen"; b.disabled = !canBrew(id);
+    b.addEventListener("click", () => brew(id));
+    row.appendChild(b); rl.appendChild(row);
+  });
+  $("potBag").innerHTML = bagHtml(H.potions, POTIONS, "Noch keine Tränke.");
+  lastAct = null;
+}
+
+/* ---------- Animationen im Hexenhaus ---------- */
+let lastAct = null, brewing = false;
+const POTCOL = { gluck: "#9fe0a8", spur: "#b48cf2", herz: "#f2c76b", nebel: "#d4dcef", sonnen: "#ffd36b", tulpen: "#f5a3c7", kleeg: "#6fd88a",
+  feuerel: "#ff8a3a", beeren: "#8f9cff", voll: "#ff7fb0", frostat: "#9fe4ff", sterne: "#e8d67a", regen: "#c9a6ff" };
+const rectOf = e => e.getBoundingClientRect();
+function fly(text, from, to, o = {}) {
+  if (reduce || !from) return;
+  const s = el("span", "fly" + (o.cls ? " " + o.cls : ""), text);
+  const x = from.left + from.width / 2 + (o.jx || 0), y = from.top + from.height / 2 + (o.jy || 0);
+  s.style.left = x + "px"; s.style.top = y + "px";
+  const dx = to ? to.left + to.width / 2 - x : (o.dx || 0), dy = to ? to.top + to.height / 2 - y : (o.dy == null ? -70 : o.dy);
+  s.style.setProperty("--dx", dx + "px"); s.style.setProperty("--dy", dy + "px");
+  s.style.setProperty("--ms", (o.ms || 1000) + "ms"); s.style.animationDelay = (o.delay || 0) + "ms";
+  $("fxLayer").appendChild(s);
+  setTimeout(() => s.remove(), (o.ms || 1000) + (o.delay || 0) + 50);
+}
+function plotClick(i) {
+  const p = H.plots[i], pe = $("plot-" + i), r = pe ? rectOf(pe) : null;
+  if (!p) {
+    if (!selSeed) { hsay("Wähle zuerst unten einen Samen aus."); return; }
+    add(H.seeds, selSeed, -1); H.plots[i] = { h: selSeed, w: 0 }; lastAct = { i, t: "pop" };
+    fly("🌱", r, null, { dy: -40, ms: 700 });
+    hsay(`${HERBS[selSeed].ic} ${HERBS[selSeed].nm} gepflanzt. Jetzt dreimal gießen!`);
+  } else if (p.w < 3) {
+    p.w++; lastAct = { i, t: p.w < 3 ? "grow" : "ripe" };
+    for (let k = 0; k < 5; k++) fly("💧", r, null, { cls: "drop", ms: 650, delay: k * 80, jx: (Math.random() - .5) * (r ? r.width * .6 : 0) });
+    if (p.w === 3) { fly("✨", r, null, { dy: -60, delay: 350 }); fly("✨", r, null, { dx: 30, dy: -40, delay: 450 }); }
+    hsay(p.w < 3 ? `💧 Gegossen (${p.w}/3). Die Pflanze wächst!` : `✨ ${HERBS[p.h].nm} ist reif. Tippe zum Ernten!`);
+  } else {
+    const s = getSettlement(cur), was = secretOpen(s);
+    const TFg = teamFx(), hv2 = 2 + TFg.garden;
+    add(H.herbs, p.h, hv2); statsOf(cur).harvest += hv2; H.plots[i] = null; lastAct = { i, t: "dig" };
+    const back = TFg.gardenSeed > 0 || Math.random() < 0.6; if (back) add(H.seeds, p.h);
+    for (let k = 0; k < hv2; k++) fly(HERBS[p.h].ic, r, null, { dx: (k - (hv2 - 1) / 2) * 34, dy: -80, delay: k * 120, ms: 1100 });
+    fly(`+${hv2}`, r, null, { cls: "txt", dy: -50, delay: 150 });
+    if (back) fly("🌱", r, null, { dy: -45, dx: 28, delay: 500, ms: 900 });
+    hsay(`🧺 ${hv2}× ${HERBS[p.h].nm} geerntet!` + (back ? ` Und die Pflanze hat dir einen neuen Samen geschenkt 🌱` : "") + openNote(s, was));
+  }
+  saveH(); renderHouse();
+}
+function brew(id) {
+  if (brewing || !canBrew(id)) return;
+  const p = POTIONS[id], s = getSettlement(cur), was = secretOpen(s);
+  const btn = $("brew-" + id), from = btn ? rectOf(btn) : null, c = $("cauldron"), cr = rectOf(c);
+  Object.entries(p.need).forEach(([h, n]) => add(H.herbs, h, -n));
+  add(H.potions, id, 1); statsOf(cur).brew++; saveH();
+  const finish = () => {
+    renderHouse();
+    const pb = $("potBag"); fly(p.ic, rectOf(c), rectOf(pb), { ms: 950 });
+    setTimeout(() => { pb.classList.remove("bump"); void pb.offsetWidth; pb.classList.add("bump"); }, reduce ? 0 : 800);
+    $("cauldronCap").textContent = `Frisch gebraut: ${p.ic} ${p.nm}`;
+    hsay(`⚗️ Es blubbert und funkelt … Du hast <b>${p.ic} ${p.nm}</b> gebraut!` + openNote(s, was));
+    brewing = false;
+  };
+  if (reduce) { c.style.setProperty("--brew", POTCOL[id] || "#6fd8a8"); brewing = true; finish(); return; }
+  brewing = true;
+  document.querySelectorAll("#recipes .btn").forEach(b => { b.disabled = true; });
+  hsay("⚗️ Die Kräuter fallen in den Kessel …");
+  $("cauldronCap").textContent = "Es brodelt und zischt …";
+  let d = 0;
+  Object.entries(p.need).forEach(([h, n]) => { for (let k = 0; k < n; k++) { fly(HERBS[h].ic, from, cr, { delay: d, ms: 700 }); d += 160; } });
+  setTimeout(() => {
+    c.style.setProperty("--brew", POTCOL[id] || "#6fd8a8");
+    c.parentElement.style.setProperty("--cbrew", POTCOL[id] || "#6fd8a8");
+    c.classList.remove("boil"); void c.offsetWidth; c.classList.add("boil");
+    for (let k = 0; k < 4; k++) fly("✨", cr, null, { dx: (k - 1.5) * 26, dy: -70, delay: k * 90, ms: 900 });
+  }, d + 500);
+  setTimeout(finish, d + 1300);
+}
+function openHouse(sec) {
+  renderHouse();
+  hsay("Willkommen im Hexenhaus. Pflanze Kräuter und braue daraus Tränke für deine Abenteuer.");
+  show("houseView");
+  if (sec) $(sec).scrollIntoView({ behavior: "auto" });
+}
+$("toGarden").addEventListener("click", () => openHouse("gardenSec"));
+$("toAlchemy").addEventListener("click", () => openHouse("alchSec"));
+$("houseBack").addEventListener("click", showVillage);
+
+function secretWin() {
+  done = true;
+  const s = getSettlement(cur), first = !H.secret[s.n];
+  H.secret[s.n] = true;
+  let text = "";
+  const nextRec = RARE_ORDER.find(r => !H.recipes.includes(r));
+  if (first && nextRec) { H.recipes.push(nextRec); text += `Du hast ein seltenes Rezept gefunden: <b>${POTIONS[nextRec].ic} ${POTIONS[nextRec].nm}</b>!<br>${POTIONS[nextRec].eff}<br><br>`; }
+  else if (first) text += "Alle seltenen Rezepte kennst du schon. Dafür ist die Rolle voller Schätze.<br><br>";
+  const extra = Math.random() < 0.5 ? "frost" : "moos";
+  add(H.seeds, "rose", 2); add(H.seeds, "klee", 2); add(H.seeds, "pilz", 1); add(H.seeds, extra, 1); saveH();
+  text += `In der Rolle versteckt: ${HERBS.rose.ic} 2× Nebelrose, ${HERBS.klee.ic} 2× Kristallklee, ${HERBS[extra].ic} 1× ${HERBS[extra].nm} und ${HERBS.pilz.ic} 1× Glühpilz als Samen.`;
+  text += perfectBonus();
+  $("winIcon").textContent = "📜";
+  $("winTitle").textContent = `${level.name} geschafft!`;
+  $("winText").innerHTML = text;
+  $("home").textContent = `Zurück nach ${s.name}`;
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+}
+
+/* ---------- Tränke im Abenteuer ---------- */
+function renderPotbar() {
+  const pb = $("potbar"); pb.innerHTML = "";
+  const ks = Object.keys(POTIONS).filter(k => H.potions[k]);
+  $("tgPots").textContent = `🧪 Tränke · ${ks.length ? `${potUsed}/${POT_MAX}` : "keine"} ${pb.hidden ? "▾" : "▴"}`;
+  if (!ks.length) { pb.innerHTML = `<span>Keine Tränke dabei. Im Hexenhaus kannst du welche brauen.</span>`; return; }
+  if (potUsed >= POT_MAX) pb.insertAdjacentHTML("beforeend", `<span>Schon ${POT_MAX} Tränke getrunken.</span>`);
+  ks.forEach(k => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.id = "drink-" + k;
+    b.disabled = potUsed >= POT_MAX; if (b.disabled) b.style.opacity = ".4";
+    b.textContent = `${POTIONS[k].ic} ${POTIONS[k].nm} ×${H.potions[k]}`;
+    b.addEventListener("click", () => drink(k));
+    pb.appendChild(b);
+  });
+}
+function drink(k) {
+  if (done || !H.potions[k]) return;
+  if (potUsed >= POT_MAX) { say(`🧪 Du hast in diesem Abenteuer schon ${POT_MAX} Tränke getrunken. Mehr geht nicht, sonst wird dir schwindelig!`); return; }
+  const NEED_TILES = { feuerel: ["T", "Dornenranken"], frostat: ["WU", "Wasser"], sterne: ["Q", "verwunschenen Felder"] };
+  if (NEED_TILES[k] && !grid.flat().some(c => NEED_TILES[k][0].includes(c))) { say(`${POTIONS[k].ic} Hier gibt es keine ${NEED_TILES[k][1]}. Heb dir den Trank für ein anderes Abenteuer auf.`); return; }
+  if (k === "beeren" && tries >= MAX_TRIES) { say("🧃 Deine Herzen sind schon alle voll. Heb dir die Beerenkraft für später auf."); return; }
+  add(H.potions, k, -1); potUsed++; saveH();
+  const change = (from, to) => { let n = 0; for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (from.includes(grid[y][x])) { tileAnim(x, y, "magic", grid[y][x]); grid[y][x] = to; delete stage[x + "," + y]; sparkle(x, y); n++; } return n; };
+  if (k === "sonnen") { fx.bright = true; say("🌞 Deine Laterne strahlt hell wie die Sonne. Du siehst jetzt viel weiter."); }
+  if (k === "tulpen") { fx.seedx2 = true; say("🌸 Ein süßer Duft umgibt dich. Jeder Samenfund zählt jetzt doppelt."); }
+  if (k === "kleeg") { fx.loot = true; say("🍀 Das Glück ist mit dir. Am Ende gibt es doppelt so viele Belohnungs-Samen."); }
+  if (k === "feuerel") { const n = change(["T"], "."); say(n ? `🔥 Ein warmer Funkenregen! ${n} ${n === 1 ? "Dornenranke verbrennt" : "Dornenranken verbrennen"} zu Asche.` : "🔥 Es knistert, aber hier gibt es keine Dornenranken."); }
+  if (k === "beeren") { tries++; paintLives(); say("🧃 Süß und kräftig! Ein Herz leuchtet wieder."); }
+  if (k === "frostat") { const n = change(["W", "U"], "B"); say(n ? `🧊 Eisiger Atem! ${n}× Wasser friert zu einem sicheren Weg.` : "🧊 Kalter Atem, aber hier gibt es kein Wasser zum Einfrieren."); }
+  if (k === "sterne") { const n = change(["Q"], "."); say(n ? `💫 Sternenlicht fließt über den Boden. ${n} ${n === 1 ? "verwunschenes Feld wird" : "verwunschene Felder werden"} frei.` : "💫 Es funkelt, aber hier gibt es keine verwunschenen Felder."); }
+  if (k === "regen") { tries += 2; fx.shield = (+fx.shield || 0) + 1; paintLives(); say("🌈 Ein Regenbogen umhüllt dich: zwei Extra-Herzen und Schutz vor dem nächsten Fehler."); }
+  if (k === "gluck") { fx.shield = (+fx.shield || 0) + 1; say("🍵 Du trinkst den Glückstee. Der nächste falsche Begleiter kostet kein Herz."); }
+  if (k === "spur") { fx.reveal = true; say("🔮 Deine Augen funkeln. Über jedem Hindernis siehst du jetzt, wer helfen kann."); }
+  if (k === "herz") { tries++; paintLives(); say("💛 Ein warmes Leuchten: Du hast ein Herz mehr!"); }
+  if (k === "nebel") { fx.skip = (+fx.skip || 0) + 1; say("🌫️ Du wirst ganz leicht. Das nächste Hindernis öffnet sich ohne Begleiter."); }
+  if (k === "voll") { tries = Math.max(tries, MAX_TRIES); paintLives(); say("💖 Alle deine Herzen leuchten wieder."); }
+  renderPotbar();
+}
+
+/* ---------- Wiki ---------- */
+let wikiFrom = "village";
+const WIKI_OBST = [
+  ["T", "🌿", "Dornenranken", "Lila Ranken, die den Weg zuwuchern."],
+  ["R", "🪨", "Felsbrocken", "Schwer und moosig, versperrt Stege und Pfade."],
+  ["H", "🐾", "Spurenfeld", "Heller Nebel mit vielen Spuren durcheinander. Nur Pip findet die richtige."],
+  ["W", "🌊", "Bach", "Rauschendes Wasser. Danach liegt dort eine Brücke."],
+  ["D", "🌑", "Schattenwand", "Wirbelnde Dunkelheit, die nur Licht vertreibt."],
+  ["G", "🌳", "Hecke mit Spalt", "Nur jemand Kleines und Flinkes passt hindurch."],
+  ["U", "🌸", "Seerosenteich", "Tief, mit einem Floß auf der anderen Seite."],
+  ["N", "🌫️", "Nebelwand", "Zwei Schritte: erst Licht, dann die richtige Spur."],
+  ["X", "⭐", "Sterntor", "Drei Schritte: Licht, Zeichen lesen, Steine drehen."],
+  ["Q", "🔮", "Verwunschenes Feld", "Mehrere Hindernisse liegen hintereinander. Ist eins gelöst, taucht das nächste auf, bis das Feld frei ist."]
+];
+const needText = t => t === "Q" ? "mehrere nacheinander" : OBST[t].needs.map(r => `${ROLE[r].ic} ${ROLE[r].nm}`).join(" → ");
+
+function rescuedNames() {
+  const set = new Set();
+  Object.keys(rescued).forEach(id => {
+    const m = MONDTAL.find(l => l.id === id);
+    if (m) { set.add(m.animalName); return; }
+    const [n, i] = id.split("-").map(Number);
+    if (n && getSettlement(n).levels[i]) set.add(getSettlement(n).levels[i].animalName);
+  });
+  return set;
+}
+
+function renderWiki() {
+  const known = rescuedNames();
+  const beasts = [
+    ...MONDTAL.map(l => [l.animal, l.animalName, false]),
+    ...ANIMALS.map(a => [a[0], a[1], false]),
+    ...RARE.map(a => [a[0], a[1], true])
+  ];
+  const found = beasts.filter(b => known.has(b[1])).length;
+  const row = (ic, name, txt, need) => `<div class="wk-row"><span class="ic" aria-hidden="true">${ic}</span><span class="t"><strong>${name}</strong><span>${txt}</span></span>${need ? `<span class="need">${need}</span>` : ""}</div>`;
+  const wallTxt = { tree: "Wände aus alten Bäumen", lake: "umgeben von tiefem Wasser", rock: "Wände aus Fels und Kristallen" };
+
+  $("wikiBody").innerHTML = `
+  <section class="wk-sec" id="wk-start"><h2>Grundlagen</h2>
+    <ul class="wk-tip">
+      <li>Du bist die <b>Heilerin</b> mit der Laterne. Nur du kannst verzauberte Tiere befreien.</li>
+      <li>Tippe auf ein Feld direkt neben dir, um zu laufen.</li>
+      <li>Vor einem Hindernis wählst du unten den passenden Begleiter und tippst dann auf das Hindernis.</li>
+      <li>Du hast <b>3 Versuche</b> 💛💛💛. Jeder falsche Begleiter kostet einen. Sind alle weg, bringt dich der Nebel an den Anfang zurück.</li>
+      <li>Gegen Bäume, Wasser oder Fels zu laufen kostet nichts.</li>
+      <li>Schaffst du ein Abenteuer mit <b>allen Herzen</b>, gibt es eine Extra-Belohnung: zwei Bonus-Samen mit guter Chance auf seltene, und beim ersten Mal einen ⭐ für das Abenteuer. Ein Fehler, den der Glückstee abfängt, zählt nicht als verlorenes Herz.</li>
+      <li>Holst du in einem Ort alle 3 ⭐, öffnest du einmalig die <b>Sternentruhe</b>: drei seltene Samen, ein Herztrank und ein weiterer Trank. Über dem Ort leuchtet danach ein goldener Stern 🌟.</li>
+      <li>Jeder Ort hat einen <b>🌀 superschweren Irrgarten</b>. Er öffnet sich, wenn alle drei Tiere dort gerettet sind. Darin gibt es <b>mehrere Wege</b> zum Ziel, und überall warten Hindernisse. Such dir den Weg aus, der am besten zu deinen Begleitern und Tränken passt. Beim ersten Sieg gibt es das 🏆 Meisterabzeichen.</li>
+      <li>Auch die Zeitdungeons sind Irrgärten mit mehreren Wegen. Der kürzeste Weg ist nicht immer der schnellste!</li>
+      <li>In den <b>⏳ Zeitdungeons</b> läuft eine Sanduhr. Erreichst du die Zeitsanduhr rechtzeitig, gibt es je nach übriger Zeit Gold, Silber oder Bronze mit Samen als Belohnung, und deine Bestzeit wird gespeichert.</li>
+      <li>Gerettete Tiere haben <b>Fähigkeiten</b>. Alle geretteten Tiere helfen dir automatisch überall mit, zum Beispiel mit Extra-Herzen, mehr Samen oder mehr Zeit. Außerdem hat jedes Tier eine <b>Tierkraft zum Antippen</b>, einmal pro Abenteuer, über den Begleiter-Knöpfen. Im 🐾 Tierbuch siehst du, wer was kann.</li>
+      <li>Jedes Abenteuer sieht bei jedem Betreten anders aus: neuer Weg, neue Hindernisse, neue Runen. Nur das allererste Mal in Mondtal ist der Weg fest.</li>
+      <li>Jedes gerettete Tier zieht in deinen Ort. Sind alle drei gerettet, öffnet sich der nächste Ort.</li>
+    </ul>
+  </section>
+
+  <section class="wk-sec" id="wk-begleiter"><h2>Begleiter</h2>
+    <p>Im fertigen Spiel übernehmen Mitspieler diese Rollen. Allein helfen dir deine Tiere.</p>
+    <div class="wk-list">
+      ${row("🐻", "Bruno · Beschützer 🛡️", "Stark und ruhig. Hält Dornen zurück und schiebt Felsen weg.")}
+      ${row("🦔", "Pip · Spurenleser 🐾", "Findet versteckte Pfade, richtige Spuren und alte Zeichen.")}
+      ${row("🦫", "Holm · Bastler 🔨", "Baut Brücken und bringt alte Mechanismen wieder zum Laufen.")}
+      ${row("🦉", "Luna · Lichtmagier ☀️", "Vertreibt Schatten und bringt Licht in den Nebel.")}
+      ${row("✨", "Du · Heilerin", "Löst den Zauber von gefangenen Tieren.")}
+      ${row("🦊", "Funke · Schleicher 🌾", rescued.wald ? "Huscht durch enge Spalten und öffnet Riegel von innen." : "Schließt sich dir an, wenn du den Fuchs im Dornenwald rettest.")}
+      ${row("🦦", "Ole · Taucher 💧", rescued.see ? "Schwimmt durch tiefes Wasser und holt Flöße heran." : "Schließt sich dir an, wenn du den Otter im Nebelsee rettest.")}
+    </div>
+  </section>
+
+  <section class="wk-sec" id="wk-hind"><h2>Hindernisse</h2>
+    <p>Rechts steht, wer helfen kann. Bei Pfeilen müssen mehrere nacheinander ran.</p>
+    <div class="wk-list">${WIKI_OBST.map(([t, ic, n, d]) => row(ic, n, d, needText(t))).join("")}</div>
+  </section>
+
+  <section class="wk-sec" id="wk-runen"><h2>Verwunschene Felder</h2>
+    <p>Ein verwunschenes Feld hat einen lila schimmernden Rand. Darauf liegen mehrere Hindernisse hintereinander: zum Beispiel erst Wald, den Funke löst, dann fließendes Wasser für Holm, dann Dornen für Bruno. Ist eins gelöst, taucht das nächste auf, bis das Feld frei ist und du darüber laufen kannst. Die kleinen Punkte unten zeigen, wie viele Hindernisse noch fehlen. In größeren Orten werden es mehr. Die Zeichen an den Begleiter-Knöpfen zeigen, wer zu welchem Hindernis passt.</p>
+    <div class="wk-list">${Object.entries(RUNE).map(([r, s]) => row(s, ROLE[r].nm, ROLE[r].rl, `${ROLE[r].ic}`)).join("")}</div>
+  </section>
+
+  <section class="wk-sec" id="wk-orte"><h2>Orte und Stufen</h2>
+    <p>Jeder Ort hat drei Abenteuer: <b>Solo</b>, <b>Zu zweit</b> und <b>Zu fünft</b>. Das große Abenteuer öffnet sich, wenn die anderen beiden geschafft sind. Mit jedem Ort gibt es mehr Hindernisse.</p>
+    <div class="wk-list">
+      ${row("🏡", "Dorf", "Ort 1 bis 3. Kleine Häuser, ruhige Wege. Hier beginnt alles in Mondtal.")}
+      ${row("🏰", "Stadt", "Ort 4 bis 6. Mehr Häuser, erste Türme, Sterntore tauchen auf.")}
+      ${row("👑", "Hauptstadt", "Ort 7 bis 9. Mit Burg. Im großen Abenteuer warten seltene Tiere.")}
+      ${row("🌟", "Sternenstadt", "Ort 10 bis 12. Goldene Türme und schwebende Laternen.")}
+      ${row("☁️", "Himmelsreich", "Ab Ort 13. Die höchste Stufe, und es geht endlos weiter.")}
+    </div>
+  </section>
+
+  <section class="wk-sec" id="wk-land"><h2>Landschaften</h2>
+    <div class="wk-list">${Object.values(THEMES).map(th => row(th.ic, th.noun[0].toUpperCase() + th.noun.slice(1), `${wallTxt[th.wall]}. Tiere wohnen danach ${th.home}.`)).join("")}</div>
+  </section>
+
+  <section class="wk-sec" id="wk-tiere"><h2>Tierbuch</h2>
+    <p>Entdeckt: <b style="color:var(--lantern)">${found}</b> von ${beasts.length}. Unbekannte Tiere bleiben im Schatten, bis du sie rettest.</p>
+    <div class="beasts">${beasts.map(([e, n, rare]) => {
+      const k = known.has(n);
+      return `<div class="beast${k ? "" : " unk"}"><span class="e" aria-hidden="true">${e}</span>${k ? n : "???"}${rare ? `<span class="rare">selten</span>` : ""}</div>`;
+    }).join("")}</div>
+  </section>
+
+  <section class="wk-sec" id="wk-keys"><h2>⌨️ Tastatur</h2>
+    <p>Im Browser am Computer steuerst du alles auch mit der Tastatur. Tippe auf eine Taste und drücke dann die neue Taste, um sie zu ändern. Mit Esc brichst du ab.</p>
+    <div class="wk-list" id="keyList"></div>
+  </section>
+
+  <section class="wk-sec" id="wk-mit"><h2>Mitspieler</h2>
+    <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
+  </section>
+
+  <section class="wk-sec" id="wk-geheim"><h2>Geheimstädte</h2>
+    <p>Jeder Ort hat drei Geheimaufgaben. Eine ist immer, alle Tiere dort zu retten. Die anderen sind zum Beispiel ein Abenteuer ohne verlorenes Herz, Kräuter ernten oder Tränke brauen, während du dort bist.</p>
+    <p>Sind alle drei erfüllt, öffnet sich die Geheimstadt des Ortes. Sie ist freiwillig und <b>richtig schwer</b>: fast jedes Feld ist ein Hindernis, und die Runenreihen sind lang. Beim ersten Sieg findest du ein seltenes Rezept, bei jedem Sieg seltene Samen.</p>
+  </section>
+
+  <section class="wk-sec" id="wk-garten"><h2>Kräutergarten</h2>
+    <p>Wähle einen Samen, pflanze ihn in ein Beet, gieße dreimal und ernte zwei Kräuter. Es gibt keine Wartezeit. Oft schenkt dir die Pflanze beim Ernten auch einen neuen Samen.</p>
+    <p><b>Samen bekommen:</b> Nach jedem Abschluss gibt es zwei zufällige Samen, manchmal sogar seltene. Zum Farmen leuchten in jedem Abenteuer 🌱 Samenfunde auf dem Weg. Lauf einfach drüber. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
+    <div class="wk-list">${Object.values(HERBS).map(hb => row(hb.ic, hb.nm + (hb.rare ? ' <small class="rare">selten</small>' : ""), hb.from)).join("")}</div>
+  </section>
+
+  <section class="wk-sec" id="wk-alch"><h2>Alchemietisch</h2>
+    <p>Am Alchemietisch braust du aus Kräutern Tränke. Im Abenteuer trinkst du sie über die Tränke-Leiste. <b>Pro Abenteuer kannst du höchstens 2 Tränke trinken</b>, wähle also gut aus.</p>
+    ${[["Einfache Rezepte", false], ["Seltene Rezepte", true]].map(([title, rare]) => `
+    <h3>${title}</h3>
+    ${rare ? "<p>Seltene Rezepte findest du in Geheimstädten: bei jedem ersten Sieg dort ein neues, in der Reihenfolge dieser Tabelle.</p>" : ""}
+    <div class="wk-table"><table>
+      <thead><tr><th>Trank und Wirkung</th><th>Zutaten</th></tr></thead>
+      <tbody>${(rare ? RARE_ORDER : BASIC_RECIPES).map(id => { const p = POTIONS[id], known = H.recipes.includes(id); return `<tr>
+        <td><span class="tn">${p.ic} ${p.nm}</span>${rare ? ` <small class="${known ? "ok" : "rare"}">${known ? "✓ bekannt" : "🔒 noch nicht gefunden"}</small>` : ""}<br><span class="te">${p.eff}</span></td>
+        <td>${Object.entries(p.need).map(([h, n]) => `${n}× ${HERBS[h].ic} ${HERBS[h].nm}`).join("<br>")}</td></tr>`; }).join("")}</tbody>
+    </table></div>`).join("")}
+  </section>`;
+}
+/* ---------- Tier-Gefährten ---------- */
+const TEAM_MAX = 3;
+const ABIL = {
+  "Hirsch":        ["Sternenlicht", "Deine Laterne leuchtet viel weiter.", { bright: 1 }],
+  "Hase":          ["Flinke Pfoten", "+10 Sekunden in Zeitdungeons.", { time: 10 }],
+  "Eichhörnchen":  ["Sammelfreude", "Ein zusätzlicher Samenfund in jedem Abenteuer.", { seedSpots: 1 }],
+  "Dachs":         ["Grabeprofi", "Ein zusätzlicher Samenfund in jedem Abenteuer.", { seedSpots: 1 }],
+  "Schildkröte":   ["Panzer", "Der erste falsche Begleiter kostet kein Herz.", { shield: 1 }],
+  "Schwan":        ["Anmut", "Ein Belohnungs-Samen mehr nach jedem Abschluss.", { loot: 1 }],
+  "Frosch":        ["Teichfreund", "Im Garten erntest du ein Kraut mehr.", { garden: 1 }],
+  "Waschbär":      ["Glücksfinder", "Samenfunde sind öfter selten.", { rareFind: 1 }],
+  "Katze":         ["Nachtaugen", "Deine Laterne leuchtet viel weiter.", { bright: 1 }],
+  "Schaf":         ["Kuschelwolle", "Ein Extra-Herz zu Beginn.", { heart: 1 }],
+  "Schmetterling": ["Blütenzauber", "Beim Ernten bekommst du immer einen Samen zurück.", { gardenSeed: 1 }],
+  "Wolf":          ["Rudelspur", "Zeigt über jedem Hindernis, wer helfen kann.", { reveal: 1 }],
+  "Adler":         ["Adlerflug", "+15 Sekunden in Zeitdungeons.", { time: 15 }],
+  "Pfau":          ["Pracht", "Ein Belohnungs-Samen mehr nach jedem Abschluss.", { loot: 1 }],
+  "Flamingo":      ["Balance", "Der erste falsche Begleiter kostet kein Herz.", { shield: 1 }],
+  "Panda":         ["Gemütlichkeit", "Ein Extra-Herz zu Beginn.", { heart: 1 }],
+  "Pinguin":       ["Eisrutsche", "Ein Bach oder Teich ist zu Beginn schon zugefroren.", { freeze: 1 }],
+  "Einhorn":       ["Heilhorn", "Zwei Extra-Herzen zu Beginn.", { heart: 2 }],
+  "Sterndrache":   ["Drachenfeuer", "Alle Dornenranken verbrennen zu Beginn.", { burn: 1 }],
+  "Löwe":          ["Löwenmut", "Zwei falsche Begleiter kosten kein Herz.", { shield: 2 }],
+  "Wolkenwal":     ["Wolkenmeer", "Zwei Belohnungs-Samen mehr und öfter seltene Funde.", { loot: 2, rareFind: 1 }]
+};
+const ALL_BEASTS = () => [...MONDTAL.map(l => [l.animal, l.animalName, false]), ...ANIMALS.map(a => [a[0], a[1], false]), ...RARE.map(a => [a[0], a[1], true])];
+const emojiOf = n => (ALL_BEASTS().find(b => b[1] === n) || ["🐾"])[0];
+function teamFx() {
+  const known = rescuedNames(), f = { time: 0, seedSpots: 0, shield: 0, bright: 0, heart: 0, loot: 0, garden: 0, gardenSeed: 0, rareFind: 0, reveal: 0, freeze: 0, burn: 0 };
+  [...known].filter(n => ABIL[n]).forEach(n => Object.entries(ABIL[n][2]).forEach(([k, v]) => { f[k] += v; }));
+  return f;
+}
+// Tierkräfte zum Antippen, je Tier einmal pro Abenteuer
+const ACT = {
+  "Hirsch":        ["Sternenblick", "Zeigt über jedem Hindernis, wer helfen kann.", "reveal"],
+  "Hase":          ["Sprint", "+15 Sekunden im Zeitdungeon.", "time15"],
+  "Eichhörnchen":  ["Nussversteck", "Findet sofort einen Samen.", "seed"],
+  "Dachs":         ["Buddeln", "Findet sofort einen Samen.", "seed"],
+  "Schildkröte":   ["Panzerschild", "Schützt dich vor dem nächsten Fehler.", "shield"],
+  "Schwan":        ["Federgeschenk", "Schenkt dir einen Samen, manchmal einen seltenen.", "gift"],
+  "Frosch":        ["Teichkraut", "Bringt dir ein Kraut für den Alchemietisch.", "herb"],
+  "Waschbär":      ["Glücksgriff", "Findet sofort einen seltenen Samen.", "rare"],
+  "Katze":         ["Katzensprung", "Das nächste Hindernis öffnet sich ohne Begleiter.", "skip"],
+  "Schaf":         ["Kuschelpause", "Heilt ein verlorenes Herz.", "heal"],
+  "Schmetterling": ["Bestäuben", "Bringt dir ein Kraut für den Alchemietisch.", "herb"],
+  "Wolf":          ["Heulen", "Das nächste Hindernis öffnet sich ohne Begleiter.", "skip"],
+  "Adler":         ["Adlerauge", "+20 Sekunden im Zeitdungeon.", "time20"],
+  "Pfau":          ["Rad schlagen", "Schenkt dir einen Samen, manchmal einen seltenen.", "gift"],
+  "Flamingo":      ["Standfest", "Schützt dich vor dem nächsten Fehler.", "shield"],
+  "Panda":         ["Bambussnack", "Heilt ein verlorenes Herz.", "heal"],
+  "Pinguin":       ["Eisrutsche", "Friert alles Wasser in diesem Abenteuer ein.", "freeze"],
+  "Einhorn":       ["Heilhorn", "Schenkt dir zwei Extra-Herzen.", "heart2"],
+  "Sterndrache":   ["Drachenatem", "Alle verwunschenen Felder in diesem Abenteuer öffnen sich.", "runes"],
+  "Löwe":          ["Brüllen", "Die nächsten zwei Hindernisse öffnen sich ohne Begleiter.", "skip2"],
+  "Wolkenwal":     ["Wolkenregen", "Schenkt dir zwei Samen.", "gift2"]
+};
+function fxParts(F) {
+  const p = [];
+  if (F.heart) p.push(`❤️ +${F.heart} ${F.heart === 1 ? "Herz" : "Herzen"}`);
+  if (F.shield) p.push(`🛡️ ${F.shield} Fehler frei`);
+  if (F.seedSpots) p.push(`🌱 +${F.seedSpots} Samenfund${F.seedSpots === 1 ? "" : "e"}`);
+  if (F.loot) p.push(`🎁 +${F.loot} Belohnung`);
+  if (F.rareFind) p.push("🍀 öfter seltene Funde");
+  if (F.time) p.push(`⏱️ +${F.time} s`);
+  if (F.bright) p.push("🔦 weiter sehen");
+  if (F.reveal) p.push("💡 Hinweise");
+  if (F.garden) p.push(`🧺 +${F.garden} Ernte`);
+  if (F.gardenSeed) p.push("🌸 Samen zurück");
+  if (F.freeze) p.push(`🧊 ${F.freeze}× Eis`);
+  if (F.burn) p.push("🔥 keine Dornen");
+  return p;
+}
+function renderActs() {
+  const bar = $("actBar"); bar.innerHTML = "";
+  const list = [...rescuedNames()].filter(n => ACT[n]).sort((a, b) => actUsed.has(a) - actUsed.has(b));
+  const tg = $("tgActs"), open = !bar.hidden;
+  tg.hidden = !list.length;
+  tg.textContent = `🐾 Kräfte · ${list.filter(n => !actUsed.has(n)).length} frei ${open ? "▴" : "▾"}`;
+  if (!list.length) { bar.hidden = true; return; }
+  list.forEach(n => {
+    const used = actUsed.has(n), b = btnEl(`${emojiOf(n)} ${ACT[n][0]}${used ? " ✓" : ""}`, () => doAct(n), "chip");
+    b.disabled = used || done; b.title = `${n}: ${ACT[n][1]}`; b.id = "act-" + n;
+    bar.appendChild(b);
+  });
+}
+function togglePanel(btnId, panelId, render) {
+  const p = $(panelId), open = p.hidden; p.hidden = !open;
+  $(btnId).setAttribute("aria-expanded", String(open)); render();
+}
+$("tgActs").addEventListener("click", () => togglePanel("tgActs", "actBar", renderActs));
+$("tgPots").addEventListener("click", () => togglePanel("tgPots", "potbar", renderPotbar));
+function doAct(n) {
+  if (done || actUsed.has(n) || !ACT[n]) return;
+  const [nm, desc, k] = ACT[n], e = emojiOf(n);
+  const change = (from, to) => { let c = 0; for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (from.includes(grid[y][x])) { tileAnim(x, y, "magic", grid[y][x]); grid[y][x] = to; delete stage[x + "," + y]; sparkle(x, y); c++; } return c; };
+  const nope = t => { say(`${e} ${t}`); };
+  let txt = desc;
+  if (k === "reveal") { if (fx.reveal) return nope("Du siehst die Helfer schon über den Hindernissen."); fx.reveal = true; }
+  if (k === "time15" || k === "time20") {
+    if (!level.timed) return nope(`${n}s Kraft wirkt nur in Zeitdungeons.`);
+    const s = k === "time15" ? 15 : 20; stopTimer(); timeLeft += s; startTimer(); txt = `+${s} Sekunden auf der Sanduhr!`;
+  }
+  if (["seed", "gift", "rare", "gift2"].includes(k)) {
+    const got = Array.from({ length: k === "gift2" ? 2 : 1 }, () => k === "rare" ? RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)] : k === "seed" ? rollSeed() : rollDrop(0.3));
+    got.forEach(s => add(H.seeds, s)); saveH();
+    txt = `Du bekommst Samen: ${got.map(s => HERBS[s].ic + " " + HERBS[s].nm).join(", ")}.`;
+  }
+  if (k === "herb") { const hs = Object.keys(HERBS).filter(h => !HERBS[h].rare), h = hs[Math.floor(Math.random() * hs.length)]; add(H.herbs, h); saveH(); txt = `Du bekommst ${HERBS[h].ic} ${HERBS[h].nm} für den Alchemietisch.`; }
+  if (k === "shield") fx.shield = (+fx.shield || 0) + 1;
+  if (k === "skip") fx.skip = (+fx.skip || 0) + 1;
+  if (k === "skip2") fx.skip = (+fx.skip || 0) + 2;
+  if (k === "heal") { if (tries >= startTries) return nope("Deine Herzen sind noch alle da. Heb dir die Kraft für später auf."); tries++; paintLives(); }
+  if (k === "heart2") { tries += 2; paintLives(); }
+  if (k === "freeze") { const c = change(["W", "U"], "B"); if (!c) return nope("Hier gibt es kein Wasser zum Einfrieren."); txt = `${c}× Wasser friert zu einem sicheren Weg.`; }
+  if (k === "runes") { const c = change(["Q"], "."); if (!c) return nope("Hier gibt es keine verwunschenen Felder."); txt = `${c} ${c === 1 ? "verwunschenes Feld wird" : "verwunschene Felder werden"} frei.`; }
+  actUsed.add(n); sparkle(px, py);
+  say(`${e} <b>${n}: ${nm}!</b> ${txt}`);
+  renderActs();
+}
+function toggleTeam(n) {
+  H.team = (H.team || []).filter(x => x !== n).length !== (H.team || []).length ? H.team.filter(x => x !== n) : [...(H.team || []), n];
+  if (H.team.length > TEAM_MAX) { H.team.pop(); $("beastMsg").textContent = `Dein Team ist voll. Nimm erst ein Tier heraus (höchstens ${TEAM_MAX}).`; }
+  else $("beastMsg").textContent = H.team.includes(n) ? `${emojiOf(n)} ${n} ist jetzt in deinem Team: ${ABIL[n][0]}!` : `${emojiOf(n)} ${n} ruht sich im Dorf aus.`;
+  saveH(); renderBeasts(true);
+}
+function renderBeasts(keepMsg) {
+  const homes = {};
+  Object.keys(rescued).forEach(id => {
+    let n = 1, l = MONDTAL.find(x => x.id === id);
+    if (!l) { const [a, i] = id.split("-").map(Number); if (!a || !getSettlement(a).levels[i]) return; n = a; l = getSettlement(a).levels[i]; }
+    (homes[l.animalName] = homes[l.animalName] || []).push(`${getSettlement(n).name} · ${l.spot}`);
+  });
+  const beasts = ALL_BEASTS();
+  const found = beasts.filter(b => homes[b[1]]).length;
+  $("beastSum").textContent = `${found} von ${beasts.length} Tieren entdeckt.`;
+  $("beastMsg").textContent = "Jedes gerettete Tier hilft dir automatisch überall mit: in allen Abenteuern, Geheimstädten, Zeitdungeons und im Garten.";
+  const F = teamFx(), parts = [];
+  if (F.heart) parts.push(`❤️ +${F.heart} ${F.heart === 1 ? "Herz" : "Herzen"}`);
+  if (F.shield) parts.push(`🛡️ ${F.shield} ${F.shield === 1 ? "Fehler" : "Fehler"} frei`);
+  if (F.seedSpots) parts.push(`🌱 +${F.seedSpots} Samenfund${F.seedSpots === 1 ? "" : "e"}`);
+  if (F.loot) parts.push(`🎁 +${F.loot} Belohnungs-Samen`);
+  if (F.rareFind) parts.push("🍀 öfter seltene Funde");
+  if (F.time) parts.push(`⏱️ +${F.time} s Zeit`);
+  if (F.bright) parts.push("🔦 weiter sehen");
+  if (F.reveal) parts.push("💡 Hinweise über Hindernissen");
+  if (F.garden) parts.push(`🧺 +${F.garden} Kraut beim Ernten`);
+  if (F.gardenSeed) parts.push("🌸 immer Samen zurück");
+  if (F.freeze) parts.push(`🧊 ${F.freeze}× Wasser gefroren`);
+  if (F.burn) parts.push("🔥 keine Dornen");
+  $("teamHead").textContent = "Alle Fähigkeiten zusammen";
+  const tc = $("teamChips"); tc.innerHTML = "";
+  if (!parts.length) tc.appendChild(el("span", "none", "Noch keine Tier-Fähigkeiten. Rette Tiere, dann helfen sie dir automatisch."));
+  parts.forEach(t => tc.appendChild(el("span", "chip", t)));
+  const kn = $("beastKnown"); kn.innerHTML = "";
+  const g = $("beastGrid"); g.innerHTML = "";
+  if (!found) kn.appendChild(el("p", "none", "Noch kein Tier gerettet. Los geht's im Dornenwald!"));
+  beasts.forEach(([e, n, rare]) => {
+    const h = homes[n];
+    if (h) {
+      const where = h[0] + (h.length > 1 ? ` (+${h.length - 1})` : "");
+      if (n === "Fuchs" || n === "Otter") { kn.appendChild(rowEl(e, n, `${where} · hilft dir immer als ${n === "Fuchs" ? "Funke, der Schleicher 🌾" : "Ole, der Taucher 💧"}`)); return; }
+      const a = ABIL[n];
+      kn.appendChild(rowEl(e, `${n}${rare ? " · selten" : ""}`, `${a ? `Immer aktiv: ${a[1]} ` : ""}${ACT[n] ? `Zum Antippen (1× pro Abenteuer): ${ACT[n][0]}, ${ACT[n][1]} ` : ""}Wohnt in ${where}.`, [el("span", "st ok", "✓ aktiv")]));
+    } else {
+      const d = el("div", "beast unk");
+      d.appendChild(el("span", "e", e)); d.appendChild(el("span", "nm2", "???"));
+      if (rare) d.appendChild(el("span", "rare", "selten"));
+      g.appendChild(d);
+    }
+  });
+  if (!g.children.length) g.appendChild(el("p", "none", "Du hast alle Tiere entdeckt! 🌟"));
+  saveH();
+  show("beastView");
+}
+$("toBeasts").addEventListener("click", renderBeasts);
+$("beastBack").addEventListener("click", showVillage);
+function openWiki(from) {
+  wikiFrom = from; renderWiki(); renderKeys();
+  show("wikiView");
+}
+$("wikiFromVillage").addEventListener("click", () => openWiki("village"));
+$("wikiFromDungeon").addEventListener("click", () => openWiki("dungeon"));
+$("wikiBack").addEventListener("click", () => { if (wikiFrom === "dungeon") { buildRoles(); paintRoles(); showDungeon(); } else showVillage(); });
+$("wikiView").addEventListener("click", e => {
+  const a = e.target.closest(".wk-nav a"); if (!a) return;
+  e.preventDefault(); const t = document.querySelector(a.getAttribute("href")); if (t) t.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+});
+const leaveDungeon = () => { if (level && level.timed) showTime(); else showVillage(); };
+$("back").addEventListener("click", leaveDungeon);
+$("home").addEventListener("click", leaveDungeon);
+
+/* ---------- Dungeon ---------- */
+const COLS = 7, ROWS = 10, S = 60;
+let level, theme, grid, stage, px, py, role = "heil", done, burst = [], tries = 3;
+let fx = { shield: false, reveal: false, skip: false }, lostHeart = false, runCustom = {}, potUsed = 0, startTries = 3, actUsed = new Set();
+const POT_MAX = 2;
+const MAX_TRIES = 3;
+function paintLives() {
+  let h = "Versuche:";
+  for (let i = 0; i < Math.max(MAX_TRIES, tries); i++) h +=` <span class="h${i < tries ? "" : " off"}" aria-hidden="true">💛</span>`;
+  $("lives").innerHTML = h + `<span class="sr" style="position:absolute;left:-9999px">${tries} von ${MAX_TRIES} übrig</span>`;
+}
+$("retry").addEventListener("click", () => { if (level.coop) level.resume = false; startLevel(level); if (level.coop) coopSync(true, true); });
+$("failHome").addEventListener("click", () => leaveDungeon());
+const cv = $("c"), ctx = cv.getContext("2d");
+const say = h => { $("msg").innerHTML = h; if (level && level.coop) { coopLog.push(String(h).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); coopLog = coopLog.slice(-8); } };
+
+const rolesEl = $("roles");
+function buildRoles() {
+  ROLES = [...BASE_ROLES, ...PET_ROLES.filter(p => rescued[p.from])];
+  rolesEl.innerHTML = "";
+  rolesEl.style.setProperty("--cols", ROLES.length);
+  rolesEl.classList.toggle("compact", ROLES.length > 5);
+  ROLES.forEach(r => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "role"; b.id = "role-" + r.id;
+    b.innerHTML = `<span class="ic" aria-hidden="true">${r.ic}</span><span class="nm">${r.nm}</span><span class="rl">${r.rl}</span>${RUNE[r.id] ? `<span class="rn" title="Runenzeichen">${RUNE[r.id]}</span>` : ""}`;
+    if (HOVER) { const idx = ROLES.indexOf(r) + 1; b.insertAdjacentHTML("beforeend", `<span class="kb">${keyLabel("r" + idx)}</span>`); }
+    const theirs = level && level.coop && COOP_CLAUDE.includes(r.id);
+    if (theirs) { b.classList.add("theirs"); b.insertAdjacentHTML("beforeend", `<span class="who" title="Claude steuert diesen Begleiter">🤖</span>`); }
+    b.addEventListener("click", () => {
+      if (theirs) { say(`🤖 <b>${r.nm}</b> gehört im Koop zu Claude. Schreib Claude im Chat, was ${r.nm} machen soll!`); return; }
+      role = r.id; paintRoles(); say(`<b>${r.nm}</b> ist bereit (${r.rl}).`);
+    });
+    rolesEl.appendChild(b);
+  });
+}
+function paintRoles() { ROLES.forEach(r => $("role-" + r.id).setAttribute("aria-pressed", String(r.id === role))); }
+
+function startLevel(l) {
+  level = l; theme = THEMES[l.theme];
+  buildRoles();
+  // Mondtal beim ersten Mal wie gebaut, danach (und überall sonst) jedes Mal neu
+  const run = l.gen && !l.resume && (!l.fixedFirst || rescued[l.id]) ? randomMap(l) : { map: l.map, custom: l.custom || {} };
+  grid = run.map.map(r => r.split("")); runCustom = run.custom;
+  stage = {};
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "P") { px = x; py = y; grid[y][x] = "."; }
+  // Samenfunde: bei jedem Besuch neu verteilt, so kann man sie farmen
+  const free = [];
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "." && !(x === px && y === py)) free.push([x, y]);
+  const TF = teamFx();
+  for (let n = l.resume ? 0 : 1 + Math.floor(Math.random() * 2) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
+    const [sx, sy] = free.splice(Math.floor(Math.random() * free.length), 1)[0]; grid[sy][sx] = "S";
+  }
+  done = false; burst = []; role = "heil"; buildRoles(); paintRoles();
+  $("win").hidden = true; $("fail").hidden = true; $("failText").textContent = FAIL_HEARTS;
+  $("timer").hidden = !l.timed; if (l.timed) { if (timerId) { clearInterval(timerId); timerId = null; } timeLeft = l.limit + TF.time; }
+  tries = MAX_TRIES + TF.heart; startTries = tries; actUsed = new Set(); paintLives();
+  fx = { shield: TF.shield, reveal: !!TF.reveal, skip: false, bright: !!TF.bright, seedx2: false, loot: false }; lostHeart = false; potUsed = 0; renderPotbar();
+  if (TF.burn) for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "T") grid[y][x] = ".";
+  if (TF.freeze) { let left = TF.freeze; for (let y = ROWS - 1; y >= 0 && left; y--) for (let x = 0; x < COLS && left; x++) if ("WU".includes(grid[y][x])) { grid[y][x] = "B"; left--; } }
+  const tb = $("teamBar"); tb.innerHTML = ""; tb.className = "potbar fxsum";
+  const parts = fxParts(TF);
+  if (parts.length) { tb.appendChild(el("span", null, "Dauerhaft dank deiner Tiere:")); parts.forEach(t => tb.appendChild(el("span", "chip", t))); }
+  renderActs();
+  $("dTitle").textContent = l.name;
+  $("back").textContent = "Zurück";
+  say(l.intro);
+  showDungeon();
+}
+
+// Welches echte Hindernis zu welchem Begleiter gehört
+const visOf = (r, i) => ({ schutz: i % 2 ? "R" : "T", spur: "H", bau: "W", licht: "D", fuchs: "G", otter: "U" })[r] || "T";
+const VIS_NAME = { T: "Dornenranken", R: "ein schwerer Felsbrocken", H: "ein Nebel voller Spuren", W: "fließendes Wasser", D: "eine Schattenwand", G: "eine Hecke mit einem winzigen Spalt", U: "ein tiefer Seerosenteich" };
+function getObst(t, k) {
+  if (t === "A") return { needs: ["heil"], animal: true, hint: level.animalHint, solve: ["Du legst die Hände auf den Zauber. Er zerfällt zu Glitzerstaub …"] };
+  if (t === "Q") {
+    // Verwunschenes Feld: mehrere echte Hindernisse liegen hintereinander
+    const seq = runCustom[k], vis = seq.map((r, i) => visOf(r, i));
+    const part = i => `<br><span style="color:var(--muted)">Verwunschenes Feld: Teil ${i + 1} von ${seq.length}</span>`;
+    return {
+      needs: seq, after: ".",
+      hint: OBST[vis[0]].hint + part(0),
+      solve: seq.map((r, i) => OBST[vis[i]].solve[0] + (i === seq.length - 1 ? " Der Zauber löst sich, das Feld ist frei!" : `<br>Doch dahinter wartet schon das Nächste: <b>${VIS_NAME[vis[i + 1]]}</b>. (noch ${seq.length - i - 1})`)),
+      midFn: step => OBST[vis[step]].hint + part(step)
+    };
+  }
+  return OBST[t];
+}
+
+function tryStep(tx, ty) {
+  if (!level || done) return;
+  if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) return;
+  if (Math.abs(tx - px) + Math.abs(ty - py) !== 1) { say("Tippe auf ein Feld <b>direkt neben</b> dir."); return; }
+  const t = grid[ty][tx];
+  if (t === "S") {
+    px = tx; py = ty; grid[ty][tx] = "."; sparkle(tx, ty);
+    const k2 = rollDrop(level.secret ? 0.3 : teamFx().rareFind ? 0.25 : 0.1); add(H.seeds, k2, fx.seedx2 ? 2 : 1); saveH();
+    say(`🌱 Du findest Samen: <b>${fx.seedx2 ? "2× " : ""}${HERBS[k2].ic} ${HERBS[k2].nm}</b>!${HERBS[k2].rare ? " Ein seltener Fund ✨" : ""}`);
+    return;
+  }
+  if (t === "." || t === "B") { px = tx; py = ty; return; }
+  if (t === "#") { say(WALL_MSG[level.wall]); return; }
+  if (t === "~") { say(WALL_MSG.lake); return; }
+  const k = tx + "," + ty, o = getObst(t, k); if (!o) return;
+  if (fx.skip > 0 && !o.animal) {
+    fx.skip--; say("🌫️ Wie von Zauberhand öffnet sich der Weg."); sparkle(tx, ty); tileAnim(tx, ty, "magic", t);
+    grid[ty][tx] = o.after; delete stage[k]; return;
+  }
+  const step = stage[k] || 0, need = o.needs[step];
+  if (role === need) {
+    say(o.solve[step]); sparkle(tx, ty);
+    const last = step + 1 >= o.needs.length;
+    tileAnim(tx, ty, need, t === "Q" ? visOf(need, step) : (last && !o.animal ? t : null));
+    if (!last) { stage[k] = step + 1; return; }
+    if (o.animal) { rescue(); return; }
+    grid[ty][tx] = o.after; delete stage[k];
+  } else {
+    const base = step > 0 ? (o.midFn ? o.midFn(step) : o.mid || o.hint) : o.hint;
+    const who = role === "heil" ? "Du kannst" : ROLE[role].nm + " kann";
+    if (fx.shield > 0) {
+      fx.shield--;
+      say(`${base} <br><span style="color:var(--muted)">${who} hier nicht helfen, aber du bist geschützt 🛡️. Kein Herz verloren.</span>`);
+      return;
+    }
+    tries--; lostHeart = true; paintLives();
+    if (tries <= 0) {
+      done = true;
+      say(`${who} hier leider nicht helfen. Der Nebel wird dichter …`);
+      setTimeout(() => { $("fail").hidden = false; }, reduce ? 0 : 900);
+      return;
+    }
+    say(`${base} <br><span style="color:var(--muted)">${who} hier gerade nicht helfen. Noch ${tries} ${tries === 1 ? "Versuch" : "Versuche"}.</span>`);
+  }
+}
+
+// Extra-Belohnung, wenn man kein Herz verloren hat
+function perfectBonus() {
+  if (lostHeart) return "";
+  const b = [rollDrop(0.3), rollDrop(0.3)]; b.forEach(k => add(H.seeds, k));
+  H.stars = H.stars || {};
+  const firstStar = !H.stars[level.id]; H.stars[level.id] = true; saveH();
+  let txt = `<br><br>💛 <b>Alle Herzen behalten!</b> Extra-Belohnung: ${b.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen` + (firstStar ? " und ein ⭐ für dieses Abenteuer." : ".");
+  // Alle Sterne eines Ortes: einmalige Sternentruhe
+  const s = getSettlement(cur); H.starOrt = H.starOrt || {};
+  if (!level.secret && !H.starOrt[s.n] && s.levels.every(l => H.stars[l.id])) {
+    H.starOrt[s.n] = true;
+    const rares = [0, 1, 2].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
+    rares.forEach(k => add(H.seeds, k));
+    const pot = ["sonnen", "tulpen", "kleeg"][Math.floor(Math.random() * 3)];
+    add(H.potions, "herz"); add(H.potions, pot); saveH();
+    txt += `<br><br>🌟 <b>Alle 3 Sterne in ${s.name}!</b> Du öffnest die <b>Sternentruhe</b>: ${rares.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als seltene Samen, dazu ${POTIONS.herz.ic} ${POTIONS.herz.nm} und ${POTIONS[pot].ic} ${POTIONS[pot].nm}. Über ${s.name} leuchtet jetzt für immer ein goldener Stern.`;
+  }
+  return txt;
+}
+function rescue() {
+  if (level.coop) { coopWin(); return; }
+  if (level.timed) { timeWin(); return; }
+  if (level.superD) { superWin(); return; }
+  const wasOpen = secretOpen(getSettlement(cur));
+  if (!lostHeart) { statsOf(cur).perfect = true; saveH(); }
+  if (level.secret) { secretWin(); return; }
+  done = true; rescued[level.id] = true; save();
+  const s = getSettlement(cur), pet = PET_ROLES.find(p => p.from === level.id);
+  let text = `${level.who} folgt dir zurück nach ${s.name} und zieht ${level.home} ein.`;
+  const gift = Array.from({ length: (fx.loot ? 4 : 2) + teamFx().loot }, () => rollDrop()); gift.forEach(k => add(H.seeds, k)); saveH();
+  text += `<br><br>🎁 Zufällige Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen.`;
+  text += perfectBonus();
+  if (!wasOpen && secretOpen(s)) text += `<br><br>🗝️ Alle Geheimaufgaben erfüllt! <b>${getSecret(s.n).name}</b> ist jetzt offen.`;
+  if (pet) text += `<br><br>Ab jetzt hilft dir <b>${pet.nm}</b> als ${pet.rl}!`;
+  if (isDone(s)) {
+    const nx = getSettlement(s.n + 1), first = nx.tier !== s.tier && TIERS[nx.tier].first;
+    text += `<br><br>🌟 Alle Tiere in ${s.name} sind gerettet! Ein neuer Weg ist frei: <b>${nx.name}</b>` + (first ? `, ${first}!` : ".");
+  }
+  $("winIcon").textContent = level.animal;
+  $("winTitle").textContent = `${level.who} ist frei!`;
+  $("winText").innerHTML = text;
+  $("home").textContent = `Zurück nach ${s.name}`;
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+}
+
+function sparkle(x, y) {
+  for (let i = 0; i < 26; i++) burst.push({ x: x + .5, y: y + .5, vx: (Math.random() - .5) * .08, vy: (Math.random() - .5) * .08 - .02, life: 1 });
+}
+
+cv.addEventListener("click", e => {
+  const r = cv.getBoundingClientRect();
+  tryStep(Math.floor((e.clientX - r.left) / r.width * COLS), Math.floor((e.clientY - r.top) / r.height * ROWS));
+});
+/* ---------- Tastatur ---------- */
+const KEY_ACTIONS = [
+  ["up", "Nach oben laufen"], ["down", "Nach unten laufen"], ["left", "Nach links laufen"], ["right", "Nach rechts laufen"],
+  ["r1", "Begleiter 1 (Bruno)"], ["r2", "Begleiter 2 (Pip)"], ["r3", "Begleiter 3 (Holm)"], ["r4", "Begleiter 4 (Luna)"],
+  ["r5", "Begleiter 5 (Du)"], ["r6", "Begleiter 6 (Funke)"], ["r7", "Begleiter 7 (Ole)"],
+  ["acts", "Tierkräfte auf- und zuklappen"], ["pots", "Tränke auf- und zuklappen"]
+];
+const KEY_DEFAULT = { up: "w", down: "s", left: "a", right: "d", r1: "1", r2: "2", r3: "3", r4: "4", r5: "5", r6: "6", r7: "7", acts: "k", pots: "t" };
+const HOVER = matchMedia("(hover: hover)").matches;
+let KEYS = { ...KEY_DEFAULT }, waitKey = null;
+try { Object.assign(KEYS, JSON.parse(localStorage.getItem("nebelpfad-keys") || "{}")); } catch (e) {}
+const saveKeys = () => { try { localStorage.setItem("nebelpfad-keys", JSON.stringify(KEYS)); } catch (e) {} };
+const keyLabel = a => { const k = KEYS[a] || ""; return k === " " ? "Leer" : k.length === 1 ? k.toUpperCase() : k; };
+function renderKeys() {
+  const box = $("keyList"); if (!box) return; box.innerHTML = "";
+  KEY_ACTIONS.forEach(([a, label]) => {
+    const b = btnEl(waitKey === a ? "Taste drücken …" : keyLabel(a), () => { waitKey = a; renderKeys(); }, waitKey === a ? "btn sm" : "chip");
+    b.id = "key-" + a;
+    box.appendChild(rowEl("⌨️", label, a === "up" || a === "down" || a === "left" || a === "right" ? "Die Pfeiltasten gehen immer zusätzlich." : "", [b]));
+  });
+  box.appendChild(btnEl("Auf Standard zurücksetzen", () => { KEYS = { ...KEY_DEFAULT }; waitKey = null; saveKeys(); renderKeys(); }, "chip"));
+}
+addEventListener("keydown", e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (waitKey) {
+    e.preventDefault();
+    if (e.key !== "Escape") {
+      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      Object.keys(KEYS).forEach(a => { if (KEYS[a] === k) KEYS[a] = ""; });
+      KEYS[waitKey] = k; saveKeys();
+    }
+    waitKey = null; renderKeys(); return;
+  }
+  if ($("dungeonView").hidden) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName)) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  const arrows = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+  const act = Object.keys(KEYS).find(a => KEYS[a] && KEYS[a] === k);
+  const mv = arrows[e.key] || { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[act];
+  if (mv) { e.preventDefault(); tryStep(px + mv[0], py + mv[1]); return; }
+  if (!act) return;
+  if (act[0] === "r" && /^r\d$/.test(act)) {
+    const r = ROLES[+act.slice(1) - 1]; if (!r) return;
+    if (level && level.coop && COOP_CLAUDE.includes(r.id)) { e.preventDefault(); say(`🤖 <b>${r.nm}</b> gehört im Koop zu Claude. Schreib Claude im Chat, was ${r.nm} machen soll!`); return; }
+    e.preventDefault(); role = r.id; paintRoles(); say(`<b>${r.nm}</b> ist bereit (${r.rl}).`); return;
+  }
+  if (act === "acts" && !$("tgActs").hidden) { e.preventDefault(); togglePanel("tgActs", "actBar", renderActs); }
+  if (act === "pots") { e.preventDefault(); togglePanel("tgPots", "potbar", renderPotbar); }
+});
+
+/* ---------- Zeichnen ---------- */
+function tree(x, y, t, seed) {
+  const cx = x * S + S / 2, by = y * S + S * .9;
+  ctx.fillStyle = "#14201d"; ctx.fillRect(x * S, y * S, S, S);
+  const sway = reduce ? 0 : Math.sin(t / 1400 + seed) * 1.5;
+  ctx.fillStyle = "#0c1614";
+  ctx.beginPath(); ctx.moveTo(cx + sway, y * S + 4); ctx.lineTo(cx + S * .42, by); ctx.lineTo(cx - S * .42, by); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#1f3a30";
+  ctx.beginPath(); ctx.moveTo(cx + sway, y * S + 12); ctx.lineTo(cx + S * .3, by - 10); ctx.lineTo(cx - S * .3, by - 10); ctx.closePath(); ctx.fill();
+  if (seed % 3 === 0) {
+    ctx.fillStyle = "#7fd6c8"; ctx.shadowColor = "#7fd6c8"; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(x * S + 12, y * S + S - 8, 3.5, Math.PI, 0); ctx.fill(); ctx.shadowBlur = 0;
+  }
+}
+function rock(x, y, t, seed) {
+  ctx.fillStyle = "#16181f"; ctx.fillRect(x * S, y * S, S, S);
+  ctx.fillStyle = "#23262f"; ctx.beginPath(); ctx.ellipse(x * S + S * .35, y * S + S * .62, S * .3, S * .25, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = "#2c303a"; ctx.beginPath(); ctx.ellipse(x * S + S * .68, y * S + S * .36, S * .24, S * .2, 0, 0, 7); ctx.fill();
+  if (seed % 4 === 0) {
+    const a = reduce ? .8 : .5 + .3 * Math.sin(t / 700 + seed);
+    ctx.fillStyle = `rgba(159,216,255,${a})`; ctx.shadowColor = "#9fd8ff"; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.moveTo(x * S + 14, y * S + 22); ctx.lineTo(x * S + 19, y * S + 34); ctx.lineTo(x * S + 9, y * S + 34); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+  }
+}
+function path(x, y, seed) {
+  ctx.fillStyle = theme.path[0]; ctx.fillRect(x * S, y * S, S, S);
+  ctx.fillStyle = theme.path[1];
+  ctx.beginPath(); ctx.ellipse(x * S + S / 2 + (seed % 5) - 2, y * S + S / 2, S * .34, S * .28, seed, 0, Math.PI * 2); ctx.fill();
+}
+function lake(x, y, t, seed) {
+  ctx.fillStyle = "#12253d"; ctx.fillRect(x * S, y * S, S, S);
+  const a = reduce ? .25 : .15 + .15 * Math.sin(t / 900 + seed);
+  ctx.strokeStyle = `rgba(150,190,230,${a})`; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x * S + 10, y * S + 20 + seed % 9); ctx.lineTo(x * S + 28, y * S + 20 + seed % 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x * S + 30, y * S + 42); ctx.lineTo(x * S + 50, y * S + 42); ctx.stroke();
+}
+function stream(x, y, t, bridge) {
+  ctx.fillStyle = "#1c3a5c"; ctx.fillRect(x * S, y * S + 6, S, S - 12);
+  ctx.strokeStyle = "#5f93c7"; ctx.lineWidth = 2;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    for (let k = 0; k <= S; k += 6) { const yy = y * S + 16 + i * 14 + Math.sin((k + (reduce ? 0 : t / 60) + i * 20) / 8) * 2; k ? ctx.lineTo(x * S + k, yy) : ctx.moveTo(x * S + k, yy); }
+    ctx.stroke();
+  }
+  if (bridge) { ctx.fillStyle = "#7a5634"; for (let i = 0; i < 5; i++) ctx.fillRect(x * S + 8 + i * 9, y * S + 4, 6, S - 8); ctx.fillStyle = "#5c3f25"; ctx.fillRect(x * S + 4, y * S + S / 2 - 3, S - 8, 6); }
+}
+function animalTile(cx, cy, t, emoji, ring) {
+  ctx.fillStyle = "#06080e"; ctx.beginPath(); ctx.arc(cx, cy, 25, 0, 7); ctx.fill();
+  ctx.strokeStyle = ring; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(cx, cy, 24, 0, 7); ctx.stroke();
+  ctx.shadowColor = ring; ctx.shadowBlur = reduce ? 14 : 10 + 8 * Math.sin(t / 400);
+  ctx.font = "30px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(emoji, cx, cy + 2); ctx.shadowBlur = 0;
+}
+
+/* ---------- Feld-Animationen beim Lösen ---------- */
+let anims = [];
+function tileAnim(x, y, kind, from) {
+  if (reduce) return;
+  anims = anims.filter(a => !(a.x === x && a.y === y));
+  anims.push({ x, y, kind, from: from || null, t0: performance.now(), dur: 1300 });
+}
+function drawAnims(now) {
+  anims = anims.filter(a => now - a.t0 < a.dur);
+  anims.forEach(a => {
+    const p = (now - a.t0) / a.dur, cx = a.x * S + S / 2, cy = a.y * S + S / 2, role = ROLE[a.kind];
+    ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    const fade = p < .7 ? 1 : (1 - p) / .3;
+    if (a.kind === "licht") {
+      const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, 12 + p * 40);
+      g.addColorStop(0, `rgba(255,244,210,${.8 * fade})`); g.addColorStop(1, "rgba(255,244,210,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 12 + p * 40, 0, 7); ctx.fill();
+      ctx.strokeStyle = `rgba(255,236,170,${fade})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, 6 + p * 36, 0, 7); ctx.stroke();
+    }
+    if (a.kind === "spur") {
+      ctx.font = "13px serif";
+      for (let i = 0; i < 4; i++) { const q = (p - i * .14) / .3; if (q <= 0) continue; ctx.globalAlpha = Math.min(1, q) * fade; ctx.fillText("🐾", cx - 18 + i * 12, cy + 18 - i * 12); }
+    }
+    if (a.kind === "schutz") {
+      for (let i = 0; i < 7; i++) { const ang = i / 7 * Math.PI * 2, r = 8 + p * 26; ctx.fillStyle = `rgba(190,180,165,${.6 * fade})`;
+        ctx.beginPath(); ctx.arc(cx + Math.cos(ang) * r, cy + 12 + Math.sin(ang) * r * .45, 4 + p * 5, 0, 7); ctx.fill(); }
+    }
+    if (a.kind === "bau") {
+      [0.15, 0.4, 0.65].forEach(h => { const q = (p - h) / .18; if (q < 0 || q > 1) return;
+        ctx.strokeStyle = `rgba(242,199,107,${1 - q})`; ctx.lineWidth = 2;
+        for (let i = 0; i < 6; i++) { const ang = i / 6 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(cx + Math.cos(ang) * 6, cy + 10 + Math.sin(ang) * 6); ctx.lineTo(cx + Math.cos(ang) * (8 + q * 14), cy + 10 + Math.sin(ang) * (8 + q * 14)); ctx.stroke(); } });
+    }
+    if (a.kind === "fuchs") {
+      ctx.strokeStyle = `rgba(255,150,80,${fade})`; ctx.lineWidth = 3; ctx.lineCap = "round";
+      for (let i = 0; i < 3; i++) { const sx = cx - 28 + p * 56; ctx.beginPath(); ctx.moveTo(sx - 18, cy - 10 + i * 10); ctx.lineTo(sx, cy - 10 + i * 10); ctx.stroke(); }
+    }
+    if (a.kind === "otter") {
+      for (let i = 0; i < 3; i++) { const q = p - i * .15; if (q <= 0) continue; ctx.strokeStyle = `rgba(150,210,255,${(1 - q) * fade})`; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(cx, cy + 6, 6 + q * 30, 3 + q * 14, 0, 0, 7); ctx.stroke(); }
+    }
+    if (a.kind === "heil") {
+      for (let i = 0; i < 9; i++) { const ang = i / 9 * Math.PI * 2 + p * 7, r = 6 + p * 22;
+        ctx.fillStyle = i % 2 ? `rgba(143,224,173,${fade})` : `rgba(242,199,107,${fade})`;
+        ctx.beginPath(); ctx.arc(cx + Math.cos(ang) * r, cy + Math.sin(ang) * r, 3, 0, 7); ctx.fill(); }
+    }
+    if (a.kind === "magic") {
+      ctx.strokeStyle = `rgba(200,160,255,${fade})`; ctx.lineWidth = 2;
+      for (let i = 0; i < 8; i++) { const ang = i / 8 * Math.PI * 2 + p; ctx.beginPath(); ctx.moveTo(cx + Math.cos(ang) * (4 + p * 10), cy + Math.sin(ang) * (4 + p * 10)); ctx.lineTo(cx + Math.cos(ang) * (10 + p * 26), cy + Math.sin(ang) * (10 + p * 26)); ctx.stroke(); }
+    }
+    // Der Begleiter erscheint kurz auf dem Feld
+    if (role) {
+      const sc = p < .18 ? (p / .18) * 1.25 : 1.25 - (p - .18) * .35;
+      ctx.globalAlpha = p < .7 ? 1 : (1 - p) / .3;
+      ctx.shadowColor = "#000"; ctx.shadowBlur = 8;
+      const bob = a.kind === "schutz" ? Math.sin(p * 40) * 3 * (1 - p) : a.kind === "bau" ? -Math.abs(Math.sin(p * 14)) * 6 : 0;
+      ctx.font = `${Math.round(26 * sc)}px serif`; ctx.fillText(role.ic, cx + bob, cy - 8 - p * 12);
+      if (a.kind === "bau") { ctx.font = "16px serif"; ctx.fillText("🔨", cx + 14, cy - 18 + Math.abs(Math.sin(p * 14)) * 8); }
+    }
+    ctx.restore();
+  });
+}
+function draw(t) {
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  if (!level) return;
+  const wallFn = level.wall === "lake" ? lake : level.wall === "rock" ? rock : tree;
+  const cell = (c, x, y, noReveal) => {
+    const seed = x * 7 + y * 13, cx = x * S + S / 2, cy = y * S + S / 2, k = x + "," + y;
+    if (c === "#") wallFn(x, y, t, seed);
+    else if (c === "~" || c === "O" || c === "U") lake(x, y, t, seed);
+    else if (c === "W" || c === "B") stream(x, y, t, c === "B");
+    else path(x, y, seed);
+
+    if (c === "H") {
+      // Pips Spurenfeld: heller Nebel mit vielen Spuren durcheinander
+      for (let i = 0; i < 4; i++) {
+        const ox = Math.sin((reduce ? 0 : t / 900) + i * 1.7) * 8, oy = Math.cos((reduce ? 0 : t / 1100) + i) * 6;
+        const g = ctx.createRadialGradient(cx + ox, cy + oy, 2, cx + ox, cy + oy, 30);
+        g.addColorStop(0, "rgba(220,230,255,.55)"); g.addColorStop(1, "rgba(200,210,230,0)");
+        ctx.fillStyle = g; ctx.fillRect(x * S - 10, y * S - 10, S + 20, S + 20);
+      }
+      ctx.fillStyle = "#3b4658";
+      [[-14, 14], [-6, 2], [6, -8], [14, 10], [-12, -14], [10, 18]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.ellipse(cx + dx, cy + dy, 2.5, 4, 0, 0, 7); ctx.fill(); });
+    }
+    if (c === "T") {
+      ctx.strokeStyle = "#8a5bc7"; ctx.lineWidth = 3; ctx.lineCap = "round";
+      for (let i = 0; i < 5; i++) {
+        const a = i / 5 * Math.PI * 2 + (reduce ? 0 : t / 3000);
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.quadraticCurveTo(cx + Math.cos(a) * 22, cy + Math.sin(a) * 4, cx + Math.cos(a + .6) * 26, cy + Math.sin(a + .6) * 26); ctx.stroke();
+      }
+      ctx.fillStyle = "#c79bf5";
+      for (let i = 0; i < 6; i++) { const a = i + .3; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * 18, cy + Math.sin(a) * 18, 2, 0, 7); ctx.fill(); }
+    }
+    if (c === "D") {
+      ctx.fillStyle = "#06080e"; ctx.fillRect(x * S, y * S, S, S);
+      ctx.strokeStyle = "#3a2f5a"; ctx.lineWidth = 2;
+      for (let i = 0; i < 3; i++) { const s0 = (reduce ? 0 : t / (700 + i * 200)) + i; ctx.beginPath(); ctx.arc(cx, cy, 8 + i * 7, s0, s0 + 2); ctx.stroke(); }
+    }
+    if (c === "R") {
+      ctx.fillStyle = "#4a5058"; ctx.beginPath(); ctx.ellipse(cx, cy + 4, 22, 17, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = "#5c636c"; ctx.beginPath(); ctx.ellipse(cx - 5, cy - 1, 13, 9, -.3, 0, 7); ctx.fill();
+      ctx.fillStyle = "#3f6b45"; ctx.beginPath(); ctx.ellipse(cx + 6, cy - 10, 10, 4, .2, 0, 7); ctx.fill();
+    }
+    if (c === "N") {
+      const lit = (stage[k] || 0) > 0;
+      for (let i = 0; i < 4; i++) {
+        const ox = Math.sin((reduce ? 0 : t / 900) + i * 1.7) * 8, oy = Math.cos((reduce ? 0 : t / 1100) + i) * 6;
+        const g = ctx.createRadialGradient(cx + ox, cy + oy, 2, cx + ox, cy + oy, 30);
+        g.addColorStop(0, lit ? "rgba(220,230,255,.55)" : "rgba(200,210,230,.85)"); g.addColorStop(1, "rgba(200,210,230,0)");
+        ctx.fillStyle = g; ctx.fillRect(x * S - 10, y * S - 10, S + 20, S + 20);
+      }
+      if (lit) {
+        ctx.fillStyle = "#3b4658";
+        [[-14, 14], [-6, 2], [6, -8], [14, 10], [-12, -14], [10, 18]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.ellipse(cx + dx, cy + dy, 2.5, 4, 0, 0, 7); ctx.fill(); });
+      }
+    }
+    if (c === "G") {
+      ctx.fillStyle = "#1a3324"; ctx.fillRect(x * S + 2, y * S + 6, S - 4, S - 12);
+      ctx.fillStyle = "#24482f";
+      for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(x * S + 8 + i * 9, y * S + 12 + (i % 2) * 6, 8, 0, 7); ctx.fill(); }
+      ctx.fillStyle = "#070b09"; ctx.fillRect(cx - 3, y * S + 22, 6, S - 30);
+    }
+    if (c === "U") {
+      ctx.fillStyle = "#2f5a3a";
+      [[-16, -12], [14, -6], [-8, 16]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(cx + dx, cy + dy, 7, .4, Math.PI * 2 - .1); ctx.lineTo(cx + dx, cy + dy); ctx.fill(); });
+      ctx.fillStyle = "#e9b8d6"; ctx.beginPath(); ctx.arc(cx + 14, cy - 6, 2.5, 0, 7); ctx.fill();
+    }
+    if (c === "X") {
+      const lit = stage[k] || 0;
+      ctx.fillStyle = "#4a4f5e"; ctx.fillRect(x * S + 6, y * S + 10, 10, S - 12); ctx.fillRect(x * S + S - 16, y * S + 10, 10, S - 12);
+      ctx.beginPath(); ctx.arc(cx, y * S + 18, S / 2 - 6, Math.PI, 0); ctx.lineTo(x * S + S - 16, y * S + 18); ctx.arc(cx, y * S + 18, S / 2 - 16, 0, Math.PI, true); ctx.fill();
+      ctx.fillStyle = "#1c2030"; ctx.fillRect(x * S + 16, y * S + 18, S - 32, S - 20);
+      for (let i = 0; i < 3; i++) {
+        const on = i < lit;
+        ctx.fillStyle = on ? "#f2c76b" : "#2c3140"; ctx.shadowColor = "#f2c76b"; ctx.shadowBlur = on ? 10 : 0;
+        ctx.beginPath(); ctx.arc(x * S + 18 + i * 12, y * S + 12, 4, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
+      }
+    }
+    if (c === "Q") {
+      const seq = runCustom[k], st = stage[k] || 0;
+      // Das aktuelle echte Hindernis zeigen, mit einem Hauch Zaubernebel
+      const n = seq.length;
+      if (st < n) { ctx.save(); cell(visOf(seq[st], st), x, y, true); ctx.restore(); }
+      const pulse = reduce ? .5 : .5 + .5 * Math.sin(t / 500);
+      const g = ctx.createRadialGradient(cx, cy, 4, cx, cy, 34);
+      g.addColorStop(0, "rgba(205,195,240,0)"); g.addColorStop(1, `rgba(205,195,240,${.18 + .12 * pulse})`);
+      ctx.fillStyle = g; ctx.fillRect(x * S, y * S, S, S);
+      ctx.strokeStyle = `rgba(180,140,242,${.45 + .35 * pulse})`; ctx.lineWidth = 2;
+      ctx.strokeRect(x * S + 2, y * S + 2, S - 4, S - 4);
+      // kleine Punkte: wie viele Schritte noch fehlen
+      ctx.fillStyle = "#0b0f18aa"; ctx.fillRect(cx - n * 4 - 3, y * S + S - 13, n * 8 + 6, 10);
+      for (let i = 0; i < n; i++) {
+        ctx.fillStyle = i < st ? "#5fd18c" : i === st ? "#f2c76b" : "#5a6070";
+        ctx.beginPath(); ctx.arc(cx + (i - (n - 1) / 2) * 8, y * S + S - 8, 2.6, 0, 7); ctx.fill();
+      }
+    }
+    if (c === "Z") animalTile(cx, cy, t, "🦌", "#f2c76b");
+    if (c === "F") animalTile(cx, cy, t, "🦊", "#b48cf2");
+    if (c === "O") animalTile(cx, cy, t, "🦦", "#9fd8ff");
+    if (c === "A") animalTile(cx, cy, t, level.animal, level.ring);
+    if (c === "S") {
+      const g2 = ctx.createRadialGradient(cx, cy, 2, cx, cy, 20);
+      g2.addColorStop(0, `rgba(143,224,173,${reduce ? .5 : .35 + .25 * Math.sin(t / 380 + seed)})`); g2.addColorStop(1, "rgba(143,224,173,0)");
+      ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(cx, cy, 20, 0, 7); ctx.fill();
+      ctx.font = "22px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🌱", cx, cy + 1);
+    }
+    if (!noReveal && fx.reveal && (c in OBST || c === "Q" || c === "A")) {
+      const o = getObst(c, k), need = o && o.needs[stage[k] || 0];
+      if (need) {
+        ctx.fillStyle = "#0b0f18cc"; ctx.beginPath(); ctx.arc(x * S + S - 12, y * S + 12, 11, 0, 7); ctx.fill();
+        ctx.font = "15px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(ROLE[need].ic, x * S + S - 12, y * S + 13);
+      }
+    }
+  };
+  const now = performance.now();
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+    cell(grid[y][x], x, y);
+    // altes Feld blendet langsam aus
+    const an = anims.find(a => a.x === x && a.y === y && a.from);
+    if (an) { const p = (now - an.t0) / an.dur; if (p < .75) { ctx.save(); ctx.globalAlpha = 1 - p / .75; cell(an.from, x, y, true); ctx.restore(); } }
+  }
+  drawAnims(now);
+  // Heilerin mit Laterne
+  const lx = px * S + S / 2, ly = py * S + S / 2;
+  const glow = ctx.createRadialGradient(lx, ly, 2, lx, ly, S * .55);
+  glow.addColorStop(0, "#f2c76bcc"); glow.addColorStop(1, "#f2c76b00");
+  ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(lx, ly, S * .55, 0, 7); ctx.fill();
+  ctx.fillStyle = "#3b2c5c"; ctx.beginPath(); ctx.moveTo(lx, ly - 18); ctx.lineTo(lx + 13, ly + 16); ctx.lineTo(lx - 13, ly + 16); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#f3dcc0"; ctx.beginPath(); ctx.arc(lx, ly - 6, 6, 0, 7); ctx.fill();
+  ctx.fillStyle = "#f2c76b"; ctx.beginPath(); ctx.arc(lx + 12, ly + 4, 4, 0, 7); ctx.fill();
+
+  // Nebel rund um die Laterne
+  const fr = fx.bright ? 1.9 : 1;
+  const fog = ctx.createRadialGradient(lx, ly, S * 1.4 * fr, lx, ly, S * 3.2 * fr);
+  fog.addColorStop(0, "#0b0f1800"); fog.addColorStop(1, "#0b0f18f2");
+  ctx.fillStyle = fog; ctx.fillRect(0, 0, cv.width, cv.height);
+  if (!reduce) for (let i = 0; i < 4; i++) {
+    const fx = ((t / (90 + i * 30)) + i * 120) % (cv.width + 200) - 100, fy = 80 + i * 140;
+    const m = ctx.createRadialGradient(fx, fy, 5, fx, fy, 110);
+    m.addColorStop(0, "#c9d3e614"); m.addColorStop(1, "#c9d3e600");
+    ctx.fillStyle = m; ctx.fillRect(fx - 110, fy - 110, 220, 220);
+  }
+  burst = burst.filter(p => (p.life -= .015) > 0);
+  burst.forEach(p => { p.x += p.vx; p.y += p.vy; ctx.fillStyle = `rgba(242,199,107,${p.life})`; ctx.beginPath(); ctx.arc(p.x * S, p.y * S, 2.5, 0, 7); ctx.fill(); });
+}
+function loop(t) { if (!$("dungeonView").hidden) draw(t); requestAnimationFrame(loop); }
+
+/* ---------- Mitspieler: Dungeonbrowser, Freunde, Chat ---------- */
+let DB = null, USER = null, ROOM = null, ME = null;
+let groups = [], friends = [], peers = [], myGroupId = null, chatRoom = "welt", chatUnsub = null, chatMsgs = [];
+let socTab = "lfg", missions = [], lastStart = Date.now();
+const GROUP_ROLES = ["schutz", "spur", "bau", "licht", "heil"];
+const FRESH = 3 * 3600 * 1000;
+const pairKey = (a, b) => [a, b].sort().join("__");
+const ssay = h => { $("socMsg").innerHTML = h; };
+function socNote(t) { $("socNote").textContent = t; $("socNote").hidden = !t; }
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function btnEl(label, fn, cls = "chip") { const b = el("button", cls, label); b.type = "button"; b.addEventListener("click", fn); return b; }
+function rowEl(ic, title, sub, actions, online) {
+  const r = el("div", "wk-row"), t = el("span", "t"), s1 = el("strong"), s2 = el("span", null, sub);
+  if (online) s1.appendChild(el("span", "on"));
+  s1.appendChild(document.createTextNode(title));
+  t.append(s1, s2); r.append(el("span", "ic", ic), t);
+  if (actions && actions.length) { const a = el("div", "acts"); actions.forEach(b => a.appendChild(b)); r.appendChild(a); }
+  return r;
+}
+async function names(ids) {
+  const ps = USER && ids.length ? await USER.profiles(ids) : {};
+  return id => id === ME ? "Du" : ((ps[id] && ps[id].name) || "Spieler");
+}
+const onlineIds = () => new Set(peers.filter(p => p.by && !p.isMe).map(p => p.by));
+const friendOf = id => friends.find(f => f.users && f.users.includes(id));
+const myGroup = () => groups.find(g => g.id === myGroupId);
+
+function missionsAvail() {
+  const out = [], max = unlockedMax();
+  for (let n = 1; n <= max; n++) {
+    const s = getSettlement(n);
+    s.levels.forEach((l, i) => { if (l.mode >= 1 && !isLocked(l)) out.push({ key: l.id, n, i, name: l.name, place: s.name, size: l.mode === 1 ? 2 : 5 }); });
+    if (secretOpen(s)) { const g = getSecret(n); out.push({ key: g.id, n, i: -1, name: g.name, place: s.name, size: 5 }); }
+  }
+  return out;
+}
+function canPlay(m) {
+  if (!m || m.n > unlockedMax()) return false;
+  const s = getSettlement(m.n);
+  return m.i === -1 ? secretOpen(s) : !!s.levels[m.i] && !isLocked(s.levels[m.i]);
+}
+function launchMission(m) {
+  if (!canPlay(m)) { ssay("Eure Gruppe ist gestartet, aber diese Mission hast du selbst noch nicht freigeschaltet."); return; }
+  cur = m.n; save();
+  const l = m.i === -1 ? getSecret(m.n) : getSettlement(m.n).levels[m.i];
+  startLevel(l);
+  say(`👥 <b>Gruppenmission!</b> ${l.intro}<br><span style="color:var(--muted)">Im Prototyp spielt jeder seine eigene Runde. Sprecht euch im Gruppenchat ab.</span>`);
+}
+
+function fillSelects() {
+  missions = missionsAvail();
+  const ms = $("mSel"), keep = ms.value; ms.innerHTML = "";
+  missions.forEach((m, idx) => { const o = el("option", null, `${m.place} · ${m.name} (${m.size === 2 ? "zu zweit" : "zu fünft"})`); o.value = idx; ms.appendChild(o); });
+  if (!missions.length) { const o = el("option", null, "Noch keine Gruppenmission frei"); o.value = ""; ms.appendChild(o); }
+  if (keep && ms.querySelector(`option[value="${keep}"]`)) ms.value = keep;
+  const rs = $("rSel");
+  if (!rs.options.length) {
+    const any = el("option", null, "Egal, Hauptsache los"); any.value = "any"; rs.appendChild(any);
+    GROUP_ROLES.forEach(r => { const o = el("option", null, `${ROLE[r].ic} ${ROLE[r].rl}`); o.value = r; rs.appendChild(o); });
+  }
+  $("autoFind").disabled = !missions.length || !DB;
+}
+
+async function tryJoin(gid, want) {
+  const ref = DB.doc("groups/" + gid);
+  const l = await ref.acquire({ holder: ME, ttlMs: 4000 }).catch(() => ({ acquired: false }));
+  if (!l.acquired) return false;
+  const s = await ref.get(); if (!s.exists) return false;
+  const d = s.data(), mem = d.members || {};
+  if (mem[ME]) { myGroupId = gid; return true; }
+  if (Object.keys(mem).length >= d.size) return false;
+  const taken = Object.values(mem);
+  let role = want;
+  if (want === "any" || taken.includes(want)) {
+    if (want !== "any" && d.size === 5) return false;
+    role = GROUP_ROLES.find(r => !taken.includes(r));
+  }
+  if (!role) return false;
+  await ref.update({ members: { [ME]: role }, updated: Date.now() });
+  myGroupId = gid; return true;
+}
+async function leaveGroup() {
+  const gid = myGroupId; if (!gid) return;
+  const ref = DB.doc("groups/" + gid);
+  await ref.acquire({ holder: ME, ttlMs: 4000 }).catch(() => null);
+  const s = await ref.get();
+  if (s.exists) {
+    const d = s.data(), mem = { ...(d.members || {}) }; delete mem[ME];
+    const left = Object.keys(mem);
+    if (!left.length) await ref.delete();
+    else await ref.set({ mission: d.mission, size: d.size, members: mem, leader: d.leader === ME ? left[0] : d.leader, status: "open", created: d.created || Date.now(), updated: Date.now() });
+  }
+  myGroupId = null;
+}
+async function autoFind() {
+  const m = missions[$("mSel").value], want = $("rSel").value;
+  if (!m || !DB) return;
+  $("autoFind").disabled = true; ssay("🔎 Suche nach Mitspielern …");
+  try {
+    if (myGroupId) await leaveGroup();
+    const cands = groups.filter(g => g.mission && g.mission.key === m.key && Object.keys(g.members || {}).length < g.size);
+    for (const g of cands) { if (await tryJoin(g.id, want)) { ssay(`✨ Gruppe gefunden für <b>${m.name}</b>!`); return; } }
+    const ref = DB.collection("groups").doc();
+    await ref.set({ mission: m, size: m.size, members: { [ME]: want === "any" ? "heil" : want }, leader: ME, status: "open", created: Date.now(), updated: Date.now() });
+    myGroupId = ref.id;
+    ssay(`Neue Gruppe für <b>${m.name}</b> erstellt. Sobald jemand dieselbe Mission sucht, kommt er automatisch zu dir.`);
+  } catch (e) {
+    ssay(e && e.code === "quota_exceeded" ? "Der Speicher ist voll. Alte Gruppen müssen erst gelöscht werden." : "Das hat gerade nicht geklappt. Versuch es gleich noch einmal.");
+  } finally { $("autoFind").disabled = false; }
+}
+async function joinGroup(gid) {
+  const g = groups.find(x => x.id === gid);
+  if (!g) { ssay("Diese Gruppe gibt es nicht mehr."); return; }
+  if (!canPlay(g.mission)) { ssay("Diese Mission hast du noch nicht freigeschaltet."); return; }
+  try {
+    if (myGroupId && myGroupId !== gid) await leaveGroup();
+    ssay(await tryJoin(gid, "any") ? `✨ Du bist jetzt in der Gruppe für <b>${g.mission.name}</b>.` : "Die Gruppe ist schon voll.");
+  } catch (e) { ssay("Beitreten hat gerade nicht geklappt."); }
+}
+async function startGroup() {
+  const g = myGroup(); if (!g) return;
+  await DB.doc("groups/" + g.id).update({ status: "started", startedAt: Date.now(), updated: Date.now() }).catch(() => ssay("Starten hat gerade nicht geklappt."));
+}
+
+async function renderLfg() {
+  if ($("socialView").hidden || socTab !== "lfg") return;
+  fillSelects();
+  const ids = new Set();
+  groups.forEach(g => Object.keys(g.members || {}).forEach(i => ids.add(i)));
+  onlineIds().forEach(i => ids.add(i));
+  const nm = await names([...ids]), on = onlineIds();
+
+  const box = $("myGroup"); box.innerHTML = "";
+  const g = myGroup();
+  if (!g) box.appendChild(el("p", "none", "Du bist in keiner Gruppe. Wähle oben eine Mission und lass dir Mitspieler suchen."));
+  else {
+    const mem = g.members || {}, cnt = Object.keys(mem).length, full = cnt >= g.size;
+    box.appendChild(rowEl("⚔️", g.mission.name, `${g.mission.place} · ${cnt}/${g.size} Spieler${full ? " · komplett!" : " · suche weitere …"}`));
+    Object.entries(mem).forEach(([id, r]) => {
+      const acts = [];
+      if (id !== ME && !friendOf(id)) acts.push(btnEl("💛 Freund", () => addFriend(id)));
+      box.appendChild(rowEl(ROLE[r] ? ROLE[r].ic : "✨", nm(id), (ROLE[r] ? ROLE[r].rl : "") + (g.leader === id ? " · Gruppenleitung" : ""), acts, on.has(id)));
+    });
+    if (g.size === 5) GROUP_ROLES.filter(r => !Object.values(mem).includes(r)).forEach(r => box.appendChild(rowEl(ROLE[r].ic, "Freier Platz", `${ROLE[r].rl} gesucht`)));
+    const bar = el("div", "bag");
+    bar.appendChild(btnEl(full ? (g.status === "started" ? "Nochmal starten" : "Mission starten") : `Mit ${cnt} starten`, startGroup, "btn sm"));
+    bar.appendChild(btnEl("💬 Gruppenchat", () => { switchTab("chat"); openChat("g:" + g.id); }));
+    bar.appendChild(btnEl("Gruppe verlassen", async () => { await leaveGroup().catch(() => {}); ssay("Du hast die Gruppe verlassen."); renderLfg(); }));
+    box.appendChild(bar);
+  }
+
+  const list = $("groupList"); list.innerHTML = "";
+  const open = groups.filter(x => x.id !== myGroupId && x.mission && Object.keys(x.members || {}).length < x.size);
+  if (!open.length) list.appendChild(el("p", "none", "Gerade sucht niemand. Erstelle oben eine Gruppe, dann finden dich die anderen."));
+  open.forEach(x => {
+    const mem = x.members || {}, free = x.size === 5 ? GROUP_ROLES.filter(r => !Object.values(mem).includes(r)).map(r => ROLE[r].ic).join(" ") : "";
+    const b = btnEl("Beitreten", () => joinGroup(x.id), "btn sm"); b.disabled = !canPlay(x.mission);
+    list.appendChild(rowEl("⚔️", x.mission.name, `${x.mission.place} · ${Object.keys(mem).length}/${x.size} · geleitet von ${nm(x.leader)}${free ? " · frei: " + free : ""}${canPlay(x.mission) ? "" : " · noch nicht freigeschaltet"}`, [b]));
+  });
+
+  const ol = $("onlineList"); ol.innerHTML = "";
+  if (!ROOM) ol.appendChild(el("p", "none", "Wer gerade online ist, siehst du, sobald die Verbindung steht."));
+  else if (!on.size) ol.appendChild(el("p", "none", "Gerade ist niemand außer dir hier."));
+  on.forEach(id => ol.appendChild(rowEl("🧙", nm(id), friendOf(id) ? (friendOf(id).status === "ok" ? "Freund" : "Anfrage offen") : "Spielt gerade Nebelpfad", friendOf(id) ? [] : [btnEl("💛 Freund", () => addFriend(id))], true)));
+}
+
+async function addFriend(id) {
+  if (!DB || !ME || id === ME) return;
+  const ref = DB.doc("friends/" + pairKey(ME, id));
+  try {
+    const s = await ref.get();
+    if (s.exists) { const d = s.data(); if (d.status === "pending" && d.from !== ME) { await ref.update({ status: "ok" }); ssay("💛 Ihr seid jetzt Freunde!"); } return; }
+    await ref.set({ users: [ME, id].sort(), from: ME, status: "pending", created: Date.now() });
+    ssay("💛 Freundschaftsanfrage gesendet.");
+  } catch (e) { ssay("Die Anfrage hat gerade nicht geklappt."); }
+}
+async function renderFriends() {
+  const n = friends.filter(f => f.status === "pending" && f.from !== ME).length;
+  $("reqBadge").innerHTML = n ? `<span class="badge">${n}</span>` : "";
+  if ($("socialView").hidden || socTab !== "friends") return;
+  const other = f => f.users.find(u => u !== ME);
+  const nm = await names(friends.map(other)), on = onlineIds(), box = $("friendList");
+  box.innerHTML = "";
+  const inc = friends.filter(f => f.status === "pending" && f.from !== ME);
+  const ok = friends.filter(f => f.status === "ok");
+  const out = friends.filter(f => f.status === "pending" && f.from === ME);
+  if (inc.length) { box.appendChild(el("h3", null, "Anfragen")); inc.forEach(f => box.appendChild(rowEl("💌", nm(other(f)), "möchte mit dir befreundet sein",
+    [btnEl("Annehmen", () => DB.doc("friends/" + f.id).update({ status: "ok" }).catch(() => {}), "btn sm"), btnEl("Ablehnen", () => DB.doc("friends/" + f.id).delete().catch(() => {}))], on.has(other(f))))); }
+  box.appendChild(el("h3", null, "Deine Freunde"));
+  if (!ok.length) box.appendChild(el("p", "none", "Noch keine Freunde. Füge Mitspieler aus deiner Gruppe oder der Online-Liste hinzu."));
+  ok.forEach(f => {
+    const id = other(f), acts = [btnEl("💬 Chatten", () => { switchTab("chat"); openChat("p:" + f.id); })];
+    if (myGroup()) acts.push(btnEl("⚔️ Einladen", () => sendChat("p:" + f.id, `Komm in meine Gruppe: ${myGroup().mission.name}`, myGroupId)));
+    acts.push(btnEl("Entfernen", () => DB.doc("friends/" + f.id).delete().catch(() => {})));
+    box.appendChild(rowEl("💛", nm(id), on.has(id) ? "online" : "gerade nicht online", acts, on.has(id)));
+  });
+  if (out.length) { box.appendChild(el("h3", null, "Gesendet")); out.forEach(f => box.appendChild(rowEl("⏳", nm(other(f)), "Anfrage wartet auf Antwort", [btnEl("Zurückziehen", () => DB.doc("friends/" + f.id).delete().catch(() => {}))]))); }
+}
+
+function openChat(room) {
+  if (!DB) return;
+  chatRoom = room; chatMsgs = [];
+  if (chatUnsub) chatUnsub();
+  chatUnsub = DB.collection("chat").where("room", "==", room).orderBy("ts", "desc").limit(60)
+    .onSnapshot(s => { chatMsgs = s.docs.map(d => ({ id: d.id, ...d.data() })).reverse(); renderChatLog(); },
+      () => { $("chatLog").textContent = "Der Chat ist gerade nicht erreichbar."; });
+  renderChatRooms(); renderChatLog();
+}
+async function renderChatRooms() {
+  const box = $("chatRooms"); box.innerHTML = "";
+  const ok = friends.filter(f => f.status === "ok"), nm = await names(ok.map(f => f.users.find(u => u !== ME)));
+  const chip = (label, room) => { const b = btnEl(label, () => openChat(room)); b.setAttribute("aria-pressed", String(chatRoom === room)); box.appendChild(b); };
+  chip("🌍 Weltchat", "welt");
+  if (myGroup()) chip("⚔️ Gruppe", "g:" + myGroupId);
+  ok.forEach(f => chip("💛 " + nm(f.users.find(u => u !== ME)), "p:" + f.id));
+}
+async function renderChatLog() {
+  const log = $("chatLog"); if ($("socialView").hidden || socTab !== "chat") return;
+  const nm = await names([...new Set(chatMsgs.map(m => m.from))]);
+  log.innerHTML = "";
+  if (!chatMsgs.length) log.appendChild(el("p", "none", chatRoom === "welt" ? "Noch ist es still im Weltchat. Sag hallo! 👋" : "Noch keine Nachrichten."));
+  chatMsgs.forEach(m => {
+    const d = el("div", "cm" + (m.from === ME ? " me" : ""));
+    d.appendChild(el("b", null, nm(m.from)));
+    d.appendChild(el("time", null, new Date(m.ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })));
+    d.appendChild(el("div", null, String(m.text || "")));
+    if (m.invite && m.from !== ME) d.appendChild(btnEl("⚔️ Gruppe beitreten", () => { switchTab("lfg"); joinGroup(m.invite); }));
+    log.appendChild(d);
+  });
+  log.scrollTop = log.scrollHeight;
+}
+async function sendChat(room, text, invite) {
+  if (!DB || !ME || !text.trim()) return;
+  try { await DB.collection("chat").add({ room, from: ME, text: text.trim().slice(0, 300), ts: Date.now(), ...(invite ? { invite } : {}) }); if (invite) ssay("⚔️ Einladung verschickt."); }
+  catch (e) { ssay(e && e.code === "quota_exceeded" ? "Der Chat-Speicher ist voll." : "Die Nachricht konnte gerade nicht gesendet werden."); }
+}
+$("chatForm").addEventListener("submit", e => { e.preventDefault(); const t = $("chatIn").value; $("chatIn").value = ""; sendChat(chatRoom, t); });
+
+function switchTab(t) {
+  socTab = t;
+  ["lfg", "friends", "chat"].forEach(x => { $("tab-" + x).setAttribute("aria-selected", String(x === t)); $("pane-" + x).hidden = x !== t; });
+  if (t === "lfg") renderLfg();
+  if (t === "friends") renderFriends();
+  if (t === "chat") { if (!chatUnsub) openChat("welt"); else { renderChatRooms(); renderChatLog(); } }
+}
+["lfg", "friends", "chat"].forEach(x => $("tab-" + x).addEventListener("click", () => switchTab(x)));
+$("autoFind").addEventListener("click", autoFind);
+$("toSocial").addEventListener("click", () => { show("socialView"); switchTab(socTab); });
+$("socialBack").addEventListener("click", showVillage);
+
+async function initSocial() {
+  fillSelects();
+  const c = window.claude;
+  if (!c || typeof c.use !== "function") { socNote("Mitspieler suchen geht nur in der geteilten Spielseite auf claude.ai."); return; }
+  const loadTimer = setTimeout(() => { if (!DB) socNote("Die Verbindung zu den anderen Spielern steht noch nicht. Versuch es gleich noch einmal."); }, 10000);
+  [DB, USER, ROOM] = await Promise.all([c.use("db"), c.use("user"), c.use("room")].map(p => p.catch(() => null)));
+  ME = USER ? await USER.id() : null;
+  clearTimeout(loadTimer);
+  if (!DB || !ME) { socNote("Für Dungeonbrowser, Freunde und Chat musst du bei Claude angemeldet sein und Zugriff auf diese Seite haben."); fillSelects(); return; }
+  socNote("");
+  fillSelects();
+  DB.collection("groups").onSnapshot(s => {
+    groups = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(g => Date.now() - (g.updated || 0) < FRESH);
+    const mine = groups.find(g => g.members && g.members[ME]);
+    myGroupId = mine ? mine.id : null;
+    if (mine && mine.status === "started" && (mine.startedAt || 0) > lastStart) { lastStart = mine.startedAt; launchMission(mine.mission); }
+    renderLfg();
+  }, () => socNote("Der Dungeonbrowser ist gerade nicht erreichbar."));
+  DB.collection("friends").where("users", "array-contains", ME).onSnapshot(s => {
+    friends = s.docs.map(d => ({ id: d.id, ...d.data() })); renderFriends(); renderLfg();
+  }, () => {});
+  if (ROOM) {
+    ROOM.presence({ id: ME }).catch(() => {});
+    ROOM.onPeers(ch => { peers = ch.peers; renderLfg(); renderFriends(); }, () => { ROOM = null; renderLfg(); });
+  }
+}
+initSocial();
+
+/* ---------- Koop-Modus mit Claude ---------- */
+// Gemeinsames Spielfeld: Lanis Seite führt das Spiel, Claude schickt Züge über den gemeinsamen Speicher (coop/aktuell)
+const COOP_CLAUDE = ["licht", "bau", "otter"];
+let coopLog = [], coopUnsub = null, lastClaudeId = null, coopApplied = null, coopResult = "", coopSig = "", coopTimer = null;
+const coopRef = () => DB.doc("coop/aktuell");
+function coopPayload() {
+  return {
+    grid: grid.map(r => r.join("")), custom: runCustom || {}, stage: { ...stage }, pos: [px, py], tries, done: !!done,
+    won: !!(done && !$("win").hidden), log: coopLog.slice(-8), claudeRoles: COOP_CLAUDE.filter(r => ROLES.some(x => x.id === r)),
+    laniRoles: ROLES.map(x => x.id).filter(r => !COOP_CLAUDE.includes(r)), applied: coopApplied, result: coopResult, updated: Date.now()
+  };
+}
+// Wen-Fall für Tiernamen: "Der Hase" -> "den Hasen"
+const WEAK = { "Hase": "Hasen", "Löwe": "Löwen" };
+const akk = w => w.replace(/^Der (.+)$/, (_, n) => "den " + (WEAK[n] || n)).replace(/^Die /, "die ").replace(/^Das /, "das ");
+let coopNoticeKey = "";
+function coopSync(force, full) {
+  if (!DB || !level || !level.coop) return;
+  // Hinweis, wenn ein Hindernis neben dir einen von Claudes Begleitern braucht
+  if (!done) {
+    const near = [[0, -1], [0, 1], [-1, 0], [1, 0]].map(([dx, dy]) => [px + dx, py + dy]).find(([x, y]) => {
+      const c = grid[y] && grid[y][x]; if (!c || ".BS#~".includes(c)) return false;
+      const o = getObst(c, x + "," + y); return o && COOP_CLAUDE.includes(o.needs[stage[x + "," + y] || 0]);
+    });
+    const nk = near ? near + ":" + (stage[near + ""] || 0) : "";
+    if (near && coopNoticeKey !== nk) $("msg").insertAdjacentHTML("beforeend", `<br>🤖 <b>Jetzt ist Claude dran!</b> Schreib einfach „du“ in den Chat.`);
+    coopNoticeKey = nk;
+  }
+  const p = coopPayload(), sig = JSON.stringify([p.grid, p.pos, p.stage, p.tries, p.done, p.won, p.applied]);
+  if (!force && sig === coopSig) return;
+  coopSig = sig;
+  if (full) {
+    const L = level;
+    p.level = { name: L.name, theme: L.theme, wall: L.wall, animal: L.animal, animalName: L.animalName, who: L.who, ring: L.ring, animalHint: L.animalHint, intro: L.intro, gen: L.gen };
+    coopRef().set(p).catch(() => say("Der Koop-Spielstand konnte gerade nicht gespeichert werden."));
+  } else coopRef().update(p).catch(() => {});
+}
+function coopListen() {
+  if (coopUnsub || !DB) return;
+  coopUnsub = DB.collection("coop").onSnapshot(s => {
+    const doc = s.docs.find(d => d.id === "aktuell"); if (!doc) return;
+    const d = doc.data(), c = d.claude;
+    if (!level || !level.coop || $("dungeonView").hidden || !c || !c.id) return;
+    if (c.id === lastClaudeId || c.id === d.applied) return;
+    lastClaudeId = c.id; applyClaude(c);
+  }, () => {});
+}
+function applyClaude(c) {
+  const dirs = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0], hoch: [0, -1], runter: [0, 1], links: [-1, 0], rechts: [1, 0] };
+  const d = dirs[c.dir];
+  coopApplied = c.id;
+  if (!d) { coopResult = "Unbekannte Richtung"; coopSync(true); return; }
+  if (done) { coopResult = "Das Abenteuer ist schon vorbei."; coopSync(true); return; }
+  const prev = role;
+  const tgt = grid[py + d[1]] && grid[py + d[1]][px + d[0]];
+  if (c.type !== "use" && tgt && !".BS#~".includes(tgt)) { coopResult = "Da ist ein Hindernis. Dazu braucht Claude einen Begleiter (type: use)."; coopSync(true); return; }
+  if (c.type === "use") {
+    if (!COOP_CLAUDE.includes(c.role) || !ROLES.some(r => r.id === c.role)) { coopResult = "Diesen Begleiter steuert Claude nicht."; coopSync(true); return; }
+    role = c.role;
+  }
+  coopActor = "claude";
+  tryStep(px + d[0], py + d[1]);
+  coopActor = "lani";
+  if (c.type === "use") { role = prev; paintRoles(); }
+  $("msg").innerHTML = `🤖 <b>Claude</b>${c.type === "use" ? ` (${ROLE[c.role].nm})` : ""}: ` + $("msg").innerHTML;
+  coopResult = $("msg").textContent;
+  coopSync(true);
+}
+let coopActor = "lani";
+function coopWin() {
+  done = true;
+  const gift = [rollDrop(0.2), rollDrop(0.2)]; gift.forEach(k => add(H.seeds, k)); saveH();
+  $("winIcon").textContent = level.animal;
+  $("winTitle").textContent = "Gemeinsam geschafft! 🤝";
+  $("winText").innerHTML = `Du und Claude habt ${akk(level.who)} zusammen befreit.<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
+  $("home").textContent = "Zurück zum Ort";
+  setTimeout(() => { $("win").hidden = false; coopSync(true); }, reduce ? 0 : 1100);
+}
+function startCoop() {
+  const keys = Object.keys(THEMES), tk = keys[Math.floor(Math.random() * keys.length)], th = THEMES[tk];
+  const a = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+  const [ench, ring] = ENCH[Math.floor(Math.random() * ENCH.length)];
+  const name = `Koop: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`;
+  coopLog = []; coopApplied = null;
+  startLevel({
+    id: "koop", coop: true, name, ic: "🤝", theme: tk, wall: th.wall, mode: 1, animal: a[0], animalName: a[1], who: a[2], ring,
+    gen: { count: 8, tier: 1 },
+    intro: `🤝 <b>Koop mit Claude!</b> Du steuerst Bruno, Pip, Funke und die Heilerin, Claude steuert Luna, Holm und Ole (🤖). Braucht ein Hindernis einen von Claudes Begleitern, schreib Claude im Chat.`,
+    animalHint: `${a[2]} ist gefangen in ${ench}. Nur die Heilerin kann den Zauber lösen.`
+  });
+  coopSync(true, true);
+}
+function resumeCoop(d) {
+  coopLog = d.log || []; coopApplied = d.applied || null; lastClaudeId = d.applied || null;
+  startLevel({ id: "koop", coop: true, resume: true, ic: "🤝", mode: 1, ...d.level, map: d.grid, custom: d.custom || {} });
+  px = d.pos[0]; py = d.pos[1]; stage = { ...(d.stage || {}) }; tries = d.tries; paintLives();
+  say("🤝 Willkommen zurück im Koop! Es geht da weiter, wo ihr aufgehört habt.");
+  coopSync(true);
+  const c = d.claude; if (c && c.id && c.id !== d.applied) { lastClaudeId = c.id; applyClaude(c); }
+}
+async function openCoop() {
+  if (!DB) { show("socialView"); socNote("Der Koop-Modus braucht die Spielseite auf claude.ai und eine Anmeldung."); return; }
+  coopListen();
+  let d = null;
+  try { const s = await coopRef().get(); if (s.exists) d = s.data(); } catch (e) {}
+  if (d && !d.done && d.grid && d.level) resumeCoop(d); else startCoop();
+}
+$("toCoop").addEventListener("click", openCoop);
+setInterval(() => { if (level && level.coop && !$("dungeonView").hidden) coopSync(false); }, 700);
+
+showVillage();
+requestAnimationFrame(loop);
+</script>
+</body></html>
