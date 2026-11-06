@@ -435,8 +435,9 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     <p class="note" id="coopNote" aria-live="polite"></p>
     <div class="card">
       <h2>Neues Spiel erstellen</h2>
-      <p class="sub" style="margin:0">Du steuerst Bruno, Pip, Funke und die Heilerin. Dein Mitspieler steuert Luna, Holm und Ole. Du bekommst einen Spielcode, den du weitergibst.</p>
-      <button class="btn" id="coopNew" type="button">Spiel erstellen</button>
+      <p class="sub" style="margin:0">Zu zweit: Du steuerst Bruno, Pip, Funke und die Heilerin, dein Mitspieler Luna, Holm und Ole. Zu dritt: Du steuerst Bruno, Funke und die Heilerin, Platz 1 Luna und Holm, Platz 2 Pip und Ole. Du bekommst einen Spielcode, den du weitergibst.</p>
+      <button class="btn" id="coopNew" type="button">Zu zweit spielen</button>
+      <button class="btn" id="coopNew3" type="button">Zu dritt spielen</button>
       <button class="chip" id="coopResume" type="button" hidden>Letztes Spiel fortsetzen</button>
     </div>
     <div class="card">
@@ -1668,10 +1669,10 @@ function buildRoles() {
     b.type = "button"; b.className = "role"; b.id = "role-" + r.id;
     b.innerHTML = `<span class="ic" aria-hidden="true">${r.ic}</span><span class="nm">${r.nm}</span><span class="rl">${r.rl}</span>${RUNE[r.id] ? `<span class="rn" title="Runenzeichen">${RUNE[r.id]}</span>` : ""}`;
     if (HOVER) { const idx = ROLES.indexOf(r) + 1; b.insertAdjacentHTML("beforeend", `<span class="kb">${keyLabel("r" + idx)}</span>`); }
-    const theirs = level && level.coop && (guestMode ? !COOP_CLAUDE.includes(r.id) : COOP_CLAUDE.includes(r.id));
-    if (theirs) { b.classList.add("theirs"); b.insertAdjacentHTML("beforeend", `<span class="who" title="Das steuert dein Mitspieler">${guestMode ? "🧙" : PI()}</span>`); }
+    const theirs = level && level.coop && !myRoles().includes(r.id);
+    if (theirs) { b.classList.add("theirs"); b.insertAdjacentHTML("beforeend", `<span class="who" title="Das steuert ${seatName(seatOfRole(r.id))}">${seatIcon(seatOfRole(r.id))}</span>`); }
     b.addEventListener("click", () => {
-      if (theirs) { say(guestMode ? `🧙 <b>${r.nm}</b> steuert im Koop der Spieler, der das Spiel erstellt hat.` : `${PI()} <b>${r.nm}</b> gehört im Koop zu ${PN()}. ${DB ? `Schreib Claude im Chat, was ${r.nm} machen soll!` : "Warte, bis dein Mitspieler zieht."}`); return; }
+      if (theirs) { const st = seatOfRole(r.id); say(st === "host" ? `🧙 <b>${r.nm}</b> steuert im Koop der Spieler, der das Spiel erstellt hat.` : `${seatIcon(st)} <b>${r.nm}</b> steuert im Koop ${seatName(st)}. ${/claude/i.test(seatName(st)) ? `Schreib Claude im Chat, was ${r.nm} machen soll!` : "Warte, bis dein Mitspieler zieht."}`); return; }
       role = r.id; paintRoles(); say(`<b>${r.nm}</b> ist bereit (${r.rl}).`);
     });
     rolesEl.appendChild(b);
@@ -1873,7 +1874,7 @@ addEventListener("keydown", e => {
   if (!act) return;
   if (act[0] === "r" && /^r\d$/.test(act)) {
     const r = ROLES[+act.slice(1) - 1]; if (!r) return;
-    if (level && level.coop && (guestMode ? !COOP_CLAUDE.includes(r.id) : COOP_CLAUDE.includes(r.id))) { e.preventDefault(); say(`<b>${r.nm}</b> steuert im Koop der andere Spieler.`); return; }
+    if (level && level.coop && !myRoles().includes(r.id)) { e.preventDefault(); say(`<b>${r.nm}</b> steuert im Koop der andere Spieler.`); return; }
     e.preventDefault(); role = r.id; paintRoles(); say(`<b>${r.nm}</b> ist bereit (${r.rl}).`); return;
   }
   if (act === "acts" && !$("tgActs").hidden) { e.preventDefault(); togglePanel("tgActs", "actBar", renderActs); }
@@ -2422,14 +2423,24 @@ initSocial();
 
 /* ---------- Koop-Modus ---------- */
 // Gemeinsames Spielfeld. Der Spieler, der das Spiel erstellt, führt das Spiel (Host).
-// Der Mitspieler (Claude im Chat, Alex oder ein zweiter Mensch) schickt Züge in das Feld "claude".
+// Mitspieler schicken ihre Züge in die Felder "claude" (Platz 1) und "claude2" (Platz 2).
 // In der Claude-Version liegt das Spiel unter coop/aktuell, auf der Webseite in Firebase unter coop/<Spielcode>.
-const COOP_CLAUDE = ["licht", "bau", "otter"];
-let coopLog = [], coopUnsub = null, lastClaudeId = null, coopApplied = null, coopResult = "", coopSig = "", coopTimer = null;
+let coopLog = [], coopUnsub = null, coopResult = "", coopResult2 = "", coopSig = "", coopTimer = null;
+let lastIds = { claude: null, claude2: null }, coopApplied = null, coopApplied2 = null;
 let FB = null, coopCode = null, guestMode = false, coopPartnerName = "", myLastId = null;
-const PN = () => DB ? "Claude" : (coopPartnerName || "dein Mitspieler");
+let coopSize = 2, mySeat = null, coopNames = {};
+const SEAT_ROLES = { 2: { claude: ["licht", "bau", "otter"] }, 3: { claude: ["licht", "bau"], claude2: ["spur", "otter"] } };
+const seatsNow = () => SEAT_ROLES[coopSize] || SEAT_ROLES[2];
+const partnerRoles = () => Object.values(seatsNow()).flat();
+const COOP_CLAUDE = SEAT_ROLES[2].claude;
+const seatOfRole = r => Object.keys(seatsNow()).find(s => seatsNow()[s].includes(r)) || "host";
+const myRoles = () => guestMode ? (seatsNow()[mySeat] || []) : ROLES.map(x => x.id).filter(r => !partnerRoles().includes(r));
+const seatName = s => s === "host" ? (coopNames.host || "Spielleitung") : s === "claude" ? (DB ? "Claude" : (coopNames.claude || "Mitspieler 1")) : (coopNames.claude2 || "Mitspieler 2");
+const seatIcon = s => s === "host" ? "🧙" : /claude/i.test(seatName(s)) ? "🤖" : "🧑";
+const PN = () => seatName("claude");
 const PNc = () => { const n = PN(); return n[0].toUpperCase() + n.slice(1); };
-const PI = () => DB ? "🤖" : "🧑";
+const PI = () => seatIcon("claude");
+const partnerList = () => Object.keys(seatsNow()).map(seatName).join(coopSize === 3 ? " und " : "");
 const coopRef = () => DB.doc("coop/aktuell");
 const fbRef = () => FB.ref("coop/" + coopCode);
 const CB = {
@@ -2447,10 +2458,13 @@ const CB = {
   }
 };
 function coopPayload() {
+  const have = ROLES.map(x => x.id), S = seatsNow();
   return {
     grid: grid.map(r => r.join("")), custom: runCustom || {}, stage: { ...stage }, pos: [px, py], tries, done: !!done,
-    won: !!(done && !$("win").hidden), failed: !!(done && !$("fail").hidden), log: coopLog.slice(-8), claudeRoles: COOP_CLAUDE.filter(r => ROLES.some(x => x.id === r)),
-    laniRoles: ROLES.map(x => x.id).filter(r => !COOP_CLAUDE.includes(r)), applied: coopApplied, result: coopResult, updated: Date.now()
+    won: !!(done && !$("win").hidden), failed: !!(done && !$("fail").hidden), log: coopLog.slice(-8), size: coopSize,
+    claudeRoles: (S.claude || []).filter(r => have.includes(r)), claude2Roles: (S.claude2 || []).filter(r => have.includes(r)),
+    laniRoles: have.filter(r => !partnerRoles().includes(r)),
+    applied: coopApplied, result: coopResult, applied2: coopApplied2, result2: coopResult2, updated: Date.now()
   };
 }
 // Wen-Fall für Tiernamen: "Der Hase" -> "den Hasen"
@@ -2459,56 +2473,69 @@ const akk = w => w.replace(/^Der (.+)$/, (_, n) => "den " + (WEAK[n] || n)).repl
 let coopNoticeKey = "";
 function coopSync(force, full) {
   if (guestMode || !CB.ok() || !level || !level.coop) return;
-  // Hinweis, wenn ein Hindernis neben dir einen Begleiter des Mitspielers braucht
+  // Hinweis, wenn ein Hindernis neben dir einen Begleiter eines Mitspielers braucht
   if (!done) {
+    let needSeat = null;
     const near = [[0, -1], [0, 1], [-1, 0], [1, 0]].map(([dx, dy]) => [px + dx, py + dy]).find(([x, y]) => {
       const c = grid[y] && grid[y][x]; if (!c || ".BS#~".includes(c)) return false;
-      const o = getObst(c, x + "," + y); return o && COOP_CLAUDE.includes(o.needs[stage[x + "," + y] || 0]);
+      const o = getObst(c, x + "," + y), need = o && o.needs[stage[x + "," + y] || 0];
+      if (need && partnerRoles().includes(need)) { needSeat = seatOfRole(need); return true; } return false;
     });
     const nk = near ? near + ":" + (stage[near + ""] || 0) : "";
-    if (near && coopNoticeKey !== nk) $("msg").insertAdjacentHTML("beforeend", `<br>${PI()} <b>Jetzt ist ${PN()} dran!</b> ${DB ? "Schreib einfach „du“ in den Chat." : "Warte kurz, bis dein Mitspieler zieht."}`);
+    if (near && coopNoticeKey !== nk) $("msg").insertAdjacentHTML("beforeend", `<br>${seatIcon(needSeat)} <b>Jetzt ist ${seatName(needSeat)} dran!</b> ${DB ? "Schreib einfach „du“ in den Chat." : (/claude/i.test(seatName(needSeat)) ? "Schreib Claude im Chat „du“." : "Warte kurz, bis dein Mitspieler zieht.")}`);
     coopNoticeKey = nk;
   }
-  const p = coopPayload(), sig = JSON.stringify([p.grid, p.pos, p.stage, p.tries, p.done, p.won, p.failed, p.applied]);
+  const p = coopPayload(), sig = JSON.stringify([p.grid, p.pos, p.stage, p.tries, p.done, p.won, p.failed, p.applied, p.applied2]);
   if (!force && sig === coopSig) return;
   coopSig = sig;
   if (full) {
     const L = level;
     p.level = { name: L.name, theme: L.theme, wall: L.wall, animal: L.animal, animalName: L.animalName, who: L.who, ring: L.ring, animalHint: L.animalHint, intro: L.intro, gen: L.gen };
     if (coopCode) p.code = coopCode;
+    if (coopNames.claude) p.partnerName = coopNames.claude;
+    if (coopNames.claude2) p.partner2Name = coopNames.claude2;
     CB.set(p).catch(() => say("Der Koop-Spielstand konnte gerade nicht gespeichert werden."));
   } else CB.update(p).catch(() => {});
+}
+function readNames(d) {
+  if (d.partnerName) coopNames.claude = d.partnerName;
+  if (d.partner2Name) coopNames.claude2 = d.partner2Name;
+  if (d.size) coopSize = d.size;
+  coopPartnerName = coopNames.claude || "";
 }
 function coopListen() {
   if (coopUnsub || !CB.ok()) return;
   coopUnsub = CB.listen(d => {
-    if (d.partnerName) coopPartnerName = d.partnerName;
+    const before = JSON.stringify(coopNames); readNames(d);
     if (guestMode) { guestRender(d); return; }
-    const c = d.claude;
-    if (!level || !level.coop || $("dungeonView").hidden || !c || !c.id) return;
-    if (c.id === lastClaudeId || c.id === d.applied) return;
-    lastClaudeId = c.id; applyClaude(c);
+    if (JSON.stringify(coopNames) !== before && level && level.coop) { buildRoles(); paintRoles(); }
+    if (!level || !level.coop || $("dungeonView").hidden) return;
+    ["claude", "claude2"].forEach(seat => {
+      const c = d[seat], ap = seat === "claude" ? d.applied : d.applied2;
+      if (!c || !c.id || c.id === lastIds[seat] || c.id === ap) return;
+      lastIds[seat] = c.id; applyClaude(c, seat);
+    });
   });
 }
-function applyClaude(c) {
+function applyClaude(c, seat = "claude") {
   const dirs = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0], hoch: [0, -1], runter: [0, 1], links: [-1, 0], rechts: [1, 0] };
-  const d = dirs[c.dir];
-  coopApplied = c.id;
-  if (!d) { coopResult = "Unbekannte Richtung"; coopSync(true); return; }
-  if (done) { coopResult = "Das Abenteuer ist schon vorbei."; coopSync(true); return; }
-  const prev = role;
+  const d = dirs[c.dir], setRes = t => { if (seat === "claude") { coopApplied = c.id; coopResult = t; } else { coopApplied2 = c.id; coopResult2 = t; } };
+  setRes("");
+  if (!d) { setRes("Unbekannte Richtung"); coopSync(true); return; }
+  if (done) { setRes("Das Abenteuer ist schon vorbei."); coopSync(true); return; }
+  const prev = role, nm = seatName(seat);
   const tgt = grid[py + d[1]] && grid[py + d[1]][px + d[0]];
-  if (c.type !== "use" && tgt && !".BS#~".includes(tgt)) { coopResult = `Da ist ein Hindernis. Dazu braucht ${PN()} einen Begleiter (type: use).`; coopSync(true); return; }
+  if (c.type !== "use" && tgt && !".BS#~".includes(tgt)) { setRes(`Da ist ein Hindernis. Dazu braucht ${nm} einen Begleiter (type: use).`); coopSync(true); return; }
   if (c.type === "use") {
-    if (!COOP_CLAUDE.includes(c.role) || !ROLES.some(r => r.id === c.role)) { coopResult = `Diesen Begleiter steuert ${PN()} nicht.`; coopSync(true); return; }
+    if (!(seatsNow()[seat] || []).includes(c.role) || !ROLES.some(r => r.id === c.role)) { setRes(`Diesen Begleiter steuert ${nm} nicht. Erlaubt: ${(seatsNow()[seat] || []).join(", ")}.`); coopSync(true); return; }
     role = c.role;
   }
-  coopActor = "claude";
+  coopActor = seat;
   tryStep(px + d[0], py + d[1]);
   coopActor = "lani";
   if (c.type === "use") { role = prev; paintRoles(); }
-  $("msg").innerHTML = `${PI()} <b>${PNc()}</b>${c.type === "use" ? ` (${ROLE[c.role].nm})` : ""}: ` + $("msg").innerHTML;
-  coopResult = $("msg").textContent;
+  $("msg").innerHTML = `${seatIcon(seat)} <b>${nm}</b>${c.type === "use" ? ` (${ROLE[c.role].nm})` : ""}: ` + $("msg").innerHTML;
+  setRes($("msg").textContent);
   coopSync(true);
 }
 let coopActor = "lani";
@@ -2517,51 +2544,58 @@ function coopWin() {
   const gift = [rollDrop(0.2), rollDrop(0.2)]; gift.forEach(k => add(H.seeds, k)); saveH();
   $("winIcon").textContent = level.animal;
   $("winTitle").textContent = "Gemeinsam geschafft! 🤝";
-  $("winText").innerHTML = `Du und ${PN()} habt ${akk(level.who)} zusammen befreit.<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
+  $("winText").innerHTML = `Du${coopSize === 3 ? ", " + seatName("claude") + " und " + seatName("claude2") : " und " + PN()} habt ${akk(level.who)} zusammen befreit.<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
   $("home").textContent = "Zurück zum Ort";
   setTimeout(() => { $("win").hidden = false; coopSync(true); }, reduce ? 0 : 1100);
 }
+const rolesTxt = rs => rs.map(r => ROLE[r] ? ROLE[r].nm : r).join(", ").replace(/, ([^,]*)$/, " und $1");
 function startCoop() {
   const keys = Object.keys(THEMES), tk = keys[Math.floor(Math.random() * keys.length)], th = THEMES[tk];
   const a = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
   const [ench, ring] = ENCH[Math.floor(Math.random() * ENCH.length)];
   const name = `Koop: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`;
-  coopLog = []; coopApplied = null; guestMode = false;
+  coopLog = []; coopApplied = coopApplied2 = null; guestMode = false;
   const codeTxt = coopCode ? ` Euer Spielcode: <b>${coopCode}</b>.` : "";
+  const mine = ["schutz", "spur", "heil", "fuchs", "licht", "bau", "otter"].filter(r => !partnerRoles().includes(r));
+  const seatTxt = Object.keys(seatsNow()).map((s, i) => `Platz ${i + 1}: ${rolesTxt(seatsNow()[s])}`).join(" · ");
   startLevel({
     id: "koop", coop: true, name, ic: "🤝", theme: tk, wall: th.wall, mode: 1, animal: a[0], animalName: a[1], who: a[2], ring,
-    gen: { count: 8, tier: 1 },
+    gen: { count: coopSize === 3 ? 10 : 8, tier: 1 },
     intro: DB
       ? `🤝 <b>Koop mit Claude!</b> Du steuerst Bruno, Pip, Funke und die Heilerin, Claude steuert Luna, Holm und Ole (🤖). Braucht ein Hindernis einen von Claudes Begleitern, schreib Claude im Chat.`
-      : `🤝 <b>Koop!</b>${codeTxt} Du steuerst Bruno, Pip, Funke und die Heilerin, dein Mitspieler steuert Luna, Holm und Ole (🧑).`,
+      : `🤝 <b>Koop zu ${coopSize === 3 ? "dritt" : "zweit"}!</b>${codeTxt} Du steuerst ${rolesTxt(mine)}. ${seatTxt}.`,
     animalHint: `${a[2]} ist gefangen in ${ench}. Nur die Heilerin kann den Zauber lösen.`
   });
   coopSync(true, true);
 }
 function resumeCoop(d) {
-  coopLog = d.log || []; coopApplied = d.applied || null; lastClaudeId = d.applied || null; guestMode = false;
+  readNames(d);
+  coopLog = d.log || []; coopApplied = d.applied || null; coopApplied2 = d.applied2 || null; guestMode = false;
+  lastIds = { claude: d.applied || null, claude2: d.applied2 || null };
   startLevel({ id: "koop", coop: true, resume: true, ic: "🤝", mode: 1, ...d.level, map: d.grid, custom: d.custom || {} });
   px = d.pos[0]; py = d.pos[1]; stage = { ...(d.stage || {}) }; tries = d.tries; paintLives();
   say(`🤝 Willkommen zurück im Koop! Es geht da weiter, wo ihr aufgehört habt.${coopCode ? ` Spielcode: <b>${coopCode}</b>` : ""}`);
   coopSync(true);
-  const c = d.claude; if (c && c.id && c.id !== d.applied) { lastClaudeId = c.id; applyClaude(c); }
+  ["claude", "claude2"].forEach(seat => { const c = d[seat], ap = seat === "claude" ? d.applied : d.applied2; if (c && c.id && c.id !== ap) { lastIds[seat] = c.id; applyClaude(c, seat); } });
 }
 
 /* Mitspieler-Ansicht auf der Webseite: zeigt das Spielfeld des Hosts und schickt eigene Züge */
 let guestShownEnd = false;
 function guestStart(d) {
-  guestMode = true; guestShownEnd = false;
+  guestMode = true; guestShownEnd = false; readNames(d);
   startLevel({ id: "koop", coop: true, resume: true, ic: "🤝", mode: 1, ...d.level, map: d.grid, custom: d.custom || {} });
-  role = "licht"; paintRoles();
+  role = myRoles()[0] || "licht"; paintRoles();
   guestRender(d);
-  say(`🤝 Du bist im Spiel <b>${coopCode}</b>! Du steuerst Luna, Holm und Ole. Wähle einen davon und tippe auf das Feld neben der Laterne.`);
+  say(`🤝 Du bist im Spiel <b>${coopCode}</b>! Du steuerst ${rolesTxt(myRoles())}. Wähle einen davon und tippe auf das Feld neben der Laterne.`);
 }
 function guestRender(d) {
   if (!d || !d.grid) return;
+  readNames(d);
   if (d.level && level && d.level.name !== level.name) { level = { ...level, ...d.level }; theme = THEMES[level.theme]; $("dTitle").textContent = level.name; }
   grid = d.grid.map(r => r.split("")); runCustom = d.custom || {}; stage = { ...(d.stage || {}) };
   px = d.pos[0]; py = d.pos[1]; tries = d.tries; done = !!d.done; paintLives();
-  if (d.applied && d.applied === myLastId && d.result) { $("msg").textContent = d.result; myLastId = null; }
+  const ap = mySeat === "claude2" ? d.applied2 : d.applied, res = mySeat === "claude2" ? d.result2 : d.result;
+  if (ap && ap === myLastId && res) { $("msg").textContent = res; myLastId = null; }
   else if (d.log && d.log.length) { const last = d.log[d.log.length - 1]; if (last && $("msg").dataset.last !== last) { $("msg").dataset.last = last; $("msg").textContent = "🧙 " + last; } }
   if (d.won && guestShownEnd !== "won") {
     guestShownEnd = "won"; $("fail").hidden = true;
@@ -2578,9 +2612,9 @@ function guestAct(tx, ty) {
   const c = grid[ty][tx], dir = tx > px ? "right" : tx < px ? "left" : ty > py ? "down" : "up";
   if (c === "#" || c === "~") { say(WALL_MSG[c === "~" ? "lake" : level.wall] || "Hier geht es nicht weiter."); return; }
   const type = ".BS".includes(c) ? "move" : "use";
-  if (type === "use" && !COOP_CLAUDE.includes(role)) { say("Wähle zuerst einen deiner Begleiter: Luna, Holm oder Ole."); return; }
+  if (type === "use" && !myRoles().includes(role)) { say(`Wähle zuerst einen deiner Begleiter: ${rolesTxt(myRoles())}.`); return; }
   myLastId = Date.now() + "-" + Math.floor(Math.random() * 1e6);
-  CB.update({ claude: { id: myLastId, type, role: type === "use" ? role : null, dir } }).catch(() => say("Der Zug konnte gerade nicht geschickt werden."));
+  CB.update({ [mySeat || "claude"]: { id: myLastId, type, role: type === "use" ? role : null, dir } }).catch(() => say("Der Zug konnte gerade nicht geschickt werden."));
   say(type === "use" ? `✨ ${ROLE[role].nm} ist unterwegs …` : "👣 Ihr lauft weiter …");
 }
 
@@ -2590,7 +2624,7 @@ const newCode = () => Array.from({ length: 5 }, () => CODE_CHARS[Math.floor(Math
 function useCode(c) { if (coopUnsub) { coopUnsub(); coopUnsub = null; } coopCode = c; }
 async function openCoop() {
   if (DB) {
-    coopListen();
+    coopSize = 2; coopListen();
     let d = null;
     try { d = await CB.get(); } catch (e) {}
     if (d && !d.done && d.grid && d.level) resumeCoop(d); else startCoop();
@@ -2602,11 +2636,14 @@ async function openCoop() {
   try { $("coopName").value = localStorage.getItem("nebelpfad-coopname") || ""; } catch (e) {}
   $("coopNote").textContent = FB ? "" : "Die Verbindung zum Online-Dienst wird gerade aufgebaut … Versuch es in ein paar Sekunden noch einmal.";
 }
-$("coopNew").addEventListener("click", () => {
+function createCoop(size) {
   if (!FB) { $("coopNote").textContent = "Noch keine Verbindung zum Online-Dienst. Versuch es gleich noch einmal."; return; }
   useCode(newCode()); try { localStorage.setItem("nebelpfad-coopcode", coopCode); } catch (e) {}
-  coopPartnerName = ""; coopListen(); startCoop();
-});
+  coopSize = size; coopNames = {}; coopPartnerName = ""; lastIds = { claude: null, claude2: null };
+  coopListen(); startCoop();
+}
+$("coopNew").addEventListener("click", () => createCoop(2));
+$("coopNew3").addEventListener("click", () => createCoop(3));
 $("coopResume").addEventListener("click", async () => {
   if (!FB) return;
   let c = null; try { c = localStorage.getItem("nebelpfad-coopcode"); } catch (e) {}
@@ -2624,7 +2661,15 @@ $("coopJoin").addEventListener("click", async () => {
   useCode(c);
   const d = await CB.get().catch(() => null);
   if (!d || !d.grid) { $("coopNote").textContent = "Zu diesem Code gibt es kein Spiel. Prüf den Code noch einmal."; return; }
-  await CB.update({ partnerName: nm }).catch(() => {});
+  coopSize = d.size || 2;
+  // freien Platz suchen (oder den eigenen, wenn man mit demselben Namen zurückkommt)
+  if (d.partnerName === nm) mySeat = "claude";
+  else if (coopSize === 3 && d.partner2Name === nm) mySeat = "claude2";
+  else if (!d.partnerName) mySeat = "claude";
+  else if (coopSize === 3 && !d.partner2Name) mySeat = "claude2";
+  else { $("coopNote").textContent = "Dieses Spiel ist schon voll."; return; }
+  await CB.update(mySeat === "claude" ? { partnerName: nm } : { partner2Name: nm }).catch(() => {});
+  coopNames[mySeat] = nm;
   guestStart(d); coopListen();
 });
 $("coopBack").addEventListener("click", showVillage);

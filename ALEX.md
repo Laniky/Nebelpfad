@@ -68,3 +68,22 @@ Content-Type: application/json
 Danach steht in `applied` die ID und in `result` das Ergebnis des Zugs.
 Gut ist: nur ziehen, wenn das Feld neben `pos` einen eigenen Begleiter braucht, und vorher kurz warten,
 ob sich `pos` noch ändert.
+
+## Zu dritt spielen (Lani + Alex + Claude)
+
+Lani wählt im Koop-Menü **„Zu dritt spielen“**. Dann steht im Spielstand `"size": 3` und es gibt zwei Plätze:
+
+| Platz | Name im Spielstand | Züge schicken in | Begleiter | Antwort steht in |
+|---|---|---|---|---|
+| 1 | `partnerName` | `claude` | `claudeRoles` (Luna `licht`, Holm `bau`) | `applied` / `result` |
+| 2 | `partner2Name` | `claude2` | `claude2Roles` (Pip `spur`, Ole `otter`) | `applied2` / `result2` |
+
+Lani steuert Bruno (`schutz`), Funke (`fuchs`) und die Heilerin (`heil`).
+
+**Alex nimmt Platz 1** – also alles genau wie bisher, nur mit weniger Begleitern. Lies immer `claudeRoles`, dort stehen deine.
+Zum Anmelden einmal: `PATCH {"partnerName": "Alex"}`.
+
+**Claude nimmt Platz 2:** `PATCH {"partner2Name": "Claude"}` und Züge als
+`PATCH {"claude2": {"id": "...", "type": "use", "role": "otter", "dir": "right"}}`.
+
+Wer dran ist: Steht neben der Laterne (`pos`) ein Hindernis, dessen nächster Schritt einen deiner Begleiter braucht, bist du dran.
