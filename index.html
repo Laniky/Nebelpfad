@@ -2361,7 +2361,7 @@ $("socialBack").addEventListener("click", showVillage);
 async function initSocial() {
   fillSelects();
   const c = window.claude;
-  if (!c || typeof c.use !== "function") { socNote("Mitspieler suchen geht nur in der geteilten Spielseite auf claude.ai."); return; }
+  if (!c || typeof c.use !== "function") { socNote("Dungeonbrowser, Freunde und Chat gibt es im Moment nur in der Claude-Version. Auf dieser Webseite kommen sie bald dazu."); return; }
   const loadTimer = setTimeout(() => { if (!DB) socNote("Die Verbindung zu den anderen Spielern steht noch nicht. Versuch es gleich noch einmal."); }, 10000);
   [DB, USER, ROOM] = await Promise.all([c.use("db"), c.use("user"), c.use("room")].map(p => p.catch(() => null)));
   ME = USER ? await USER.id() : null;
@@ -2487,7 +2487,7 @@ function resumeCoop(d) {
   const c = d.claude; if (c && c.id && c.id !== d.applied) { lastClaudeId = c.id; applyClaude(c); }
 }
 async function openCoop() {
-  if (!DB) { show("socialView"); socNote("Der Koop-Modus braucht die Spielseite auf claude.ai und eine Anmeldung."); return; }
+  if (!DB) { show("socialView"); socNote("Koop mit Claude gibt es im Moment nur in der Claude-Version des Spiels. Auf dieser Webseite kommt Koop bald dazu."); return; }
   coopListen();
   let d = null;
   try { const s = await coopRef().get(); if (s.exists) d = s.data(); } catch (e) {}
