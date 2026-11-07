@@ -870,7 +870,7 @@ const OBST = {
        solve: ["<b>Bruno</b> stemmt sich gegen die Dornenranken und hält sie zur Seite. Der Weg ist frei."] },
   H: { needs: ["spur"], after: ".", hint: "Im Nebel laufen viele Spuren durcheinander. Wer findet die richtige?",
        solve: ["<b>Pip</b> schnuppert am Boden, findet die richtige Spur und führt dich sicher hindurch."] },
-  W: { needs: ["bau"], after: "B", hint: "Rauschendes Wasser. Ohne Brücke kommst du nicht hinüber.",
+  W: { needs: ["bau"], after: "B", hint: "Rauschendes Wasser. Ohne Brücke kommst du nicht hinüber. Hier muss <b>gebaut</b> werden 🔨 (Holm).",
        solve: ["<b>Holm</b> schleppt Äste heran und baut eine kleine Brücke."] },
   D: { needs: ["licht"], after: ".", hint: "Eine Wand aus Schatten. Hier braucht es Licht.",
        solve: ["<b>Luna</b> breitet die Flügel aus. Silbernes Licht vertreibt die Schatten."] },
@@ -882,7 +882,7 @@ const OBST = {
        mid: "Im Licht sieht man viele Spuren durcheinander. Wer findet die richtige?" },
   G: { needs: ["fuchs"], after: ".", hint: "Eine dichte Hecke mit einem winzigen Spalt. Da passt nur jemand Kleines und Flinkes durch.",
        solve: ["<b>Funke</b> huscht durch den Spalt, zieht von innen am Riegel und die Heckentür schwingt auf."] },
-  U: { needs: ["otter"], after: "B", hint: "Ein tiefer Seerosenteich. Auf der anderen Seite schaukelt ein altes Floß.",
+  U: { needs: ["otter"], after: "B", hint: "Ein tiefer Seerosenteich. Auf der anderen Seite schaukelt ein altes Floß. Hier muss <b>getaucht</b> werden 🤿 (Ole).",
        solve: ["<b>Ole</b> taucht hinüber und schiebt das Floß zu dir. Jetzt kommst du trocken ans andere Ufer."] },
   X: { needs: ["licht", "spur", "bau"], after: ".", hint: "Ein uraltes Sterntor. Drei Sternsteine darauf sind erloschen. Vielleicht kann Licht helfen?",
        solve: ["<b>Luna</b> leuchtet die Sternsteine an. Sie flackern, aber das Tor bleibt zu …",
@@ -2761,6 +2761,16 @@ function afterMove() {
     if (Object.keys(HP.wander).length && HP.steps % 3 === 0) SND.fx.click();
   }
 }
+// Deutlicher Hinweis auf Wasserfeldern: bauen (Holm) oder tauchen (Ole)
+function waterTag(x, y, c) {
+  const alt = HP && HP.mech && HP.mech.has("alt");
+  const txt = c === "W" ? (alt ? "🔨 bauen / 🤿" : "🔨 bauen") : (alt ? "🤿 tauchen / 🔨" : "🤿 tauchen");
+  ctx.save(); ctx.font = "bold 10px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const w = Math.min(S - 4, ctx.measureText(txt).width + 10), cx = x * S + S / 2, ty = y * S + 9;
+  ctx.fillStyle = c === "W" ? "#3a2a12e6" : "#10304ae6"; ctx.strokeStyle = c === "W" ? "#f2c76b" : "#9fd8ff"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(cx - w / 2, ty - 7, w, 14, 7) : ctx.rect(cx - w / 2, ty - 7, w, 14); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.fillText(txt, cx, ty + .5); ctx.restore();
+}
 function drawVeil(cx, cy, t) {
   const g = ctx.createRadialGradient(cx, cy, 3, cx, cy, 28);
   g.addColorStop(0, "#9a7ad8"); g.addColorStop(.6, "#4a3a78"); g.addColorStop(1, "#2a2244");
@@ -3352,6 +3362,7 @@ function draw(t) {
       [[-16, -12], [14, -6], [-8, 16]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(cx + dx, cy + dy, 7, .4, Math.PI * 2 - .1); ctx.lineTo(cx + dx, cy + dy); ctx.fill(); });
       ctx.fillStyle = "#e9b8d6"; ctx.beginPath(); ctx.arc(cx + 14, cy - 6, 2.5, 0, 7); ctx.fill();
     }
+    if (c === "W" || c === "U") waterTag(x, y, c);
     if (c === "X") {
       const lit = stage[k] || 0;
       ctx.fillStyle = "#4a4f5e"; ctx.fillRect(x * S + 6, y * S + 10, 10, S - 12); ctx.fillRect(x * S + S - 16, y * S + 10, 10, S - 12);
