@@ -325,6 +325,20 @@ select, .chatform input { font: inherit; background: #0c111b; color: var(--mist)
 .cm time { color: var(--muted); font-size: .7rem; margin-left: 6px; }
 .chatform { display: flex; gap: 6px; }
 .on { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #5fd18c; margin-right: 6px; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.chk { display: flex; gap: 8px; align-items: center; font-size: .9rem !important; color: var(--mist) !important; font-weight: 600 !important; }
+.chk input { width: 18px; height: 18px; accent-color: var(--lantern); }
+.seatrow .seatbtns { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.seatrow .chip { padding: 4px 8px; font-size: .78rem; }
+#coopName { text-transform: none; }
+/* Emoji-Zurufe */
+.shouts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.shouts .chip { padding: 5px 9px; font-size: .85rem; }
+.shoutFx { position: absolute; inset: 0; pointer-events: none; z-index: 8; overflow: hidden; }
+.bubble { position: absolute; left: 50%; bottom: 12%; transform: translateX(-50%); background: #fff8e8; color: #2a2030; border-radius: 16px; padding: 6px 12px; font-weight: 700; font-size: .95rem; white-space: nowrap; box-shadow: 0 6px 18px #000a; animation: bubble 2.8s ease-out forwards; }
+.bubble::after { content: ""; position: absolute; left: 50%; bottom: -7px; border: 7px solid transparent; border-top-color: #fff8e8; border-bottom: 0; transform: translateX(-50%); }
+.bubble .big2 { font-size: 1.35rem; vertical-align: middle; }
+@keyframes bubble { 0% { opacity: 0; transform: translate(-50%, 20px) scale(.6); } 12% { opacity: 1; transform: translate(-50%, 0) scale(1.08); } 20% { transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -60px); } }
 .tin { font: inherit; background: #0c111b; color: var(--mist); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 11px; width: 100%; min-width: 0; text-transform: uppercase; }
 #coopName { text-transform: none; }
 .tin:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
@@ -460,6 +474,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
         <button class="btn" id="retry" type="button">Neu beginnen</button>
         <button class="back" id="failHome" type="button">Zurück zum Ort</button>
       </div>
+      <div class="shoutFx" id="shoutFx" aria-live="polite"></div>
     </div>
     <div class="dock" id="dock">
       <div class="roles" id="roles" role="group" aria-label="Begleiter wählen"></div>
@@ -471,6 +486,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <div class="potbar" id="potbar" hidden></div>
       <div class="dock-top"><p class="lives" id="lives" aria-live="polite"></p><p class="timer" id="timer" hidden></p></div>
       <div class="msg" id="msg" aria-live="polite"></div>
+      <div class="shouts" id="shouts" role="group" aria-label="Zurufe an deine Mitspieler" hidden></div>
     </div>
     <div class="potbar" id="teamBar"></div>
     <p class="help">Wähle oben einen Begleiter und tippe dann auf ein Hindernis neben dir. Pass auf: Du hast 3 Versuche für falsche Begleiter. Am Computer: Pfeiltasten oder W A S D zum Laufen, 1 bis 7 für die Begleiter, K für Kräfte, T für Tränke. Ändern kannst du die Tasten im Wiki unter „Tastatur“.</p>
@@ -488,7 +504,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
-      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
     </nav>
     <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
   </section>
@@ -499,25 +515,35 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <div>
         <p class="eyebrow">Nebelpfad</p>
         <h1>Koop</h1>
-        <p class="sub">Zu zweit auf einem Spielfeld, jeder mit eigenen Begleitern.</p>
+        <p class="sub">Zu zweit oder zu dritt auf einem Spielfeld, jeder mit eigenen Begleitern.</p>
       </div>
       <button class="back" id="coopBack" type="button">Zurück</button>
     </header>
     <p class="note" id="coopNote" aria-live="polite"></p>
     <div class="card">
+      <label for="coopName">Dein Name</label>
+      <input class="tin" id="coopName" maxlength="20" autocomplete="off" placeholder="z. B. Lani">
+    </div>
+    <div class="card">
       <h2>Neues Spiel erstellen</h2>
-      <p class="sub" style="margin:0">Zu zweit: Du steuerst Bruno, Pip, Funke und die Heilerin, dein Mitspieler Luna, Holm und Ole. Zu dritt: Du steuerst Bruno, Funke und die Heilerin, Platz 1 Luna und Holm, Platz 2 Pip und Ole. Du bekommst einen Spielcode, den du weitergibst.</p>
-      <button class="btn" id="coopNew" type="button">Zu zweit spielen</button>
-      <button class="btn" id="coopNew3" type="button">Zu dritt spielen</button>
+      <div class="seg" role="group" aria-label="Wie viele spielen mit?"><button class="chip" id="coopSz2" type="button" aria-pressed="true">👥 Zu zweit</button><button class="chip" id="coopSz3" type="button" aria-pressed="false">👥👤 Zu dritt</button></div>
+      <label class="chk"><input type="checkbox" id="coopTimed"> ⏳ Gegen die Uhr spielen (mit gemeinsamer Bestenliste)</label>
+      <h3>Wer steuert wen?</h3>
+      <p class="sub" style="margin:0">Tippe bei jedem Begleiter an, wer ihn steuern soll. Jeder Mitspieler braucht mindestens einen.</p>
+      <div class="wk-list" id="seatEditor"></div>
+      <button class="btn" id="coopNew" type="button">Spiel erstellen</button>
       <button class="chip" id="coopResume" type="button" hidden>Letztes Spiel fortsetzen</button>
     </div>
     <div class="card">
       <h2>Einem Spiel beitreten</h2>
       <label for="coopCodeIn">Spielcode</label>
       <input class="tin" id="coopCodeIn" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="z. B. K7QMX">
-      <label for="coopName">Dein Name</label>
-      <input class="tin" id="coopName" maxlength="20" autocomplete="off" placeholder="z. B. Alex">
       <button class="btn" id="coopJoin" type="button">Beitreten</button>
+    </div>
+    <div class="card">
+      <h2>🏆 Koop-Bestenliste</h2>
+      <p class="sub" style="margin:0">Die schnellsten Teams gegen die Uhr.</p>
+      <div class="wk-list" id="coopBest"><span class="none">Wird geladen …</span></div>
     </div>
   </section>
 
@@ -1121,7 +1147,7 @@ function show(id) {
   $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
-function showDungeon() { show("dungeonView"); if (level && level.timed && !done) startTimer(); }
+function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
 
 /* ---------- Zeitdungeons ---------- */
 const TIME_MODES = [
@@ -1541,6 +1567,16 @@ function renderWiki() {
     <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
   </section>
 
+  <section class="wk-sec" id="wk-koop"><h2>🤝 Koop</h2>
+    <p>Im Koop spielt ihr zu zweit oder zu dritt auf <b>einem</b> Spielfeld. Wer das Spiel erstellt, bekommt einen Spielcode und gibt ihn weiter.</p>
+    <ul class="wk-tip">
+      <li><b>Wer steuert wen?</b> Vor dem Start tippst du bei jedem Begleiter an, wer ihn steuert: du, Platz 1 oder Platz 2. Jeder Mitspieler braucht mindestens einen Begleiter. Deine Einteilung merkt sich das Spiel.</li>
+      <li><b>💬 Zurufe:</b> Unter dem Spielfeld gibt es Knöpfe wie 👍, ❤️, „❓ Was jetzt?“, „⏳ Warte kurz!“, „👉 Du bist dran!“ und „🎉 Super!“. Sie erscheinen bei allen als Sprechblase über dem Spielfeld.</li>
+      <li><b>⏳ Gegen die Uhr:</b> Setz beim Erstellen den Haken. Zu zweit habt ihr 150 Sekunden, zu dritt 180. Schafft ihr es, landet eure Zeit in der <b>🏆 Koop-Bestenliste</b>. Mit Gold gibt es zusätzlich einen seltenen Samen.</li>
+      <li>Spielt Claude mit, muss Claude im Chat Bescheid bekommen, wenn es dran ist. Gegen die Uhr wird das knapp, also lieber ohne Uhr spielen oder Claude Begleiter geben, die selten gebraucht werden.</li>
+    </ul>
+  </section>
+
   <section class="wk-sec" id="wk-geheim"><h2>Geheimstädte</h2>
     <p>Jeder Ort hat drei Geheimaufgaben. Eine ist immer, alle Tiere dort zu retten. Die anderen sind zum Beispiel ein Abenteuer ohne verlorenes Herz, Kräuter ernten oder Tränke brauen, während du dort bist.</p>
     <p>Sind alle drei erfüllt, öffnet sich die Geheimstadt des Ortes. Sie ist freiwillig und <b>richtig schwer</b>: fast jedes Feld ist ein Hindernis, und die Runenreihen sind lang. Beim ersten Sieg findest du ein seltenes Rezept, bei jedem Sieg seltene Samen.</p>
@@ -1763,7 +1799,7 @@ $("wikiView").addEventListener("click", e => {
   const a = e.target.closest(".wk-nav a"); if (!a) return;
   e.preventDefault(); const t = document.querySelector(a.getAttribute("href")); if (t) t.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
 });
-const leaveDungeon = () => { if (level && level.timed) showTime(); else showVillage(); };
+const leaveDungeon = () => { if (level && level.timed && !level.coop) showTime(); else showVillage(); };
 $("back").addEventListener("click", leaveDungeon);
 $("home").addEventListener("click", leaveDungeon);
 
@@ -1823,6 +1859,7 @@ function startLevel(l) {
   }
   done = false; burst = []; role = "heil"; buildRoles(); paintRoles();
   $("win").hidden = true; $("fail").hidden = true; $("failText").textContent = FAIL_HEARTS;
+  $("shouts").hidden = !l.coop || (!!DB && !guestMode); if (l.coop && !$("shouts").hidden) buildShouts();
   $("timer").hidden = !l.timed; if (l.timed) { if (timerId) { clearInterval(timerId); timerId = null; } timeLeft = l.limit + TF.time; }
   tries = MAX_TRIES + TF.heart; startTries = tries; actUsed = new Set(); paintLives();
   fx = { shield: TF.shield, reveal: !!TF.reveal, skip: false, bright: !!TF.bright, seedx2: false, loot: false }; lostHeart = false; potUsed = 0; renderPotbar();
@@ -2782,9 +2819,9 @@ initSocial();
 let coopLog = [], coopUnsub = null, coopResult = "", coopResult2 = "", coopSig = "", coopTimer = null;
 let lastIds = { claude: null, claude2: null }, coopApplied = null, coopApplied2 = null;
 let FB = null, coopCode = null, guestMode = false, coopPartnerName = "", myLastId = null;
-let coopSize = 2, mySeat = null, coopNames = {};
+let coopSize = 2, mySeat = null, coopNames = {}, coopSeats = null, coopTimedOn = false, lastShout = {};
 const SEAT_ROLES = { 2: { claude: ["licht", "bau", "otter"] }, 3: { claude: ["licht", "bau"], claude2: ["spur", "otter"] } };
-const seatsNow = () => SEAT_ROLES[coopSize] || SEAT_ROLES[2];
+const seatsNow = () => coopSeats || SEAT_ROLES[coopSize] || SEAT_ROLES[2];
 const partnerRoles = () => Object.values(seatsNow()).flat();
 const COOP_CLAUDE = SEAT_ROLES[2].claude;
 const seatOfRole = r => Object.keys(seatsNow()).find(s => seatsNow()[s].includes(r)) || "host";
@@ -2817,6 +2854,8 @@ function coopPayload() {
     grid: grid.map(r => r.join("")), custom: runCustom || {}, stage: { ...stage }, pos: [px, py], tries, done: !!done,
     won: !!(done && !$("win").hidden), failed: !!(done && !$("fail").hidden), log: coopLog.slice(-8), size: coopSize,
     claudeRoles: (S.claude || []).filter(r => have.includes(r)), claude2Roles: (S.claude2 || []).filter(r => have.includes(r)),
+    seats: { claude: S.claude || [], ...(S.claude2 ? { claude2: S.claude2 } : {}) }, hostName: coopNames.host || "",
+    tLeft: level && level.timed ? Math.ceil(timeLeft) : null,
     laniRoles: have.filter(r => !partnerRoles().includes(r)),
     applied: coopApplied, result: coopResult, applied2: coopApplied2, result2: coopResult2, updated: Date.now()
   };
@@ -2839,12 +2878,12 @@ function coopSync(force, full) {
     if (near && coopNoticeKey !== nk) $("msg").insertAdjacentHTML("beforeend", `<br>${seatIcon(needSeat)} <b>Jetzt ist ${seatName(needSeat)} dran!</b> ${DB ? "Schreib einfach „du“ in den Chat." : (/claude/i.test(seatName(needSeat)) ? "Schreib Claude im Chat „du“." : "Warte kurz, bis dein Mitspieler zieht.")}`);
     coopNoticeKey = nk;
   }
-  const p = coopPayload(), sig = JSON.stringify([p.grid, p.pos, p.stage, p.tries, p.done, p.won, p.failed, p.applied, p.applied2]);
+  const p = coopPayload(), sig = JSON.stringify([p.grid, p.pos, p.stage, p.tries, p.done, p.won, p.failed, p.applied, p.applied2, p.tLeft]);
   if (!force && sig === coopSig) return;
   coopSig = sig;
   if (full) {
     const L = level;
-    p.level = { name: L.name, theme: L.theme, wall: L.wall, animal: L.animal, animalName: L.animalName, who: L.who, ring: L.ring, animalHint: L.animalHint, intro: L.intro, gen: L.gen };
+    p.level = { name: L.name, theme: L.theme, wall: L.wall, animal: L.animal, animalName: L.animalName, who: L.who, ring: L.ring, animalHint: L.animalHint, intro: L.intro, gen: L.gen, timed: !!L.timed, limit: L.limit || 0 };
     if (coopCode) p.code = coopCode;
     if (coopNames.claude) p.partnerName = coopNames.claude;
     if (coopNames.claude2) p.partner2Name = coopNames.claude2;
@@ -2852,14 +2891,41 @@ function coopSync(force, full) {
   } else CB.update(p).catch(() => {});
 }
 function readNames(d) {
+  if (d.hostName) coopNames.host = d.hostName;
+  if (d.seats && d.seats.claude) coopSeats = { claude: d.seats.claude || [], ...(d.seats.claude2 ? { claude2: d.seats.claude2 } : {}) };
   if (d.partnerName) coopNames.claude = d.partnerName;
   if (d.partner2Name) coopNames.claude2 = d.partner2Name;
   if (d.size) coopSize = d.size;
   coopPartnerName = coopNames.claude || "";
 }
+const SHOUTS = [["👍", "👍"], ["❤️", "❤️"], ["❓", "❓ Was jetzt?"], ["⏳", "⏳ Warte kurz!"], ["👉", "👉 Du bist dran!"], ["🎉", "🎉 Super!"]];
+const myShoutKey = () => guestMode ? (mySeat || "claude") : "host";
+function showShout(k, e) {
+  const txt = (SHOUTS.find(x => x[0] === e) || [e, String(e).slice(0, 24)])[1];
+  const b = el("div", "bubble"); b.innerHTML = `<span class="big2">${k === "host" ? "🧙" : seatIcon(k)}</span> ${seatName(k)}: ${txt.replace(/</g, "")}`;
+  b.style.left = (25 + Math.random() * 50) + "%";
+  $("shoutFx").appendChild(b); setTimeout(() => b.remove(), 2900);
+  SND.fx.click();
+}
+function buildShouts() {
+  const box = $("shouts"); box.innerHTML = "";
+  SHOUTS.forEach(([e, txt]) => box.appendChild(btnEl(txt, () => {
+    const id = Date.now() + "-" + Math.floor(Math.random() * 1e5), k = myShoutKey();
+    lastShout[k] = id; showShout(k, e);
+    if (CB.ok()) CB.update({ ["shout_" + k]: { id, e, t: Date.now() } }).catch(() => {});
+  })));
+}
+function readShouts(d) {
+  ["host", "claude", "claude2"].forEach(k => {
+    const sh = d["shout_" + k]; if (!sh || !sh.id || sh.id === lastShout[k]) return;
+    lastShout[k] = sh.id;
+    if (k !== myShoutKey() && Math.abs(Date.now() - (+sh.t || 0)) < 20000) showShout(k, sh.e);
+  });
+}
 function coopListen() {
   if (coopUnsub || !CB.ok()) return;
   coopUnsub = CB.listen(d => {
+    if (level && level.coop && !$("dungeonView").hidden) readShouts(d);
     const before = JSON.stringify(coopNames); readNames(d);
     if (guestMode) { guestRender(d); return; }
     if (JSON.stringify(coopNames) !== before && level && level.coop) { buildRoles(); paintRoles(); }
@@ -2899,12 +2965,41 @@ function applyClaude(c, seat = "claude") {
   coopSync(true);
 }
 let coopActor = "lani";
+const COOP_LIMIT = { 2: 150, 3: 180 };
+const teamNames = () => ["host", ...Object.keys(seatsNow())].map(seatName).join(", ").replace(/, ([^,]*)$/, " und $1");
+async function bestList() {
+  try {
+    if (DB) { const d = await DB.doc("coop/bestzeit").get(); return d.exists ? (d.data().list || []) : []; }
+    if (FB) { const v = (await FB.ref("coop/BESTZEIT").get()).val() || {}; return Object.values(v); }
+  } catch (e) {}
+  return [];
+}
+async function addBest(e) {
+  try {
+    if (DB) { const l = await bestList(); l.push(e); l.sort((a, b) => a.t - b.t); await DB.doc("coop/bestzeit").set({ list: l.slice(0, 30) }); }
+    else if (FB) await FB.ref("coop/BESTZEIT").push(e);
+  } catch (e2) {}
+}
+async function renderBest() {
+  const box = $("coopBest"); if (!box) return;
+  const l = (await bestList()).filter(e => e && e.t).sort((a, b) => a.t - b.t).slice(0, 10);
+  box.innerHTML = l.length ? l.map((e, i) => `<div class="wk-row"><span class="ic" aria-hidden="true">${["🥇", "🥈", "🥉"][i] || "⭐"}</span><span class="t"><strong>${String(e.names || "").replace(/</g, "")}</strong><span>${e.t.toFixed(1).replace(".", ",")} Sekunden · ${e.size === 3 ? "zu dritt" : "zu zweit"} · ${"💛".repeat(e.hearts || 0)}</span></span></div>`).join("")
+    : `<span class="none">Noch keine Zeiten. Spielt gegen die Uhr und holt euch Platz 1!</span>`;
+}
 function coopWin() {
   done = true;
+  let timeTxt = "";
+  if (level.timed) {
+    stopTimer(); const used = level.limit - timeLeft, ratio = timeLeft / level.limit;
+    const medal = ratio >= 0.5 ? "🥇 Gold" : ratio >= 0.25 ? "🥈 Silber" : "🥉 Bronze";
+    timeTxt = `<br><br>⏳ Geschafft in <b>${used.toFixed(1).replace(".", ",")} Sekunden</b>. Medaille: ${medal}. Eure Zeit steht jetzt in der Koop-Bestenliste 🏆`;
+    addBest({ names: teamNames(), size: coopSize, t: Math.round(used * 10) / 10, hearts: tries, d: new Date().toISOString().slice(0, 10) });
+    if (ratio >= 0.5) add(H.seeds, RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
+  }
   const gift = [rollDrop(0.2), rollDrop(0.2)]; gift.forEach(k => add(H.seeds, k)); saveH();
   $("winIcon").textContent = level.animal;
   $("winTitle").textContent = "Gemeinsam geschafft! 🤝";
-  $("winText").innerHTML = `Du${coopSize === 3 ? ", " + seatName("claude") + " und " + seatName("claude2") : " und " + PN()} habt ${akk(level.who)} zusammen befreit.<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
+  $("winText").innerHTML = `Du${coopSize === 3 ? ", " + seatName("claude") + " und " + seatName("claude2") : " und " + PN()} habt ${akk(level.who)} zusammen befreit.${timeTxt}<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
   $("home").textContent = "Zurück zum Ort";
   setTimeout(() => { $("win").hidden = false; coopSync(true); }, reduce ? 0 : 1100);
 }
@@ -2917,13 +3012,13 @@ function startCoop() {
   coopLog = []; coopApplied = coopApplied2 = null; guestMode = false;
   const codeTxt = coopCode ? ` Euer Spielcode: <b>${coopCode}</b>.` : "";
   const mine = ["schutz", "spur", "heil", "fuchs", "licht", "bau", "otter"].filter(r => !partnerRoles().includes(r));
-  const seatTxt = Object.keys(seatsNow()).map((s, i) => `Platz ${i + 1}: ${rolesTxt(seatsNow()[s])}`).join(" · ");
+  const seatTxt = Object.keys(seatsNow()).map((s, i) => `${coopNames[s] || "Platz " + (i + 1)}: ${rolesTxt(seatsNow()[s])}`).join(" · ");
   startLevel({
     id: "koop", coop: true, name, ic: "🤝", theme: tk, wall: th.wall, mode: 1, animal: a[0], animalName: a[1], who: a[2], ring,
-    gen: { count: coopSize === 3 ? 10 : 8, tier: 1 },
+    gen: { count: coopSize === 3 ? 10 : 8, tier: 1 }, ...(coopTimedOn ? { timed: true, limit: COOP_LIMIT[coopSize] || 150, tm: { id: "koop", limit: COOP_LIMIT[coopSize] || 150 } } : {}),
     intro: DB
       ? `🤝 <b>Koop mit Claude!</b> Du steuerst Bruno, Pip, Funke und die Heilerin, Claude steuert Luna, Holm und Ole (🤖). Braucht ein Hindernis einen von Claudes Begleitern, schreib Claude im Chat.`
-      : `🤝 <b>Koop zu ${coopSize === 3 ? "dritt" : "zweit"}!</b>${codeTxt} Du steuerst ${rolesTxt(mine)}. ${seatTxt}.`,
+      : `🤝 <b>Koop zu ${coopSize === 3 ? "dritt" : "zweit"}${coopTimedOn ? " gegen die Uhr" : ""}!</b>${codeTxt} Du steuerst ${rolesTxt(mine)}. ${seatTxt}.${coopTimedOn ? ` ⏳ Ihr habt ${COOP_LIMIT[coopSize]} Sekunden.` : ""}`,
     animalHint: `${a[2]} ist gefangen in ${ench}. Nur die Heilerin kann den Zauber lösen.`
   });
   coopSync(true, true);
@@ -2934,6 +3029,7 @@ function resumeCoop(d) {
   lastIds = { claude: d.applied || null, claude2: d.applied2 || null };
   startLevel({ id: "koop", coop: true, resume: true, ic: "🤝", mode: 1, ...d.level, map: d.grid, custom: d.custom || {} });
   px = d.pos[0]; py = d.pos[1]; stage = { ...(d.stage || {}) }; tries = d.tries; paintLives();
+  if (level.timed && d.tLeft != null) { stopTimer(); timeLeft = d.tLeft; startTimer(); }
   say(`🤝 Willkommen zurück im Koop! Es geht da weiter, wo ihr aufgehört habt.${coopCode ? ` Spielcode: <b>${coopCode}</b>` : ""}`);
   coopSync(true);
   ["claude", "claude2"].forEach(seat => { const c = d[seat], ap = seat === "claude" ? d.applied : d.applied2; if (c && c.id && c.id !== ap) { lastIds[seat] = c.id; applyClaude(c, seat); } });
@@ -2953,6 +3049,7 @@ function guestRender(d) {
   readNames(d);
   if (d.level && level && d.level.name !== level.name) { level = { ...level, ...d.level }; theme = THEMES[level.theme]; $("dTitle").textContent = level.name; }
   grid = d.grid.map(r => r.split("")); runCustom = d.custom || {}; stage = { ...(d.stage || {}) };
+  if (d.tLeft != null) { $("timer").hidden = false; const ts = d.tLeft; $("timer").textContent = `⏳ ${Math.floor(ts / 60)}:${String(ts % 60).padStart(2, "0")}`; $("timer").classList.toggle("low", ts <= 10); }
   if (px !== d.pos[0] || py !== d.pos[1]) SND.fx.step();
   px = d.pos[0]; py = d.pos[1]; tries = d.tries; done = !!d.done; paintLives();
   const ap = mySeat === "claude2" ? d.applied2 : d.applied, res = mySeat === "claude2" ? d.result2 : d.result;
@@ -2992,26 +3089,60 @@ const newCode = () => Array.from({ length: 5 }, () => CODE_CHARS[Math.floor(Math
 function useCode(c) { if (coopUnsub) { coopUnsub(); coopUnsub = null; } coopCode = c; }
 async function openCoop() {
   if (DB) {
-    coopSize = 2; coopListen();
+    coopSize = 2; coopSeats = null; coopTimedOn = false; coopListen();
     let d = null;
     try { d = await CB.get(); } catch (e) {}
     if (d && !d.done && d.grid && d.level) resumeCoop(d); else startCoop();
     return;
   }
-  show("coopView");
+  show("coopView"); renderSeatEditor(); renderBest();
   let last = null; try { last = localStorage.getItem("nebelpfad-coopcode"); } catch (e) {}
   $("coopResume").hidden = !last; if (last) $("coopResume").textContent = `Letztes Spiel ${last} fortsetzen`;
   try { $("coopName").value = localStorage.getItem("nebelpfad-coopname") || ""; } catch (e) {}
   $("coopNote").textContent = FB ? "" : "Die Verbindung zum Online-Dienst wird gerade aufgebaut … Versuch es in ein paar Sekunden noch einmal.";
 }
+/* Wer steuert wen: frei einstellbar, für zu zweit und zu dritt getrennt gespeichert */
+let menuSize = 2, seatCfg = null;
+const ALL_ROLE_IDS = ["schutz", "spur", "bau", "licht", "heil", "fuchs", "otter"];
+function loadSeatCfg() {
+  if (seatCfg) return;
+  seatCfg = { 2: {}, 3: {} };
+  [2, 3].forEach(n => ALL_ROLE_IDS.forEach(r => { seatCfg[n][r] = Object.keys(SEAT_ROLES[n]).find(st => SEAT_ROLES[n][st].includes(r)) || "host"; }));
+  try { const sv = JSON.parse(localStorage.getItem("nebelpfad-seats") || "null"); if (sv && sv[2] && sv[3]) seatCfg = sv; } catch (e) {}
+}
+const cfgSeats = n => { const o = { claude: [] }; if (n === 3) o.claude2 = []; ALL_ROLE_IDS.forEach(r => { const st = seatCfg[n][r]; if (o[st]) o[st].push(r); }); return o; };
+function renderSeatEditor() {
+  loadSeatCfg();
+  $("coopSz2").setAttribute("aria-pressed", String(menuSize === 2)); $("coopSz3").setAttribute("aria-pressed", String(menuSize === 3));
+  const box = $("seatEditor"); box.innerHTML = "";
+  const allRoles = [...BASE_ROLES, ...PET_ROLES];
+  const opts = menuSize === 3 ? [["host", "🧙 Du"], ["claude", "Platz 1"], ["claude2", "Platz 2"]] : [["host", "🧙 Du"], ["claude", "Mitspieler"]];
+  ALL_ROLE_IDS.forEach(r => {
+    const R0 = allRoles.find(x => x.id === r); if (!R0) return;
+    if (!opts.some(o => o[0] === seatCfg[menuSize][r])) seatCfg[menuSize][r] = "host";
+    const pet = PET_ROLES.find(x => x.id === r), have = !pet || rescued[pet.from];
+    const row = el("div", "wk-row seatrow");
+    row.innerHTML = `<span class="ic" aria-hidden="true">${R0.ic}</span><span class="t"><strong>${R0.nm}</strong><span>${R0.rl}${have ? "" : " · noch nicht befreit"}</span></span>`;
+    const bx = el("div", "seatbtns");
+    opts.forEach(([st, lab]) => { const b = btnEl(lab, () => { seatCfg[menuSize][r] = st; try { localStorage.setItem("nebelpfad-seats", JSON.stringify(seatCfg)); } catch (e) {} renderSeatEditor(); }); b.setAttribute("aria-pressed", String(seatCfg[menuSize][r] === st)); bx.appendChild(b); });
+    row.appendChild(bx); box.appendChild(row);
+  });
+}
+$("coopSz2").addEventListener("click", () => { menuSize = 2; renderSeatEditor(); });
+$("coopSz3").addEventListener("click", () => { menuSize = 3; renderSeatEditor(); });
 function createCoop(size) {
   if (!FB) { $("coopNote").textContent = "Noch keine Verbindung zum Online-Dienst. Versuch es gleich noch einmal."; return; }
+  loadSeatCfg();
+  const seats = cfgSeats(size), have = [...BASE_ROLES, ...PET_ROLES.filter(x => rescued[x.from])].map(r => r.id);
+  const empty = Object.keys(seats).find(st => !seats[st].some(r => have.includes(r)));
+  if (empty) { $("coopNote").textContent = `${empty === "claude2" ? "Platz 2" : size === 3 ? "Platz 1" : "Dein Mitspieler"} hat noch keinen Begleiter, den du schon befreit hast. Gib ihm mindestens einen.`; return; }
+  const nm = $("coopName").value.trim().slice(0, 20); try { localStorage.setItem("nebelpfad-coopname", nm); } catch (e) {}
   useCode(newCode()); try { localStorage.setItem("nebelpfad-coopcode", coopCode); } catch (e) {}
-  coopSize = size; coopNames = {}; coopPartnerName = ""; lastIds = { claude: null, claude2: null };
+  coopSize = size; coopSeats = seats; coopTimedOn = $("coopTimed").checked;
+  coopNames = nm ? { host: nm } : {}; coopPartnerName = ""; lastIds = { claude: null, claude2: null }; lastShout = {};
   coopListen(); startCoop();
 }
-$("coopNew").addEventListener("click", () => createCoop(2));
-$("coopNew3").addEventListener("click", () => createCoop(3));
+$("coopNew").addEventListener("click", () => createCoop(menuSize));
 $("coopResume").addEventListener("click", async () => {
   if (!FB) return;
   let c = null; try { c = localStorage.getItem("nebelpfad-coopcode"); } catch (e) {}
@@ -3029,7 +3160,7 @@ $("coopJoin").addEventListener("click", async () => {
   useCode(c);
   const d = await CB.get().catch(() => null);
   if (!d || !d.grid) { $("coopNote").textContent = "Zu diesem Code gibt es kein Spiel. Prüf den Code noch einmal."; return; }
-  coopSize = d.size || 2;
+  coopSize = d.size || 2; lastShout = {}; readNames(d); ['host', 'claude', 'claude2'].forEach(k => { if (d['shout_' + k]) lastShout[k] = d['shout_' + k].id; });
   // freien Platz suchen (oder den eigenen, wenn man mit demselben Namen zurückkommt)
   if (d.partnerName === nm) mySeat = "claude";
   else if (coopSize === 3 && d.partner2Name === nm) mySeat = "claude2";

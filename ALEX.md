@@ -97,3 +97,10 @@ Ein Zug muss nicht mehr nur ein Feld weit gehen:
 - Ohne `run` und `to` geht ein `move` wie bisher genau ein Feld.
 
 Wo die Gruppe angekommen ist, steht danach in `pos` und in `result`.
+
+## Zurufe, freie Begleiter und Zeit (neu)
+
+- **Begleiter:** Lani kann vor dem Start frei einteilen, wer welchen Begleiter steuert. Lies deshalb immer `claudeRoles` (Platz 1) bzw. `claude2Roles` (Platz 2), dort stehen deine. Die volle Einteilung steht in `seats`.
+- **Zurufe:** `PATCH {"shout_claude": {"id": "eindeutig", "e": "👍", "t": <Zeit in Millisekunden>}}` (Platz 2: `shout_claude2`). Erlaubt sind `👍`, `❤️`, `❓` (Was jetzt?), `⏳` (Warte kurz!), `👉` (Du bist dran!) und `🎉` (Super!). Lanis Zurufe stehen in `shout_host`.
+- **Gegen die Uhr:** Wenn `level.timed` true ist, steht in `tLeft`, wie viele Sekunden noch übrig sind.
+- Lanis Name steht in `hostName`.
