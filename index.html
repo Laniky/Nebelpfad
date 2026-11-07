@@ -1425,7 +1425,7 @@ function drink(k) {
 let wikiFrom = "village";
 const WIKI_OBST = [
   ["T", "🌿", "Dornenranken", "Lila Ranken, die den Weg zuwuchern."],
-  ["R", "🪨", "Felsbrocken", "Schwer und moosig, versperrt Stege und Pfade."],
+  ["R", "🪨", "Felsbrocken", "Ein großer, moosiger Brocken, der leicht wackelt. Bruno schiebt ihn an, dann rollt er aus dem Weg."],
   ["H", "🐾", "Spurenfeld", "Heller Nebel mit vielen Spuren durcheinander. Nur Pip findet die richtige."],
   ["W", "🌊", "Bach", "Rauschendes Wasser. Danach liegt dort eine Brücke."],
   ["D", "🌑", "Schattenwand", "Wirbelnde Dunkelheit, die nur Licht vertreibt."],
@@ -1556,6 +1556,8 @@ function renderWiki() {
       <li>🧺 <b>Ernten:</b> Du bekommst zwei Kräuter, oft schenkt dir die Pflanze auch einen neuen Samen.</li>
     </ul>
     <p>Es gibt keine Wartezeit, alles geht sofort.</p>
+    <p><b>So erkennst du deine Beete:</b> Helle, rissige Erde ist fest und muss umgegraben werden. Dunkle, gefurchte Erde ist locker und bereit zum Pflanzen. Nach dem Gießen glänzt sie nass. Ein <b>goldener Rand</b> heißt „reif, bitte ernten“, ein <b>oranger Rand</b> heißt „Unkraut oder Schnecke, bitte kümmern“.</p>
+    <p>Garten und Alchemietisch sind zwei eigene Seiten. Oben rechts kommst du mit einem Knopf direkt vom einen zum anderen.</p>
     <p><b>Samen bekommen:</b> Nach jedem Abschluss gibt es zwei zufällige Samen, manchmal sogar seltene. Zum Farmen leuchten in jedem Abenteuer 🌱 Samenfunde auf dem Weg. Lauf einfach drüber. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
     <div class="wk-list">${Object.values(HERBS).map(hb => row(hb.ic, hb.nm + (hb.rare ? ' <small class="rare">selten</small>' : ""), hb.from)).join("")}</div>
   </section>
