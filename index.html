@@ -2117,13 +2117,13 @@ function renderWiki() {
   </section>
 
   <section class="wk-sec" id="wk-fest"><h2>🎉 Feste im Jahr</h2>
-    <p>Zu jeder Jahreszeit feiert das Land ein Fest. Das aktuelle Fest findest du im Reiter <b>🗓️ Täglich</b>, und im Ort steht ein Hinweis.</p>
-    <div class="wk-list">${Object.values(FESTS).map(F => row(F.ic, F.nm, `${F.txt} Festtiere: ${F.animals.map(a => a[0] + " " + a[1]).join(", ")}. Nur dann: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.`, ["März bis Mai", "Juni bis August", "September bis November", "Dezember bis Februar"][Object.values(FESTS).indexOf(F)])).join("")}</div>
+    <p>Jeden Monat feiert das Land ein anderes Fest. Das aktuelle Fest findest du im Reiter <b>🗓️ Täglich</b>, und im Ort steht ein Hinweis.</p>
+    <div class="wk-list">${Object.values(FESTS).map(F => row(F.ic, F.nm, `${F.txt} Festtiere: ${F.animals.map(a => a[0] + " " + a[1]).join(", ")}. Nur dann: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.`, F.mon)).join("")}</div>
     <ul class="wk-tip">
       <li>Im Festabenteuer schweben Blüten, Glühwürmchen, Laternen oder Schneeflocken über dem Spielfeld.</li>
-      <li><b>Festteile sammeln:</b> Die Festtiere findest du nicht sofort. Erst brauchst du <b>5 Festteile</b> (🌸 Blütenblätter, ✨ Glühfunken, 🏮 Laternenteile oder ❄️ Schneekristalle). Jedes gewonnene Fest-Minispiel gibt ein Teil. Mit 5 Teilen öffnet sich das Festabenteuer für das nächste Tier.</li>
+      <li><b>Festteile sammeln:</b> Die Festtiere findest du nicht sofort. Erst brauchst du <b>5 Festteile</b> (bei jedem Fest andere, zum Beispiel 🌸 Blütenblätter oder 🏮 Laternenteile). Jedes gewonnene Fest-Minispiel gibt ein Teil. Mit 5 Teilen öffnet sich das Festabenteuer für das nächste Tier.</li>
       <li><b>Die Minispiele:</b> 🃏 <b>Paare finden</b> (6 Paare, höchstens 8 Irrtümer), 🧺 <b>Auffangen</b> (12 Festteile in 30 Sekunden antippen, die 🌫️ Nebelwolken kosten Zeit) und 🎶 <b>Melodie merken</b> (die Lichter leuchten nacheinander auf, tippe sie in der gleichen Reihenfolge nach, bis zu 6 Töne).</li>
-      <li><b>🛍️ Festwährung und Festmarkt:</b> Jedes Fest hat seine eigene Währung: 🐞 Glückskäfer (Blütenfest), 🐚 Muscheln (Glühwürmchenfest), 🌰 Kastanien (Laternenfest) und 🍪 Zimtsterne (Schneedorf). Du bekommst sie in jedem Minispiel (3 bis 5 für einen Sieg, 1 als Trost) und im Festabenteuer. Auf dem Festmarkt kaufst du damit Festsamen, seltene Samen, Futterkörbe, Herztränke, Diamanten, besonderen Schmuck für die Lichtung und <b>Festkleidung</b> für deine Begleiter: 👒 Blütenhut, 🕶️ Sonnenbrille, 🎃 Kürbismütze oder 🧤 Fäustlinge.</li>
+      <li><b>🛍️ Festwährung und Festmarkt:</b> Jedes Fest hat seine eigene Währung, zum Beispiel 🐞 Glückskäfer beim Blütenfest, 🌰 Kastanien beim Laternenfest oder 🍪 Lebkuchen beim Lichtermarkt. Du bekommst sie in jedem Minispiel (3 bis 5 für einen Sieg, 1 als Trost) und im Festabenteuer. Auf dem Festmarkt kaufst du damit Festsamen, seltene Samen, Futterkörbe, Herztränke, Diamanten, besonderen Schmuck für die Lichtung und <b>Festkleidung</b> für deine Begleiter, bei jedem Fest eine andere: ${Object.values(FESTS).map(f => f.cos[0] + " " + f.cos[1]).join(", ")}.</li>
       <li>Jedes gerettete Festtier zieht auf deine Tierlichtung und bleibt dort für immer.</li>
       <li>Nach allen drei Festtieren kannst du weiterspielen, um mehr Festsamen zu sammeln.</li>
     </ul>
@@ -2938,17 +2938,33 @@ $("dailyName").addEventListener("change", () => { try { localStorage.setItem("ne
 
 /* ---------- Feste im Jahr ---------- */
 const FESTS = {
-  fruehling: { nm: "Blütenfest", ic: "🌷", months: [2, 3, 4], theme: "wiese", seed: "kirsch", fx: "petal", col: "#f5b8d0",
-    txt: "Überall blühen die Bäume, und rosa Blüten tanzen durch die Luft.", animals: [["🐣", "Frühlingsküken", "Das Frühlingsküken"], ["🐝", "Blütenbiene", "Die Blütenbiene"], ["🐞", "Marienkäfer", "Der Marienkäfer"]], deco: ["🌷", "Tulpenbeet"] },
-  sommer: { nm: "Glühwürmchenfest", ic: "✨", months: [5, 6, 7], theme: "see", seed: "gluehb", fx: "firefly", col: "#e8ff8a",
-    txt: "In den warmen Nächten leuchten tausend Glühwürmchen über dem Wasser.", animals: [["🦩", "Flamingo", "Der Flamingo"], ["🐠", "Sonnenfisch", "Der Sonnenfisch"], ["🦗", "Grille", "Die Grille"]], deco: ["🪁", "Drachen"] },
-  herbst: { nm: "Laternenfest", ic: "🏮", months: [8, 9, 10], theme: "wald", seed: "kuerb", fx: "lantern", col: "#ffb35a",
-    txt: "Im Wald schweben warme Laternen, und es riecht nach Kürbis und Kastanien.", animals: [["🦔", "Laternenigel", "Der Laternenigel"], ["🦉", "Herbstkauz", "Der Herbstkauz"], ["🐿️", "Kastanienhörnchen", "Das Kastanienhörnchen"]], deco: ["🎃", "Kürbis"] },
-  winter: { nm: "Schneedorf", ic: "❄️", months: [11, 0, 1], theme: "gipfel", seed: "eisbl", fx: "snow", col: "#ffffff",
-    txt: "Leise fällt Schnee auf die Berge, und im Dorf glitzern die Eiszapfen.", animals: [["🐧", "Schneepinguin", "Der Schneepinguin"], ["🦌", "Rentier", "Das Rentier"], ["🐻‍❄️", "Eisbär", "Der Eisbär"]], deco: ["⛄", "Schneemann"] }
+  winter: { nm: "Schneedorf", ic: "❄️", months: [0], theme: "gipfel", seed: "eisbl", fx: "snow", col: "#ffffff",
+    txt: "Leise fällt Schnee auf die Berge, und im Dorf glitzern die Eiszapfen.", animals: [["🐧", "Schneepinguin", "Der Schneepinguin"], ["🐻‍❄️", "Eisbär", "Der Eisbär"], ["🦭", "Eisrobbe", "Die Eisrobbe"]], deco: ["⛄", "Schneemann"], deco2: ["🛷", "Schlitten"], piece: ["❄️", "Schneekristalle", "Schneekristall"], coin: ["🧊", "Eiskristalle"], cos: ["🧤", "Fäustlinge"], span: "1. bis 31. Januar", mon: "Januar" },
+  masken: { nm: "Maskenfest", ic: "🎭", months: [1], theme: "ruine", seed: "eisbl", fx: "confetti", col: "#f5a3c7",
+    txt: "In der alten Ruine wird getanzt, und überall fliegt buntes Konfetti.", animals: [["🦝", "Maskenwaschbär", "Der Maskenwaschbär"], ["🦜", "Konfettipapagei", "Der Konfettipapagei"], ["🐼", "Maskenpanda", "Der Maskenpanda"]], deco: ["🎪", "Festzelt"], deco2: ["🎈", "Luftballons"], piece: ["🎭", "Maskenteile", "Maskenteil"], coin: ["🎊", "Konfetti"], cos: ["🎭", "Ballmaske"], span: "1. bis 28. Februar", mon: "Februar" },
+  fruehling: { nm: "Blütenfest", ic: "🌷", months: [2], theme: "wiese", seed: "kirsch", fx: "petal", col: "#f5b8d0",
+    txt: "Überall blühen die Bäume, und rosa Blüten tanzen durch die Luft.", animals: [["🐣", "Frühlingsküken", "Das Frühlingsküken"], ["🐝", "Blütenbiene", "Die Blütenbiene"], ["🐞", "Marienkäfer", "Der Marienkäfer"]], deco: ["🌷", "Tulpenbeet"], deco2: ["🪺", "Vogelnest"], piece: ["🌸", "Blütenblätter", "Blütenblatt"], coin: ["🐞", "Glückskäfer"], cos: ["👒", "Blütenhut"], span: "1. bis 31. März", mon: "März" },
+  regen: { nm: "Regenbogenfest", ic: "🌈", months: [3], theme: "see", seed: "kirsch", fx: "rain", col: "#9fd8ff",
+    txt: "Nach jedem Aprilschauer spannt sich ein Regenbogen über den See.", animals: [["🐸", "Regenfrosch", "Der Regenfrosch"], ["🐌", "Regenschnecke", "Die Regenschnecke"], ["🦆", "Regenente", "Die Regenente"]], deco: ["🪣", "Regentonne"], deco2: ["🌧️", "Regenwolke"], piece: ["🌈", "Regenbogenfarben", "Regenbogenfarbe"], coin: ["💧", "Tautropfen"], cos: ["☂️", "Regenschirm"], span: "1. bis 30. April", mon: "April" },
+  falter: { nm: "Falterfest", ic: "🦋", months: [4], theme: "wiese", seed: "kirsch", fx: "petal", col: "#ffe27a",
+    txt: "Die Wiesen summen und duften, und tausend Falter tanzen über den Blumen.", animals: [["🦋", "Zitronenfalter", "Der Zitronenfalter"], ["🐛", "Raupe Rosalie", "Die Raupe Rosalie"], ["🐦", "Maienvogel", "Der Maienvogel"]], deco: ["🌼", "Blumenwiese"], deco2: ["🍯", "Honigtopf"], piece: ["🪻", "Fliederblüten", "Fliederblüte"], coin: ["🍯", "Honigtropfen"], cos: ["🌼", "Gänseblümchenkranz"], span: "1. bis 31. Mai", mon: "Mai" },
+  sommer: { nm: "Sonnwendfest", ic: "☀️", months: [5], theme: "see", seed: "gluehb", fx: "spark", col: "#ffd36b",
+    txt: "Der längste Tag des Jahres: Die Sonne glitzert auf dem Wasser.", animals: [["🦩", "Flamingo", "Der Flamingo"], ["🐠", "Sonnenfisch", "Der Sonnenfisch"], ["🦀", "Strandkrabbe", "Die Strandkrabbe"]], deco: ["🪁", "Drachen"], deco2: ["⛱️", "Sonnenschirm"], piece: ["☀️", "Sonnenstrahlen", "Sonnenstrahl"], coin: ["🐚", "Muscheln"], cos: ["🕶️", "Sonnenbrille"], span: "1. bis 30. Juni", mon: "Juni" },
+  gluehw: { nm: "Glühwürmchenfest", ic: "✨", months: [6], theme: "wald", seed: "gluehb", fx: "firefly", col: "#e8ff8a",
+    txt: "In den warmen Nächten leuchten tausend Glühwürmchen im Wald.", animals: [["🦗", "Grille", "Die Grille"], ["🦇", "Nachtfledermaus", "Die Nachtfledermaus"], ["🦎", "Sommereidechse", "Die Sommereidechse"]], deco: ["🛖", "Waldhütte"], deco2: ["🔥", "Lagerfeuer"], piece: ["✨", "Glühfunken", "Glühfunken"], coin: ["🫐", "Waldbeeren"], cos: ["🌙", "Mondanhänger"], span: "1. bis 31. Juli", mon: "Juli" },
+  sterne: { nm: "Sternschnuppenfest", ic: "🌠", months: [7], theme: "gipfel", seed: "gluehb", fx: "star", col: "#c9d4ff",
+    txt: "Hoch oben auf dem Gipfel regnet es Sternschnuppen. Wünsch dir was!", animals: [["🐢", "Sternenschildkröte", "Die Sternenschildkröte"], ["🐬", "Nachtdelfin", "Der Nachtdelfin"], ["🐑", "Traumschaf", "Das Traumschaf"]], deco: ["🔭", "Fernrohr"], deco2: ["🌌", "Sternenteppich"], piece: ["⭐", "Sternensplitter", "Sternensplitter"], coin: ["🌟", "Sternstaub"], cos: ["⭐", "Sternhaarspange"], span: "1. bis 31. August", mon: "August" },
+  ernte: { nm: "Erntefest", ic: "🌾", months: [8], theme: "wiese", seed: "kuerb", fx: "leaf", col: "#e8b86b",
+    txt: "Die Felder sind golden, und überall duftet es nach Äpfeln und Brot.", animals: [["🐹", "Erntehamster", "Der Erntehamster"], ["🐻", "Honigbär", "Der Honigbär"], ["🐭", "Feldmaus", "Die Feldmaus"]], deco: ["🌽", "Maiskolben"], deco2: ["🥧", "Erntekuchen"], piece: ["🌾", "Ährenbündel", "Ährenbündel"], coin: ["🍎", "Äpfel"], cos: ["🧺", "Erntekörbchen"], span: "1. bis 30. September", mon: "September" },
+  kuerbis: { nm: "Kürbisfest", ic: "🍂", months: [9], theme: "wald", seed: "kuerb", fx: "leaf", col: "#ff9a3a",
+    txt: "Bunte Blätter wirbeln durch den Wald, und überall leuchten Kürbisse.", animals: [["🐈‍⬛", "Kürbiskatze", "Die Kürbiskatze"], ["🦡", "Herbstdachs", "Der Herbstdachs"], ["🐗", "Eichelschwein", "Das Eichelschwein"]], deco: ["🌰", "Kastanienkorb"], deco2: ["🍏", "Apfelkiste"], piece: ["🍂", "Herbstblätter", "Herbstblatt"], coin: ["🍬", "Bonbons"], cos: ["🍁", "Ahornkrone"], span: "1. bis 31. Oktober", mon: "Oktober" },
+  herbst: { nm: "Laternenfest", ic: "🏮", months: [10], theme: "wald", seed: "kuerb", fx: "lantern", col: "#ffb35a",
+    txt: "Im Wald schweben warme Laternen, und es riecht nach Kürbis und Kastanien.", animals: [["🦔", "Laternenigel", "Der Laternenigel"], ["🦉", "Herbstkauz", "Der Herbstkauz"], ["🐿️", "Kastanienhörnchen", "Das Kastanienhörnchen"]], deco: ["🎃", "Kürbis"], deco2: ["🍂", "Laubhaufen"], piece: ["🏮", "Laternenteile", "Laternenteil"], coin: ["🌰", "Kastanien"], cos: ["🎃", "Kürbismütze"], span: "1. bis 30. November", mon: "November" },
+  lichter: { nm: "Lichtermarkt", ic: "🕯️", months: [11], theme: "gipfel", seed: "eisbl", fx: "snow", col: "#ffd36b",
+    txt: "Auf dem Markt duftet es nach Lebkuchen, und überall funkeln Lichter im Schnee.", animals: [["🦌", "Rentier", "Das Rentier"], ["🐰", "Schneehase", "Der Schneehase"], ["🦊", "Polarfuchs", "Der Polarfuchs"]], deco: ["🎄", "Tannenbaum"], deco2: ["🕯️", "Kerzenkranz"], piece: ["🔔", "Glöckchen", "Glöckchen"], coin: ["🍪", "Lebkuchen"], cos: ["🧦", "Ringelsocken"], span: "1. bis 31. Dezember", mon: "Dezember" }
 };
 const festNow = (d = new Date()) => { const k = Object.keys(FESTS).find(k => FESTS[k].months.includes(d.getMonth())); return { k, ...FESTS[k] }; };
-const festYear = (d = new Date()) => d.getMonth() <= 1 ? d.getFullYear() - 1 : d.getFullYear();
+const festYear = (d = new Date()) => d.getFullYear();
 function festState() { const F = festNow(), id = F.k + "-" + festYear(); H.fest = H.fest || {}; H.fest[id] = H.fest[id] || { done: [] }; return { F, id, st: H.fest[id] }; }
 function festLevel() {
   const { F, st } = festState(), th = THEMES[F.theme];
@@ -2974,12 +2990,12 @@ function festWin() {
   $("winIcon").textContent = level.animal; $("winTitle").textContent = `${F.nm}: ${nm} ist frei!`; $("winText").innerHTML = txt; $("home").textContent = "Zurück";
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
-const FEST_PIECE = { fruehling: ["🌸", "Blütenblätter", "Blütenblatt"], sommer: ["✨", "Glühfunken", "Glühfunken"], herbst: ["🏮", "Laternenteile", "Laternenteil"], winter: ["❄️", "Schneekristalle", "Schneekristall"] };
+const FEST_PIECE = Object.fromEntries(Object.entries(FESTS).map(([k, f]) => [k, f.piece]));
 const FEST_NEED = 5;
-const FEST_SPAN = { fruehling: "1. März bis 31. Mai", sommer: "1. Juni bis 31. August", herbst: "1. September bis 30. November", winter: "1. Dezember bis 28. Februar" };
+const FEST_SPAN = Object.fromEntries(Object.entries(FESTS).map(([k, f]) => [k, f.span]));
 // Jedes Fest hat seine eigene Währung
-const FEST_COIN = { fruehling: ["🐞", "Glückskäfer"], sommer: ["🐚", "Muscheln"], herbst: ["🌰", "Kastanien"], winter: ["🍪", "Zimtsterne"] };
-const FEST_DECO2 = { fruehling: ["🪺", "Vogelnest"], sommer: ["⛱️", "Sonnenschirm"], herbst: ["🍂", "Laubhaufen"], winter: ["🛷", "Schlitten"] };
+const FEST_COIN = Object.fromEntries(Object.entries(FESTS).map(([k, f]) => [k, f.coin]));
+const FEST_DECO2 = Object.fromEntries(Object.entries(FESTS).map(([k, f]) => [k, f.deco2]));
 const coinsOf = st => st.coins || 0;
 function shopItems(F) {
   const C = FEST_COIN[F.k], d2 = FEST_DECO2[F.k], ck = "f_" + F.k, cos = COSTUMES[ck];
@@ -2997,7 +3013,7 @@ function coinGain(n) { const { F, st } = festState(); st.coins = coinsOf(st) + n
 function renderFest() {
   const { F, st } = festState(), box = $("festBox"); if (!box) return;
   const P = FEST_PIECE[F.k], have = st.pieces || 0, allDone = st.done.length >= 3, next = F.animals.find(a => !st.done.includes(a[1]));
-  box.className = "card fest fest-" + F.k;
+  box.className = "card fest fest-" + F.k; box.style.borderColor = F.col; box.style.background = `linear-gradient(160deg, ${F.col}2e, var(--panel) 70%)`;
   box.innerHTML = `<h2>${F.ic} ${F.nm} <small class="span">(${FEST_SPAN[F.k]})</small></h2><p class="sub" style="margin:0">${F.txt}</p>
     <p style="margin:0">Festtiere: ${F.animals.map(a => st.done.includes(a[1]) ? `${a[0]} ${a[1]} ✅` : `❔ ${a[1]}`).join(" · ")}</p>
     ${allDone ? "" : `<p style="margin:0">Um <b>${next[1]}</b> zu finden, brauchst du <b>${FEST_NEED} ${P[1]}</b>. Die bekommst du in den Fest-Minispielen.</p>
@@ -3059,7 +3075,7 @@ function openMinigame(id) {
   if (MG) { clearInterval(MG.timer); clearTimeout(MG.to); }
   const { F } = festState(), g = MINIGAMES.find(x => x.id === id);
   MG = { id, F };
-  $("mgModal").hidden = false; $("mgModal").className = "modal mg fest-" + F.k;
+  $("mgModal").hidden = false; $("mgModal").className = "modal mg fest-" + F.k; $("mgModal").querySelector(".mg-box").style.setProperty("border-color", F.col, "important");
   $("mgTitle").textContent = `${g.ic} ${g.nm}`;
   ({ memory: mgMemory, catch: mgCatch, simon: mgSimon })[id](F);
 }
@@ -3140,6 +3156,11 @@ function festFx(t) {
     if (F.fx === "snow") { q.y += 0.6 + q.s; q.x += Math.sin(q.p) * 0.5; ctx.fillStyle = "#ffffffcc"; ctx.beginPath(); ctx.arc(q.x, q.y, 1.5 + q.s * 2, 0, 7); ctx.fill(); }
     if (F.fx === "petal") { q.y += 0.5 + q.s * 0.6; q.x += Math.sin(q.p) * 1.1; ctx.fillStyle = "#f5b8d0dd"; ctx.beginPath(); ctx.ellipse(q.x, q.y, 3.5, 2, q.p, 0, 7); ctx.fill(); }
     if (F.fx === "lantern") { q.y -= 0.35 + q.s * 0.3; q.x += Math.sin(q.p) * 0.3; const g = ctx.createRadialGradient(q.x, q.y, 1, q.x, q.y, 14); g.addColorStop(0, "#ffd08acc"); g.addColorStop(1, "#ff9a3a00"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q.x, q.y, 14, 0, 7); ctx.fill(); ctx.fillStyle = "#ff9a3a"; ctx.fillRect(q.x - 3, q.y - 4, 6, 8); }
+    if (F.fx === "confetti") { q.y += 0.7 + q.s * 0.6; q.x += Math.sin(q.p * 2) * 0.8; ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.p * 3); ctx.fillStyle = ["#e0566b", "#ffd36b", "#6fc3ff", "#7cd67c", "#b48cf2"][Math.floor(q.s * 5)]; ctx.fillRect(-3, -1.5, 6, 3); ctx.restore(); }
+    if (F.fx === "rain") { q.y += 2.4 + q.s * 1.5; q.x -= 0.4; ctx.strokeStyle = "#9fd8ffaa"; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(q.x - 2, q.y + 8); ctx.stroke(); }
+    if (F.fx === "spark") { q.y += 0.25; q.x += Math.sin(q.p) * 0.4; const a = Math.abs(Math.sin(q.p * 2)); ctx.fillStyle = `rgba(255,227,122,${a})`; ctx.beginPath(); ctx.arc(q.x, q.y, 1.6 + q.s * 1.6, 0, 7); ctx.fill(); }
+    if (F.fx === "star") { q.y += 0.15; const a = Math.abs(Math.sin(q.p * 1.3)); ctx.fillStyle = `rgba(230,236,255,${a})`; ctx.beginPath(); ctx.arc(q.x, q.y, 1.2 + q.s * 1.4, 0, 7); ctx.fill(); if (q.s > .93) { ctx.strokeStyle = `rgba(255,255,255,${a})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(q.x - 18, q.y - 8); ctx.stroke(); q.x += 2; } }
+    if (F.fx === "leaf") { q.y += 0.6 + q.s * 0.5; q.x += Math.sin(q.p) * 1.2; ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(Math.sin(q.p) * 1.2); ctx.fillStyle = ["#e8862e", "#c9562a", "#e8b86b"][Math.floor(q.s * 3)]; ctx.beginPath(); ctx.ellipse(0, 0, 4.5, 2.4, 0, 0, 7); ctx.fill(); ctx.restore(); }
     if (F.fx === "firefly") { q.y -= 0.25 + q.s * 0.3; q.x += Math.sin(q.p * 1.7) * 0.8; const a = 0.4 + 0.6 * Math.abs(Math.sin(q.p * 2)); ctx.fillStyle = `rgba(232,255,138,${a})`; ctx.shadowColor = "#e8ff8a"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(q.x, q.y, 2.2, 0, 7); ctx.fill(); ctx.shadowBlur = 0; }
   });
   ctx.restore();
@@ -3367,9 +3388,8 @@ const COSTUMES = {
   brille: { ic: "👓", nm: "Brille", stars: 7 }, muetze: { ic: "🧢", nm: "Mütze", stars: 9 }, hut: { ic: "🎩", nm: "Zylinder", stars: 12 },
   zauber: { ic: "🪄", nm: "Zauberstab", stars: 15 }, krone: { ic: "👑", nm: "Krone", stars: 20 },
   // Festkleidung: nur auf dem Festmarkt zu kaufen
-  f_fruehling: { ic: "👒", nm: "Blütenhut", fest: "fruehling" }, f_sommer: { ic: "🕶️", nm: "Sonnenbrille", fest: "sommer" },
-  f_herbst: { ic: "🎃", nm: "Kürbismütze", fest: "herbst" }, f_winter: { ic: "🧤", nm: "Fäustlinge", fest: "winter" }
 };
+Object.entries(FESTS).forEach(([k, f]) => { COSTUMES["f_" + k] = { ic: f.cos[0], nm: f.cos[1], fest: k }; });
 const cosOk = k => { const C = COSTUMES[k]; return !!C && (C.fest ? (H.costOwned || []).includes(k) : starCount() >= C.stars); };
 const starCount = () => Object.keys(H.stars || {}).length + Object.keys(H.starOrt || {}).length * 2;
 const cosOf = r => { const k = (H.costume || {})[r]; return k && cosOk(k) ? COSTUMES[k] : null; };
