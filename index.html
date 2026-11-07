@@ -404,6 +404,38 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hx-clock b { display: block; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
 .hx-clock span { color: var(--muted); font-size: .85rem; }
 #hxHour, #hxMin { transition: transform .6s; }
+
+/* Fest-Minispiele */
+.shop { display: flex; flex-direction: column; gap: 6px; border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 4px; } .shop h3 { margin: 0; }
+.shop .note:empty { display: none; }
+.coins { color: var(--lantern); }
+.fest h2 .span { font-size: .62em; color: var(--muted); font-weight: 400; white-space: nowrap; }
+.pieces { display: flex; gap: 6px; } .pieces span { font-size: 1.5rem; filter: grayscale(1) opacity(.3); transition: filter .3s; } .pieces span.on { filter: none; }
+.pieces.bump { animation: shake .4s; }
+.mg-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn.locked { background: #3a3f4f; color: var(--muted); }
+.mg-box { border-color: var(--lantern) !important; max-width: 420px !important; padding: 14px !important; }
+.mg.fest-fruehling .mg-box { border-color: #f5b8d0 !important; } .mg.fest-sommer .mg-box { border-color: #e8ff8a !important; } .mg.fest-winter .mg-box { border-color: #cfe8ff !important; } .mg.fest-herbst .mg-box { border-color: #ffb35a !important; }
+.mg-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; } .mg-head h2 { margin: 0; color: var(--lantern) !important; }
+.mg-info { font-size: .9rem; }
+.mg-hud { display: flex; justify-content: space-between; font-weight: 800; margin: 4px 0; }
+.mg-mem { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.mg-card { aspect-ratio: 1; border: 0; border-radius: 12px; background: none; padding: 0; position: relative; cursor: pointer; perspective: 400px; font: inherit; }
+.mg-card span { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 12px; font-size: 1.7rem; backface-visibility: hidden; transition: transform .35s; }
+.mg-card .back { background: linear-gradient(135deg, #4a3a78, #2a2244); border: 2px solid #b48cf2; }
+.mg-card .front { background: #f3e6c8; transform: rotateY(180deg); }
+.mg-card.up .back { transform: rotateY(180deg); } .mg-card.up .front { transform: rotateY(0); }
+.mg-card.ok .front { box-shadow: 0 0 0 3px #5fd18c; animation: bump .5s; }
+.mg-sky { position: relative; height: 300px; border-radius: 14px; overflow: hidden; background: linear-gradient(180deg, #1c2b4a, #2d4a3a); touch-action: none; }
+.mg-fall { position: absolute; top: -40px; font-size: 2rem; background: none; border: 0; padding: 6px; cursor: pointer; animation: mgFall linear forwards; transform: translateX(-50%); }
+.mg-fall.hit { animation-play-state: paused; transform: translateX(-50%) scale(1.4); opacity: .6; }
+@keyframes mgFall { to { top: 105%; } }
+.mg-simon { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.mg-pad { aspect-ratio: 1.4; border-radius: 18px; border: 3px solid var(--c); background: color-mix(in srgb, var(--c) 25%, #0b0f18); font-size: 2rem; cursor: pointer; transition: transform .1s, background .15s, box-shadow .15s; }
+.mg-pad.lit { background: var(--c); box-shadow: 0 0 26px var(--c); transform: scale(1.05); }
+.mg-res { text-align: center; } .mg-res .big { font-size: 3rem; }
+/* Spielfeld ruhig halten: das Nachrichtenfeld hat immer dieselbe Höhe und scrollt innen */
+#dungeonView #msg { height: 7.4em; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 /* Tagebuch */
 .diary { display: flex; flex-direction: column; gap: 10px; }
 .page { background: linear-gradient(180deg, #f3e6c8, #e6d3a8); color: #3a2a18; border-radius: 6px 14px 14px 6px; padding: 14px 16px 14px 22px; box-shadow: 0 6px 16px #0008, inset 6px 0 0 #c9b083; font-family: Georgia, "Times New Roman", serif; line-height: 1.55; position: relative; }
@@ -1068,6 +1100,12 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </section>
   </section>
   <div id="fxLayer" aria-hidden="true"></div>
+  <div class="modal mg" id="mgModal" role="dialog" aria-modal="true" aria-labelledby="mgTitle" hidden>
+    <div class="modal-box mg-box">
+      <div class="mg-head"><h2 id="mgTitle"></h2><button class="back" id="mgX" type="button" aria-label="Minispiel schließen">✖</button></div>
+      <div id="mgBody"></div>
+    </div>
+  </div>
   <div class="modal" id="resetModal" role="alertdialog" aria-modal="true" aria-labelledby="rmTitle" aria-describedby="rmText" hidden>
     <div class="modal-box">
       <div class="big" id="rmIcon" aria-hidden="true">⚠️</div>
@@ -2066,7 +2104,7 @@ function renderWiki() {
   <section class="wk-sec" id="wk-kostuem"><h2>🧣 Kostüme</h2>
     <p>Im <b>🐾 Tierbuch</b> ziehst du deinen Begleitern Kostüme an. Sie tragen sie auf den Knöpfen unter dem Spielfeld und auch, wenn sie im Abenteuer ein Hindernis lösen.</p>
     <p>Kostüme schaltest du mit Sternen frei. Jedes Abenteuer, das du ohne verlorenes Herz schaffst, gibt einen ⭐, und jede Sternentruhe zählt doppelt.</p>
-    <div class="wk-list">${Object.values(COSTUMES).map(c => row(c.ic, c.nm, "", `ab ${c.stars} ⭐`)).join("")}</div>
+    <div class="wk-list">${Object.values(COSTUMES).map(c => row(c.ic, c.nm, c.fest ? `Festkleidung vom Festmarkt (${FESTS[c.fest].nm})` : "", c.fest ? "Festmarkt" : `ab ${c.stars} ⭐`)).join("")}</div>
   </section>
 
   <section class="wk-sec" id="wk-weber"><h2>🕸️ Der Nebelweber und das Tagebuch</h2>
@@ -2083,6 +2121,9 @@ function renderWiki() {
     <div class="wk-list">${Object.values(FESTS).map(F => row(F.ic, F.nm, `${F.txt} Festtiere: ${F.animals.map(a => a[0] + " " + a[1]).join(", ")}. Nur dann: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.`, ["März bis Mai", "Juni bis August", "September bis November", "Dezember bis Februar"][Object.values(FESTS).indexOf(F)])).join("")}</div>
     <ul class="wk-tip">
       <li>Im Festabenteuer schweben Blüten, Glühwürmchen, Laternen oder Schneeflocken über dem Spielfeld.</li>
+      <li><b>Festteile sammeln:</b> Die Festtiere findest du nicht sofort. Erst brauchst du <b>5 Festteile</b> (🌸 Blütenblätter, ✨ Glühfunken, 🏮 Laternenteile oder ❄️ Schneekristalle). Jedes gewonnene Fest-Minispiel gibt ein Teil. Mit 5 Teilen öffnet sich das Festabenteuer für das nächste Tier.</li>
+      <li><b>Die Minispiele:</b> 🃏 <b>Paare finden</b> (6 Paare, höchstens 8 Irrtümer), 🧺 <b>Auffangen</b> (12 Festteile in 30 Sekunden antippen, die 🌫️ Nebelwolken kosten Zeit) und 🎶 <b>Melodie merken</b> (die Lichter leuchten nacheinander auf, tippe sie in der gleichen Reihenfolge nach, bis zu 6 Töne).</li>
+      <li><b>🛍️ Festwährung und Festmarkt:</b> Jedes Fest hat seine eigene Währung: 🐞 Glückskäfer (Blütenfest), 🐚 Muscheln (Glühwürmchenfest), 🌰 Kastanien (Laternenfest) und 🍪 Zimtsterne (Schneedorf). Du bekommst sie in jedem Minispiel (3 bis 5 für einen Sieg, 1 als Trost) und im Festabenteuer. Auf dem Festmarkt kaufst du damit Festsamen, seltene Samen, Futterkörbe, Herztränke, Diamanten, besonderen Schmuck für die Lichtung und <b>Festkleidung</b> für deine Begleiter: 👒 Blütenhut, 🕶️ Sonnenbrille, 🎃 Kürbismütze oder 🧤 Fäustlinge.</li>
       <li>Jedes gerettete Festtier zieht auf deine Tierlichtung und bleibt dort für immer.</li>
       <li>Nach allen drei Festtieren kannst du weiterspielen, um mehr Festsamen zu sammeln.</li>
     </ul>
@@ -2366,7 +2407,7 @@ function paintLives() {
 $("retry").addEventListener("click", () => { if (level.coop) level.resume = false; startLevel(level); if (level.coop) coopSync(true, true); });
 $("failHome").addEventListener("click", () => leaveDungeon());
 const cv = $("c"), ctx = cv.getContext("2d");
-const say = h => { $("msg").innerHTML = h; if (level && level.coop) { coopLog.push(String(h).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); coopLog = coopLog.slice(-8); } };
+const say = h => { $("msg").innerHTML = h; $("msg").scrollTop = 0; if (level && level.coop) { coopLog.push(String(h).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); coopLog = coopLog.slice(-8); } };
 
 const rolesEl = $("roles");
 function buildRoles() {
@@ -2796,6 +2837,7 @@ const SND = (() => {
     shoo:   () => play(t => { [0, 5].forEach((s, i) => tone(mtof(70 + s), t + i * 0.12, 0.3, { type: "triangle", vol: 0.08, wet: 0.2 })); noise(t, 0.25, { vol: 0.04, freq: 1500, q: 0.5 }); }),
     voice:  nm => play(t => { const h = [...String(nm)].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) >>> 0, base = 300 + (h % 9) * 70, n = 1 + (h >> 4) % 3, up = (h >> 7) % 2;
       for (let k = 0; k < n; k++) tone(base * (1 + k * 0.12), t + k * 0.13, 0.16, { type: (h >> 9) % 2 ? "triangle" : "sine", vol: 0.1, slide: up ? 1.5 : 0.7, wet: 0.25 }); }),
+    note:   m => play(t => { tone(mtof(m), t, 0.5, { vol: 0.14, wet: 0.35 }); tone(mtof(m + 12), t, 0.25, { type: "triangle", vol: 0.04, wet: 0.3 }); }),
     click:  () => play(t => tone(700, t, 0.06, { type: "triangle", vol: 0.04, wet: 0 }))
   };
   // Browser erlauben Ton erst nach der ersten Berührung
@@ -2890,6 +2932,8 @@ function dailyWin() {
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
 $("mtab-daily").addEventListener("click", showDaily);
+$("mgX").addEventListener("click", mgClose);
+$("mgModal").addEventListener("keydown", e => { if (e.key === "Escape") mgClose(); });
 $("dailyName").addEventListener("change", () => { try { localStorage.setItem("nebelpfad-coopname", $("dailyName").value.trim().slice(0, 20)); } catch (e) {} });
 
 /* ---------- Feste im Jahr ---------- */
@@ -2922,20 +2966,166 @@ function festWin() {
   H.festAnimals = H.festAnimals || []; if (!H.festAnimals.some(a => a.nm === nm)) H.festAnimals.push({ ic: level.animal, nm });
   const n = first ? 2 : 1; add(H.seeds, F.seed, n);
   const extra = [rollDrop(0.2)]; extra.forEach(k => add(H.seeds, k)); addFood(2); gemAdd(first ? 1 : 0);
-  let txt = `${level.animal} <b>${nm}</b> zieht auf deine Tierlichtung 🌳<br><br>🎁 Belohnung: ${n}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} (gibt es nur zu diesem Fest!) und ${extra.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
+  const coinTxt = coinGain(first ? 8 : 4);
+  let txt = `${level.animal} <b>${nm}</b> zieht auf deine Tierlichtung 🌳<br><br>${coinTxt}<br>🎁 Belohnung: ${n}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} (gibt es nur zu diesem Fest!) und ${extra.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
   H.festDeco = H.festDeco || []; if (!H.festDeco.includes(F.k)) { H.festDeco.push(F.k); txt += `<br>${F.deco[0]} Neu für die Lichtung: <b>${F.deco[1]}</b>.`; }
   if (first && st.done.length === 3) txt += `<br><br>🌟 Du hast alle drei Festtiere des ${F.nm}s gerettet! Weiterspielen kannst du trotzdem, für Festsamen.`;
   saveH();
   $("winIcon").textContent = level.animal; $("winTitle").textContent = `${F.nm}: ${nm} ist frei!`; $("winText").innerHTML = txt; $("home").textContent = "Zurück";
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
+const FEST_PIECE = { fruehling: ["🌸", "Blütenblätter", "Blütenblatt"], sommer: ["✨", "Glühfunken", "Glühfunken"], herbst: ["🏮", "Laternenteile", "Laternenteil"], winter: ["❄️", "Schneekristalle", "Schneekristall"] };
+const FEST_NEED = 5;
+const FEST_SPAN = { fruehling: "1. März bis 31. Mai", sommer: "1. Juni bis 31. August", herbst: "1. September bis 30. November", winter: "1. Dezember bis 28. Februar" };
+// Jedes Fest hat seine eigene Währung
+const FEST_COIN = { fruehling: ["🐞", "Glückskäfer"], sommer: ["🐚", "Muscheln"], herbst: ["🌰", "Kastanien"], winter: ["🍪", "Zimtsterne"] };
+const FEST_DECO2 = { fruehling: ["🪺", "Vogelnest"], sommer: ["⛱️", "Sonnenschirm"], herbst: ["🍂", "Laubhaufen"], winter: ["🛷", "Schlitten"] };
+const coinsOf = st => st.coins || 0;
+function shopItems(F) {
+  const C = FEST_COIN[F.k], d2 = FEST_DECO2[F.k], ck = "f_" + F.k, cos = COSTUMES[ck];
+  return [
+    { id: "seed", ic: HERBS[F.seed].ic, nm: `${HERBS[F.seed].nm}-Samen`, txt: "2 Festsamen für deinen Garten", cost: 4, buy: () => add(H.seeds, F.seed, 2) },
+    { id: "rare", ic: "🌹", nm: "Seltener Samen", txt: "Ein zufälliger seltener Samen", cost: 8, buy: () => add(H.seeds, RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]) },
+    { id: "food", ic: "🧺", nm: "Festkorb", txt: "4 Leckerbissen für die Tierlichtung", cost: 3, buy: () => addFood(4) },
+    { id: "cos", ic: cos.ic, nm: cos.nm, txt: "Festkleidung für einen Begleiter (im Tierbuch anziehen)", cost: 15, once: () => (H.costOwned || []).includes(ck), buy: () => { H.costOwned = H.costOwned || []; H.costOwned.push(ck); } },
+    { id: "deco", ic: d2[0], nm: d2[1], txt: "Besonderer Schmuck für die Lichtung", cost: 10, once: () => (H.festDeco2 || []).includes(F.k), buy: () => { H.festDeco2 = H.festDeco2 || []; H.festDeco2.push(F.k); } },
+    { id: "potion", ic: POTIONS.herz.ic, nm: POTIONS.herz.nm, txt: POTIONS.herz.eff, cost: 12, buy: () => add(H.potions, "herz") },
+    { id: "gem", ic: "💎", nm: "Diamant", txt: "Zum Verhexen der Zeit", cost: 10, buy: () => { H.gems = (H.gems || 0) + 1; } }
+  ];
+}
+function coinGain(n) { const { F, st } = festState(); st.coins = coinsOf(st) + n; saveH(); return `${FEST_COIN[F.k][0]} +${n} ${FEST_COIN[F.k][1]}`; }
 function renderFest() {
   const { F, st } = festState(), box = $("festBox"); if (!box) return;
+  const P = FEST_PIECE[F.k], have = st.pieces || 0, allDone = st.done.length >= 3, next = F.animals.find(a => !st.done.includes(a[1]));
   box.className = "card fest fest-" + F.k;
-  box.innerHTML = `<h2>${F.ic} ${F.nm}</h2><p class="sub" style="margin:0">${F.txt}</p>
+  box.innerHTML = `<h2>${F.ic} ${F.nm} <small class="span">(${FEST_SPAN[F.k]})</small></h2><p class="sub" style="margin:0">${F.txt}</p>
     <p style="margin:0">Festtiere: ${F.animals.map(a => st.done.includes(a[1]) ? `${a[0]} ${a[1]} ✅` : `❔ ${a[1]}`).join(" · ")}</p>
-    <p class="sub" style="margin:0">Nur jetzt: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.</p>`;
-  box.appendChild(btnEl(st.done.length < 3 ? "Festabenteuer starten" : "Noch einmal feiern", () => startLevel(festLevel()), "btn"));
+    ${allDone ? "" : `<p style="margin:0">Um <b>${next[1]}</b> zu finden, brauchst du <b>${FEST_NEED} ${P[1]}</b>. Die bekommst du in den Fest-Minispielen.</p>
+    <div class="pieces" aria-label="${have} von ${FEST_NEED} ${P[1]}">${Array.from({ length: FEST_NEED }, (_, i) => `<span class="${i < have ? "on" : ""}">${P[0]}</span>`).join("")}</div>`}
+    <p class="sub" style="margin:0">Nur jetzt: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.</p>
+    <p style="margin:0">Festwährung: <b class="coins">${FEST_COIN[F.k][0]} ${coinsOf(st)} ${FEST_COIN[F.k][1]}</b></p>`;
+  const games = el("div", "mg-list");
+  MINIGAMES.forEach(g => games.appendChild(btnEl(`${g.ic} ${g.nm}`, () => openMinigame(g.id), "chip")));
+  box.appendChild(games);
+  const ready = allDone || have >= FEST_NEED;
+  const go2 = btnEl(allDone ? "Noch einmal feiern" : ready ? `${P[0]} Festabenteuer starten` : `🔒 Festabenteuer (${have}/${FEST_NEED} ${P[1]})`, () => {
+    if (!ready) { $("festBox").querySelector(".pieces").classList.remove("bump"); void box.offsetWidth; $("festBox").querySelector(".pieces").classList.add("bump"); return; }
+    if (!allDone) { st.pieces = have - FEST_NEED; saveH(); }
+    startLevel(festLevel());
+  }, "btn");
+  if (!ready) go2.classList.add("locked");
+  box.appendChild(go2);
+  // Festmarkt
+  const C = FEST_COIN[F.k], shop = el("div", "shop");
+  shop.innerHTML = `<h3>🛍️ Festmarkt</h3><p class="sub" style="margin:0">Hier bezahlst du mit ${C[0]} ${C[1]}. Die bekommst du in den Minispielen und im Festabenteuer.</p>`;
+  shopItems(F).forEach(it => {
+    const sold = it.once && it.once(), row = el("div", "wk-row");
+    row.innerHTML = `<span class="ic" aria-hidden="true">${it.ic}</span><span class="t"><strong>${it.nm}</strong><span>${it.txt}</span></span>`;
+    const b = btnEl(sold ? "✓ gekauft" : `${it.cost} ${C[0]}`, () => {
+      if (sold) return;
+      if (coinsOf(st) < it.cost) { $("festMsg").textContent = `Dafür brauchst du ${it.cost} ${C[0]} ${C[1]}. Du hast ${coinsOf(st)}.`; SND.fx.wrong(); return; }
+      st.coins = coinsOf(st) - it.cost; it.buy(); saveH(); SND.fx.brewed();
+      renderFest(); $("festMsg").textContent = `🛍️ Gekauft: ${it.ic} ${it.nm}!` + (it.id === "cos" ? " Zieh es im Tierbuch einem Begleiter an." : it.id === "deco" ? " Du findest es jetzt beim Schmücken auf der Tierlichtung." : "");
+    }, "btn sm");
+    b.disabled = !!sold; if (!sold && coinsOf(st) < it.cost) b.classList.add("locked");
+    row.appendChild(b); shop.appendChild(row);
+  });
+  const msg = el("p", "note"); msg.id = "festMsg"; msg.setAttribute("aria-live", "polite");
+  shop.appendChild(msg); box.appendChild(shop);
+}
+/* ---------- Fest-Minispiele ---------- */
+const MINIGAMES = [
+  { id: "memory", ic: "🃏", nm: "Paare finden" },
+  { id: "catch", ic: "🧺", nm: "Auffangen" },
+  { id: "simon", ic: "🎶", nm: "Melodie merken" }
+];
+let MG = null;
+function mgEnd(win, txt) {
+  if (!MG) return;
+  clearInterval(MG.timer); clearTimeout(MG.to);
+  const { F, st } = festState(), P = FEST_PIECE[F.k];
+  let out = txt;
+  const earn = win ? 3 + Math.floor(Math.random() * 3) : 1;
+  out += `<br><br>${coinGain(earn)}`;
+  if (win) { st.pieces = Math.min(FEST_NEED, (st.pieces || 0) + 1); saveH(); SND.fx.win(); out += `<br>${P[0]} <b>+1 ${P[2]}!</b> Du hast jetzt ${st.pieces}/${FEST_NEED}.` + (st.pieces >= FEST_NEED && st.done.length < 3 ? " Das reicht! Jetzt kannst du das Festabenteuer starten." : ""); }
+  else SND.fx.fail();
+  $("mgBody").innerHTML = `<div class="mg-res"><div class="big">${win ? "🎉" : "🌫️"}</div><p>${out}</p></div>`;
+  const again = btnEl("Noch einmal", () => openMinigame(MG.id), "btn"), back = btnEl("Zurück zum Fest", mgClose, "back");
+  const row = el("div", "modal-btns"); row.append(back, again); $("mgBody").appendChild(row);
+  MG.over = true; renderFest();
+}
+function mgClose() { if (MG) { clearInterval(MG.timer); clearTimeout(MG.to); } MG = null; $("mgModal").hidden = true; renderFest(); }
+function openMinigame(id) {
+  if (MG) { clearInterval(MG.timer); clearTimeout(MG.to); }
+  const { F } = festState(), g = MINIGAMES.find(x => x.id === id);
+  MG = { id, F };
+  $("mgModal").hidden = false; $("mgModal").className = "modal mg fest-" + F.k;
+  $("mgTitle").textContent = `${g.ic} ${g.nm}`;
+  ({ memory: mgMemory, catch: mgCatch, simon: mgSimon })[id](F);
+}
+// 1) Paare finden: 6 Paare, höchstens 14 Fehlversuche
+function mgMemory(F) {
+  const ics = [...F.animals.map(a => a[0]), F.deco[0], HERBS[F.seed].ic, F.ic];
+  const cards = [...ics, ...ics].sort(() => Math.random() - .5);
+  let open = [], found = 0, miss = 0; const MAXMISS = 8;
+  $("mgBody").innerHTML = `<p class="mg-info">Finde alle Paare! Du darfst dich <b id="mgMiss">${MAXMISS}</b>-mal irren.</p><div class="mg-mem"></div>`;
+  const grid = $("mgBody").querySelector(".mg-mem");
+  cards.forEach((ic, i) => {
+    const c = el("button", "mg-card"); c.type = "button"; c.innerHTML = `<span class="back">❔</span><span class="front">${ic}</span>`; c.setAttribute("aria-label", "Karte " + (i + 1));
+    c.addEventListener("click", () => {
+      if (!MG || MG.over || c.classList.contains("up") || open.length >= 2) return;
+      c.classList.add("up"); SND.fx.click(); open.push([c, ic]);
+      if (open.length === 2) {
+        const [[a, x], [b, y]] = open;
+        if (x === y) { a.classList.add("ok"); b.classList.add("ok"); open = []; found++; SND.fx.plop(); if (found === ics.length) MG.to = setTimeout(() => mgEnd(true, `Alle ${ics.length} Paare gefunden, mit ${miss} ${miss === 1 ? "Irrtum" : "Irrtümern"}!`), 500); }
+        else { miss++; $("mgMiss").textContent = Math.max(0, MAXMISS - miss); MG.to = setTimeout(() => { a.classList.remove("up"); b.classList.remove("up"); open = []; if (miss >= MAXMISS) mgEnd(false, "Oh nein, zu viele Irrtümer. Versuch es gleich noch einmal!"); }, 750); }
+      }
+    });
+    grid.appendChild(c);
+  });
+}
+// 2) Auffangen: Festteile fallen vom Himmel, tippe sie an. Nebelwolken nicht berühren!
+function mgCatch(F) {
+  const P = FEST_PIECE[F.k], GOAL = 12, TIME = 30;
+  let got = 0, end = Date.now() + TIME * 1000;
+  $("mgBody").innerHTML = `<p class="mg-info">Fang <b>${GOAL}</b> ${P[0]} ein, bevor die Zeit abläuft! Tippe sie an. Pass auf die 🌫️ Nebelwolken auf, die kosten 3 Sekunden.</p><div class="mg-hud"><span id="mgT">⏳ ${TIME}</span><span id="mgG">${P[0]} 0/${GOAL}</span></div><div class="mg-sky"></div>`;
+  const sky = $("mgBody").querySelector(".mg-sky");
+  const spawn = () => {
+    const bad = Math.random() < 0.25, it = el("button", "mg-fall" + (bad ? " bad" : ""), bad ? "🌫️" : P[0]); it.type = "button";
+    it.style.left = (6 + Math.random() * 84) + "%"; it.style.animationDuration = (2.6 + Math.random() * 1.6) + "s";
+    it.addEventListener("pointerdown", e => { e.preventDefault(); if (!MG || MG.over) return;
+      if (bad) { end -= 3000; SND.fx.wrong(); it.textContent = "💨"; }
+      else { got++; SND.fx.plop(); it.textContent = "✨"; $("mgG").textContent = `${P[0]} ${got}/${GOAL}`; if (got >= GOAL) mgEnd(true, `Super gefangen! ${GOAL} ${P[1]} in deinem Korb.`); }
+      it.classList.add("hit"); setTimeout(() => it.remove(), 250); });
+    it.addEventListener("animationend", () => it.remove());
+    sky.appendChild(it);
+  };
+  MG.timer = setInterval(() => {
+    if (!MG || MG.over) return;
+    if (Math.random() < 0.45) spawn();
+    const left = Math.max(0, (end - Date.now()) / 1000); $("mgT").textContent = `⏳ ${Math.ceil(left)}`;
+    if (left <= 0) mgEnd(false, `Die Zeit ist um! Du hast ${got} von ${GOAL} gefangen. Gleich noch einmal?`);
+  }, 250);
+  spawn();
+}
+// 3) Melodie merken: Laternen leuchten nacheinander auf, tippe sie in der gleichen Reihenfolge
+function mgSimon(F) {
+  const COLS = ["#e0566b", "#ffd36b", "#6fc3ff", "#7cd67c"], NOTES = [60, 64, 67, 72], GOAL = 6;
+  const ic = FEST_PIECE[F.k][0];
+  let seq = [], pos = 0, busy = true; MG.seq = seq;
+  $("mgBody").innerHTML = `<p class="mg-info">Schau genau hin: Die Lichter leuchten nacheinander auf und spielen eine Melodie. Tippe sie danach in der <b>gleichen Reihenfolge</b>. Schaffst du ${GOAL} Töne?</p><p class="mg-hud"><span id="mgLvl">Runde 1/${GOAL}</span><span id="mgSt">👀 Zuschauen …</span></p><div class="mg-simon"></div>`;
+  const pads = COLS.map((c, i) => { const b = el("button", "mg-pad", ic); b.type = "button"; b.style.setProperty("--c", c); b.setAttribute("aria-label", "Licht " + (i + 1)); $("mgBody").querySelector(".mg-simon").appendChild(b); return b; });
+  const flash = i => { pads[i].classList.add("lit"); SND.fx.note(NOTES[i]); setTimeout(() => pads[i].classList.remove("lit"), 380); };
+  const play = () => { busy = true; $("mgSt").textContent = "👀 Zuschauen …"; seq.forEach((v, k) => { MG.to = setTimeout(() => { flash(v); if (k === seq.length - 1) setTimeout(() => { busy = false; pos = 0; if ($("mgSt")) $("mgSt").textContent = "👆 Jetzt du!"; }, 450); }, 600 + k * 600); }); };
+  const next = () => { seq.push(Math.floor(Math.random() * 4)); $("mgLvl").textContent = `Runde ${seq.length}/${GOAL}`; play(); };
+  pads.forEach((b, i) => b.addEventListener("click", () => {
+    if (!MG || MG.over || busy) return;
+    flash(i);
+    if (i !== seq[pos]) { busy = true; MG.to = setTimeout(() => mgEnd(false, `Ups, falsches Licht! Du hast ${seq.length - 1} ${seq.length - 1 === 1 ? "Runde" : "Runden"} geschafft.`), 400); return; }
+    pos++;
+    if (pos >= seq.length) { busy = true; if (seq.length >= GOAL) MG.to = setTimeout(() => mgEnd(true, `Wunderschön! Du hast dir alle ${GOAL} Töne gemerkt.`), 500); else MG.to = setTimeout(next, 700); }
+  }));
+  next();
 }
 // Festliche Teilchen über dem Spielfeld
 let festParts = [];
@@ -3175,13 +3365,17 @@ $("diaryBack").addEventListener("click", showVillage);
 const COSTUMES = {
   schleife: { ic: "🎀", nm: "Schleife", stars: 1 }, schal: { ic: "🧣", nm: "Schal", stars: 3 }, kranz: { ic: "🌸", nm: "Blumenkranz", stars: 5 },
   brille: { ic: "👓", nm: "Brille", stars: 7 }, muetze: { ic: "🧢", nm: "Mütze", stars: 9 }, hut: { ic: "🎩", nm: "Zylinder", stars: 12 },
-  zauber: { ic: "🪄", nm: "Zauberstab", stars: 15 }, krone: { ic: "👑", nm: "Krone", stars: 20 }
+  zauber: { ic: "🪄", nm: "Zauberstab", stars: 15 }, krone: { ic: "👑", nm: "Krone", stars: 20 },
+  // Festkleidung: nur auf dem Festmarkt zu kaufen
+  f_fruehling: { ic: "👒", nm: "Blütenhut", fest: "fruehling" }, f_sommer: { ic: "🕶️", nm: "Sonnenbrille", fest: "sommer" },
+  f_herbst: { ic: "🎃", nm: "Kürbismütze", fest: "herbst" }, f_winter: { ic: "🧤", nm: "Fäustlinge", fest: "winter" }
 };
+const cosOk = k => { const C = COSTUMES[k]; return !!C && (C.fest ? (H.costOwned || []).includes(k) : starCount() >= C.stars); };
 const starCount = () => Object.keys(H.stars || {}).length + Object.keys(H.starOrt || {}).length * 2;
-const cosOf = r => { const k = (H.costume || {})[r]; return k && COSTUMES[k] && starCount() >= COSTUMES[k].stars ? COSTUMES[k] : null; };
+const cosOf = r => { const k = (H.costume || {})[r]; return k && cosOk(k) ? COSTUMES[k] : null; };
 function renderCostumes() {
   const n = starCount(), box = $("costList"); if (!box) return;
-  const next = Object.values(COSTUMES).find(c => c.stars > n);
+  const next = Object.values(COSTUMES).find(c => !c.fest && c.stars > n);
   $("costSum").textContent = `Du hast ${n} ⭐ (jedes Abenteuer mit allen Herzen gibt einen Stern, eine Sternentruhe zählt doppelt).` + (next ? ` Nächstes Kostüm: ${next.ic} ${next.nm} ab ${next.stars} ⭐.` : " Du hast alle Kostüme freigeschaltet!");
   box.innerHTML = "";
   [...BASE_ROLES, ...PET_ROLES.filter(p => rescued[p.from])].forEach(r => {
@@ -3189,8 +3383,8 @@ function renderCostumes() {
     row.innerHTML = `<span class="ic" aria-hidden="true">${r.ic}${c ? `<small>${c.ic}</small>` : ""}</span><span class="t"><strong>${r.nm}</strong><span>${c ? `trägt: ${c.nm}` : "noch ohne Kostüm"}</span></span>`;
     const bx = el("div", "bx");
     const none = btnEl("✖", () => { H.costume = H.costume || {}; delete H.costume[r.id]; saveH(); renderCostumes(); }); none.setAttribute("aria-label", "Kein Kostüm"); none.setAttribute("aria-pressed", String(!c)); bx.appendChild(none);
-    Object.entries(COSTUMES).forEach(([k, C]) => {
-      const ok = n >= C.stars, b = btnEl(C.ic, () => {
+    Object.entries(COSTUMES).filter(([k, C]) => !C.fest || cosOk(k)).forEach(([k, C]) => {
+      const ok = cosOk(k), b = btnEl(C.ic, () => {
         if (!ok) { $("beastMsg").textContent = `${C.ic} ${C.nm} gibt es ab ${C.stars} ⭐. Hol dir Sterne, indem du Abenteuer ohne verlorenes Herz schaffst.`; return; }
         H.costume = H.costume || {}; H.costume[r.id] = k; saveH(); SND.fx.seed(); $("beastMsg").textContent = `${r.ic} ${r.nm} trägt jetzt ${C.ic} ${C.nm}. Steht ${r.id === "heil" ? "dir" : r.nm === "Luna" || r.nm === "Ole" ? "ihr" : "ihm"} super!`; renderCostumes();
       }, "chip" + (ok ? "" : " lk"));
@@ -3513,6 +3707,7 @@ function renderGlade(greet) {
   const G = glState(), an = rescuedAnimals(), box = $("glItems");
   box.innerHTML = "";
   (H.festDeco || []).forEach(fk => { const F = FESTS[fk]; if (F && !GL_DECO["fest_" + fk]) GL_DECO["fest_" + fk] = { ic: F.deco[0], nm: F.deco[1], cost: 3 }; });
+  (H.festDeco2 || []).forEach(fk => { const D2 = FEST_DECO2[fk]; if (D2 && !GL_DECO["fest2_" + fk]) GL_DECO["fest2_" + fk] = { ic: D2[0], nm: D2[1], cost: 2 }; });
   G.deco.forEach((d, i) => {
     const D = GL_DECO[d.k]; if (!D) return;
     const e = el("span", "gl-deco" + (D.cls ? " " + D.cls : ""), D.ic); e.style.left = d.x + "%"; e.style.top = d.y + "%"; e.style.zIndex = Math.round(d.y);
@@ -3539,6 +3734,7 @@ function renderGlade(greet) {
   // Schmuck
   const db = $("gDeco"); db.innerHTML = "";
   (H.festDeco || []).forEach(fk => { const F = FESTS[fk]; if (F && !GL_DECO["fest_" + fk]) GL_DECO["fest_" + fk] = { ic: F.deco[0], nm: F.deco[1], cost: 3 }; });
+  (H.festDeco2 || []).forEach(fk => { const D2 = FEST_DECO2[fk]; if (D2 && !GL_DECO["fest2_" + fk]) GL_DECO["fest2_" + fk] = { ic: D2[0], nm: D2[1], cost: 2 }; });
   Object.entries(GL_DECO).forEach(([k, D]) => { const c = btnEl(`${D.ic} ${D.nm} · ${D.cost} 🌿`, () => { glSel = glSel === "d:" + k ? null : "d:" + k; renderGlade(); gsay(glSel ? `${D.ic} ${D.nm} ausgewählt. Tippe auf die Wiese, wo es stehen soll.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "d:" + k)); db.appendChild(c); });
   const sw = btnEl("↩️ Wegnehmen", () => { glSel = glSel === "sweep" ? null : "sweep"; renderGlade(); gsay(glSel ? "↩️ Tippe auf einen Schmuck, um ihn wegzunehmen." : "Nichts ausgewählt."); }); sw.setAttribute("aria-pressed", String(glSel === "sweep")); db.appendChild(sw);
   // Freundschaft
