@@ -220,7 +220,7 @@ canvas { display: block; width: 100%; height: auto; touch-action: manipulation; 
 .fire i:nth-child(2) { height: 40px; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--night); }
 @media (prefers-reduced-motion: reduce) {
-  .plot .e, .plot.ready::after, .plot::before, .cauldron, .cauldron *, .fire i, .bag.bump { animation: none !important; }
+  .plot .e, .plot.ready::after, .plot::before, .pest, .tool, .garden-life, .plot .soilbed, .cauldron, .cauldron *, .fire i, .bag.bump { animation: none !important; }
 }
 .plot { font: inherit; aspect-ratio: 1; max-width: 100%; background: #261e16; border: 1.5px solid #4a3a28; border-radius: 14px; color: var(--mist);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; text-align: center; padding: 4px; min-width: 0; }
@@ -228,6 +228,55 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .plot .s { font-size: .72rem; color: var(--muted); line-height: 1.3; }
 .plot .s b { color: var(--lantern); }
 .plot.ready { border-color: var(--lantern); box-shadow: 0 0 14px #f2c76b40; }
+/* Erde im Beet */
+.plot > * { position: relative; z-index: 1; }
+.plot .soilbed { position: absolute; inset: 0; z-index: 0; transition: filter .6s; }
+.plot.hard .soilbed { background:
+  linear-gradient(115deg, transparent 46%, #1d150e 47%, #1d150e 49%, transparent 50%) 30% 60% / 60% 50% no-repeat,
+  linear-gradient(60deg, transparent 46%, #1d150e 47%, #1d150e 49%, transparent 50%) 75% 30% / 45% 40% no-repeat,
+  radial-gradient(circle at 30% 30%, #6b5440 0 2px, transparent 3px) 0 0 / 18px 18px, #4a3a2a; }
+.plot.dug .soilbed { background:
+  repeating-linear-gradient(180deg, #2a1b10 0 7px, #3a2717 7px 10px, #22160d 10px 14px),
+  #2a1b10; }
+.plot.dug.wet .soilbed { filter: brightness(.7) saturate(1.3); }
+.plot .e.hole { background: #120b06; }
+.plot .e { animation: breeze 3.4s ease-in-out infinite; }
+.plot .e.bud { filter: saturate(.35) brightness(.85); transform: scale(.75); }
+@keyframes breeze { 0%, 100% { rotate: -3deg; } 50% { rotate: 3deg; } }
+.plot.pesty { border-color: #c98a5b; }
+.pest { position: absolute !important; font-size: 1.15rem; line-height: 1; z-index: 2 !important; }
+.pest.weed { left: 14%; top: 22%; animation: weed 1.6s ease-in-out infinite; transform-origin: 50% 100%; }
+.pest.snail { left: 8%; top: 58%; animation: crawl 7s ease-in-out infinite alternate; }
+@keyframes weed { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(10deg) scale(1.08); } }
+@keyframes crawl { from { transform: translateX(0) scaleX(-1); } to { transform: translateX(240%) scaleX(-1); } }
+/* Werkzeug-Animationen */
+.tool { position: absolute !important; z-index: 3 !important; font-size: 1.7rem; line-height: 1; left: 50%; top: 30%; pointer-events: none; opacity: 0; }
+.t-dig { animation: dig 1s ease-in-out forwards; }
+@keyframes dig { 0% { opacity: 0; transform: translate(-50%, -30px) rotate(30deg); } 15% { opacity: 1; } 30% { transform: translate(-50%, 6px) rotate(-10deg); } 45% { transform: translate(-50%, -14px) rotate(25deg); } 60% { transform: translate(-50%, 8px) rotate(-10deg); } 85% { opacity: 1; transform: translate(-50%, -10px) rotate(20deg); } 100% { opacity: 0; transform: translate(-50%, -30px) rotate(30deg); } }
+.t-water, .t-grow, .t-ripe { animation: pour 1.3s ease-in-out forwards; left: 62%; top: 8%; }
+@keyframes pour { 0% { opacity: 0; transform: translate(-50%, -10px) rotate(0); } 15% { opacity: 1; } 30%, 75% { opacity: 1; transform: translate(-50%, 0) rotate(-40deg); } 100% { opacity: 0; transform: translate(-50%, -10px) rotate(0); } }
+.t-pull { animation: pull .9s ease-in-out forwards; left: 26%; top: 18%; }
+@keyframes pull { 0% { opacity: 0; transform: translate(-50%, 10px); } 25% { opacity: 1; transform: translate(-50%, 4px) rotate(-10deg); } 45% { transform: translate(-50%, 8px) rotate(8deg); } 70% { opacity: 1; transform: translate(-50%, -24px) rotate(-6deg); } 100% { opacity: 0; transform: translate(-50%, -40px); } }
+.t-shoo { animation: shoo 1s ease-in-out forwards; left: 30%; top: 50%; }
+@keyframes shoo { 0% { opacity: 0; } 20%, 80% { opacity: 1; } 30% { transform: translate(-50%, 0) rotate(-25deg); } 50% { transform: translate(-50%, 0) rotate(25deg); } 70% { transform: translate(-50%, 0) rotate(-25deg); } 100% { opacity: 0; transform: translate(-50%, 0) rotate(0); } }
+.t-plant { animation: seeddrop .7s ease-in forwards; font-size: 1.1rem; }
+@keyframes seeddrop { 0% { opacity: 0; transform: translate(-50%, -40px); } 30% { opacity: 1; } 80% { opacity: 1; transform: translate(-50%, 18px) scale(.8); } 100% { opacity: 0; transform: translate(-50%, 22px) scale(.4); } }
+.plot.dig .soilbed { animation: soilShake .9s ease-in-out; }
+@keyframes soilShake { 30% { transform: translateY(2px); } 60% { transform: translateY(-1px); } }
+.plot.plant .e.hole { animation: none; }
+.plot.water .e, .plot.ripe .e { animation: grow .7s cubic-bezier(.3,1.6,.5,1) .6s backwards, breeze 3.4s ease-in-out 1.3s infinite; }
+.plot.harvest .soilbed { animation: soilShake .6s; }
+.fly.clump { font-size: 1.3rem; color: #6b4a2c; font-weight: 900; }
+/* Leben im Garten */
+.garden-wrap { position: relative; }
+.garden-life { position: absolute; inset: -10px 0; pointer-events: none; z-index: 5; overflow: hidden; }
+.garden-life i { position: absolute; font-style: normal; font-size: 1.1rem; opacity: .9; }
+.bfly.b1 { animation: flutter1 17s linear infinite; }
+.bfly.b2 { animation: flutter2 23s linear infinite 4s; font-size: .9rem; filter: hue-rotate(160deg); }
+.bee { font-size: .8rem !important; animation: buzz 12s ease-in-out infinite 2s; }
+@keyframes flutter1 { 0% { left: -8%; top: 60%; transform: scaleX(-1) rotate(0); } 20% { top: 20%; transform: scaleX(-1) rotate(8deg); } 40% { left: 45%; top: 45%; transform: scaleX(-1) rotate(-6deg); } 60% { top: 10%; } 80% { left: 85%; top: 55%; } 100% { left: 108%; top: 30%; transform: scaleX(-1); } }
+@keyframes flutter2 { 0% { left: 108%; top: 20%; } 25% { left: 70%; top: 70%; } 50% { left: 35%; top: 30%; } 75% { left: 15%; top: 75%; } 100% { left: -8%; top: 40%; } }
+@keyframes buzz { 0%, 100% { left: 10%; top: 85%; opacity: 0; } 10% { opacity: .9; } 30% { left: 40%; top: 65%; } 50% { left: 70%; top: 80%; } 70% { left: 55%; top: 40%; } 90% { opacity: .9; } 95% { left: 90%; top: 20%; opacity: 0; } }
 .plot:focus-visible, .chip:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
 .bag { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .chip { font: inherit; font-size: .82rem; background: var(--panel); color: var(--mist); border: 1.5px solid var(--line); border-radius: 99px; padding: 5px 11px; }
@@ -550,8 +599,8 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     <div class="msg" id="hMsg" aria-live="polite"></div>
     <section class="wk-sec" id="gardenSec">
       <h2>🌱 Kräutergarten</h2>
-      <p>Wähle einen Samen, tippe auf ein leeres Beet, gieße dreimal und ernte zwei Kräuter.</p>
-      <div class="plots" id="plots"></div>
+      <p>🪏 Grab die Erde um, 🌱 pflanze einen Samen, 💧 gieße dreimal und 🧺 ernte. Pass dabei auf: Manchmal wächst Unkraut oder eine Schnecke kommt vorbei.</p>
+      <div class="garden-wrap"><div class="garden-life" aria-hidden="true"><i class="bfly b1">🦋</i><i class="bfly b2">🦋</i><i class="bee">🐝</i></div><div class="plots" id="plots"></div></div>
       <h3>Deine Samen</h3>
       <div class="bag" id="seedBag"></div>
     </section>
@@ -1140,13 +1189,26 @@ function renderHouse() {
   const pl = $("plots"); pl.innerHTML = "";
   H.plots.forEach((p, i) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "plot"; b.id = "plot-" + i;
-    if (!p) b.innerHTML = `<span class="e hole" aria-hidden="true"></span><span class="s">${selSeed ? `${HERBS[selSeed].ic} hier pflanzen` : "Leeres Beet"}</span>`;
+    const act = lastAct && lastAct.i === i ? lastAct.t : "";
+    let soil = "hard", inner = "", lab = "";
+    if (!p) { lab = `Feste Erde<br><b>🪏 Umgraben</b>`; }
+    else if (p.soil) { soil = "dug"; inner = `<span class="e hole" aria-hidden="true"></span>`; lab = selSeed ? `<b>${HERBS[selSeed].ic} hier pflanzen</b>` : "Lockere Erde<br>Samen wählen"; }
     else if (p.w < 3) {
+      soil = act === "water" || act === "grow" ? "dug wet" : "dug";
       b.dataset.w = p.w;
-      b.innerHTML = `<span class="e" aria-hidden="true">${p.w < 2 ? "🌱" : "🌿"}</span><span class="s">${HERBS[p.h].nm}</span><span class="wdots" aria-label="${p.w} von 3 Mal gegossen">${[0, 1, 2].map(k => `<i class="${k < p.w ? "on" : ""}"></i>`).join("")}</span>`;
+      const plant = p.w === 0 ? "🌱" : p.w === 1 ? "☘️" : HERBS[p.h].ic;
+      inner = `<span class="e${p.w === 2 ? " bud" : ""}" aria-hidden="true">${plant}</span>`;
+      if (p.pest === "weed") inner += `<span class="pest weed" aria-hidden="true">🌾</span>`;
+      if (p.pest === "snail") inner += `<span class="pest snail" aria-hidden="true">🐌</span>`;
+      const dots = `<span class="wdots" aria-label="${p.w} von 3 Mal gegossen">${[0, 1, 2].map(k => `<i class="${k < p.w ? "on" : ""}"></i>`).join("")}</span>`;
+      lab = p.pest === "weed" ? `${HERBS[p.h].nm}<br><b>✋ Unkraut zupfen</b>` : p.pest === "snail" ? `${HERBS[p.h].nm}<br><b>👋 Schnecke verscheuchen</b>` : `${HERBS[p.h].nm}<br>💧 Gießen ${dots}`;
+      if (p.pest) b.classList.add("pesty");
     }
-    else { b.classList.add("ready"); b.innerHTML = `<span class="e" aria-hidden="true">${HERBS[p.h].ic}</span><span class="s">${HERBS[p.h].nm}<br><b>Ernten!</b></span>`; }
-    if (lastAct && lastAct.i === i) b.classList.add(lastAct.t);
+    else { soil = "dug"; b.classList.add("ready"); inner = `<span class="e" aria-hidden="true">${HERBS[p.h].ic}</span>`; lab = `${HERBS[p.h].nm}<br><b>🧺 Ernten!</b>`; }
+    b.classList.add(...soil.split(" "));
+    if (act) b.classList.add(act);
+    const tool = { dig: "🪏", water: "🫗", grow: "🫗", ripe: "🫗", pull: "✋", shoo: "👋", plant: "🌰" }[act];
+    b.innerHTML = `<span class="soilbed" aria-hidden="true"></span>${inner}<span class="s">${lab}</span>` + (tool && !reduce ? `<span class="tool t-${act}" aria-hidden="true">${tool}</span>` : "");
     b.addEventListener("click", () => plotClick(i));
     pl.appendChild(b);
   });
@@ -1196,25 +1258,41 @@ function fly(text, from, to, o = {}) {
 }
 function plotClick(i) {
   const p = H.plots[i], pe = $("plot-" + i), r = pe ? rectOf(pe) : null;
+  const clumps = n => { for (let k = 0; k < n; k++) fly("•", r, null, { cls: "clump", dx: (Math.random() - .5) * 90, dy: -30 - Math.random() * 40, delay: 150 + k * 40, ms: 700 }); };
   if (!p) {
+    H.plots[i] = { soil: 1 }; lastAct = { i, t: "dig" }; SND.fx.dig(); clumps(8);
+    hsay(selSeed ? `🪏 Umgegraben! Die Erde ist schön locker. Tippe noch einmal, um ${HERBS[selSeed].ic} ${HERBS[selSeed].nm} zu pflanzen.` : "🪏 Umgegraben! Die Erde ist schön locker. Wähle unten einen Samen und tippe auf das Beet.");
+  } else if (p.soil) {
     if (!selSeed) { hsay("Wähle zuerst unten einen Samen aus."); return; }
-    add(H.seeds, selSeed, -1); H.plots[i] = { h: selSeed, w: 0 }; lastAct = { i, t: "pop" };
-    fly("🌱", r, null, { dy: -40, ms: 700 }); SND.fx.plant();
-    hsay(`${HERBS[selSeed].ic} ${HERBS[selSeed].nm} gepflanzt. Jetzt dreimal gießen!`);
+    add(H.seeds, selSeed, -1); H.plots[i] = { h: selSeed, w: 0, pest: null }; lastAct = { i, t: "plant" };
+    SND.fx.plant(); fly("🌱", r, null, { dy: -40, ms: 700, delay: 350 });
+    hsay(`${HERBS[selSeed].ic} ${HERBS[selSeed].nm} gepflanzt. Jetzt dreimal gießen und gut aufpassen!`);
+  } else if (p.w < 3 && p.pest === "weed") {
+    p.pest = null; lastAct = { i, t: "pull" }; SND.fx.pull();
+    fly("🌾", r, null, { dx: 70, dy: -90, ms: 900, delay: 250 }); clumps(4);
+    const bonus = Math.random() < 0.15 ? rollDrop(0.15) : null; if (bonus) { add(H.seeds, bonus); fly("🌱", r, null, { dx: -30, dy: -60, delay: 500 }); }
+    hsay("✋ Unkraut ausgezupft! Jetzt hat dein Kraut wieder Platz." + (bonus ? ` Im Unkraut hing ein Samen: ${HERBS[bonus].ic} ${HERBS[bonus].nm} 🌱` : ""));
+  } else if (p.w < 3 && p.pest === "snail") {
+    p.pest = null; lastAct = { i, t: "shoo" }; SND.fx.shoo();
+    fly("🐌", r, null, { dx: 110, dy: 10, ms: 1400, delay: 200 });
+    hsay("👋 Die Schnecke kriecht beleidigt davon. Deine Blätter sind gerettet!");
   } else if (p.w < 3) {
-    p.w++; lastAct = { i, t: p.w < 3 ? "grow" : "ripe" }; SND.fx.water();
-    for (let k = 0; k < 5; k++) fly("💧", r, null, { cls: "drop", ms: 650, delay: k * 80, jx: (Math.random() - .5) * (r ? r.width * .6 : 0) });
-    if (p.w === 3) { fly("✨", r, null, { dy: -60, delay: 350 }); fly("✨", r, null, { dx: 30, dy: -40, delay: 450 }); }
-    hsay(p.w < 3 ? `💧 Gegossen (${p.w}/3). Die Pflanze wächst!` : `✨ ${HERBS[p.h].nm} ist reif. Tippe zum Ernten!`);
+    p.w++; lastAct = { i, t: p.w < 3 ? "water" : "ripe" }; SND.fx.water();
+    for (let k = 0; k < 6; k++) fly("💧", r, null, { cls: "drop", ms: 650, delay: 300 + k * 70, jx: (Math.random() - .5) * (r ? r.width * .5 : 0) });
+    let pestTxt = "";
+    if (p.w < 3 && Math.random() < 0.4) { p.pest = Math.random() < 0.6 ? "weed" : "snail"; pestTxt = p.pest === "weed" ? " Oh, zwischen den Blättern sprießt Unkraut! Zupf es aus, bevor du wieder gießt." : " Oh, eine Schnecke hat dein Kraut entdeckt! Verscheuch sie, bevor du wieder gießt."; }
+    if (p.w === 3) { fly("✨", r, null, { dy: -60, delay: 700 }); fly("✨", r, null, { dx: 30, dy: -40, delay: 800 }); }
+    hsay(p.w < 3 ? `💧 Gegossen (${p.w}/3). ${p.w === 2 ? "Eine Knospe bildet sich!" : "Die Pflanze wächst!"}${pestTxt}` : `✨ ${HERBS[p.h].nm} blüht und ist reif. Tippe zum Ernten!`);
   } else {
     const s = getSettlement(cur), was = secretOpen(s);
     const TFg = teamFx(), hv2 = 2 + TFg.garden;
-    add(H.herbs, p.h, hv2); statsOf(cur).harvest += hv2; H.plots[i] = null; lastAct = { i, t: "dig" }; SND.fx.harvest();
+    add(H.herbs, p.h, hv2); statsOf(cur).harvest += hv2; H.plots[i] = null; lastAct = { i, t: "harvest" }; SND.fx.harvest();
     const back = TFg.gardenSeed > 0 || Math.random() < 0.6; if (back) add(H.seeds, p.h);
-    for (let k = 0; k < hv2; k++) fly(HERBS[p.h].ic, r, null, { dx: (k - (hv2 - 1) / 2) * 34, dy: -80, delay: k * 120, ms: 1100 });
+    const hb = $("herbBag") && !$("herbBag").closest("[hidden]") ? rectOf($("herbBag")) : null;
+    for (let k = 0; k < hv2; k++) fly(HERBS[p.h].ic, r, hb, { dx: (k - (hv2 - 1) / 2) * 34, dy: -80, delay: k * 120, ms: 1100 });
     fly(`+${hv2}`, r, null, { cls: "txt", dy: -50, delay: 150 });
     if (back) fly("🌱", r, null, { dy: -45, dx: 28, delay: 500, ms: 900 });
-    hsay(`🧺 ${hv2}× ${HERBS[p.h].nm} geerntet!` + (back ? ` Und die Pflanze hat dir einen neuen Samen geschenkt 🌱` : "") + openNote(s, was));
+    hsay(`🧺 ${hv2}× ${HERBS[p.h].nm} geerntet!` + (back ? ` Und die Pflanze hat dir einen neuen Samen geschenkt 🌱` : "") + " Die Erde ist jetzt wieder fest, grab sie um, bevor du neu pflanzt." + openNote(s, was));
   }
   saveH(); renderHouse();
 }
@@ -1448,7 +1526,15 @@ function renderWiki() {
   </section>
 
   <section class="wk-sec" id="wk-garten"><h2>Kräutergarten</h2>
-    <p>Wähle einen Samen, pflanze ihn in ein Beet, gieße dreimal und ernte zwei Kräuter. Es gibt keine Wartezeit. Oft schenkt dir die Pflanze beim Ernten auch einen neuen Samen.</p>
+    <p>So arbeitest du im Beet:</p>
+    <ul class="wk-tip">
+      <li>🪏 <b>Umgraben:</b> Feste Erde musst du zuerst auflockern. Nach jeder Ernte ist die Erde wieder fest.</li>
+      <li>🌱 <b>Pflanzen:</b> Wähle unten einen Samen und tippe auf die lockere Erde.</li>
+      <li>💧 <b>Gießen:</b> Dreimal gießen. Aus dem Keimling wird ein Pflänzchen, dann eine Knospe, dann blüht das Kraut.</li>
+      <li>✋ <b>Unkraut</b> und 👋 <b>Schnecken:</b> Nach dem Gießen kann Unkraut wachsen oder eine Schnecke auftauchen. Dann musst du sie zuerst wegschaffen, bevor du wieder gießen kannst. Manchmal hängt im Unkraut sogar ein Samen.</li>
+      <li>🧺 <b>Ernten:</b> Du bekommst zwei Kräuter, oft schenkt dir die Pflanze auch einen neuen Samen.</li>
+    </ul>
+    <p>Es gibt keine Wartezeit, alles geht sofort.</p>
     <p><b>Samen bekommen:</b> Nach jedem Abschluss gibt es zwei zufällige Samen, manchmal sogar seltene. Zum Farmen leuchten in jedem Abenteuer 🌱 Samenfunde auf dem Weg. Lauf einfach drüber. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
     <div class="wk-list">${Object.values(HERBS).map(hb => row(hb.ic, hb.nm + (hb.rare ? ' <small class="rare">selten</small>' : ""), hb.from)).join("")}</div>
   </section>
@@ -2023,6 +2109,9 @@ const SND = (() => {
     bubble: () => play(t => { for (let k = 0; k < 9; k++) tone(180 + Math.random() * 260, t + k * 0.09 + Math.random() * 0.04, 0.16, { vol: 0.07, slide: 2.5, wet: 0.25 }); noise(t, 0.9, { vol: 0.03, freq: 400, q: 0.8 }); }),
     brewed: () => play(t => [0, 4, 7, 11, 14].forEach((s, i) => tone(mtof(72 + s), t + i * 0.09, 1, { vol: 0.11, wet: 0.5 }))),
     potion: () => play(t => { tone(600, t, 0.4, { vol: 0.1, slide: 2, wet: 0.4 }); tone(900, t + 0.1, 0.5, { vol: 0.08, slide: 1.6, wet: 0.4 }); }),
+    dig:    () => play(t => { for (let k = 0; k < 3; k++) { noise(t + k * 0.18, 0.16, { vol: 0.09, freq: 350, q: 0.9 }); tone(140, t + k * 0.18, 0.12, { type: "triangle", vol: 0.06, wet: 0.05, slide: 0.6 }); } }),
+    pull:   () => play(t => { noise(t, 0.2, { vol: 0.07, freq: 2200, q: 0.6 }); tone(420, t + 0.15, 0.25, { vol: 0.1, slide: 2.4, wet: 0.2 }); }),
+    shoo:   () => play(t => { [0, 5].forEach((s, i) => tone(mtof(70 + s), t + i * 0.12, 0.3, { type: "triangle", vol: 0.08, wet: 0.2 })); noise(t, 0.25, { vol: 0.04, freq: 1500, q: 0.5 }); }),
     click:  () => play(t => tone(700, t, 0.06, { type: "triangle", vol: 0.04, wet: 0 }))
   };
   // Browser erlauben Ton erst nach der ersten Berührung
