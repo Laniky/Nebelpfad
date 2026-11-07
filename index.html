@@ -451,7 +451,7 @@ select, .chatform input { font: inherit; background: #0c111b; color: var(--mist)
 .note:empty { display: none; }
 .note { background: #241f12; border: 1px solid #6b5530; border-radius: 12px; padding: 10px 14px; font-size: .9rem; }
 select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
-.maintabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 4px; }
+.maintabs { display: grid; grid-template-columns: 1.25fr 1fr 1fr 1fr; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 4px; }
 .mtab { font: inherit; font-weight: 700; font-size: .88rem; white-space: nowrap; background: transparent; color: var(--muted); border: 0; border-radius: 99px; padding: 9px 4px; cursor: pointer; }
 .mtab[aria-selected="true"] { background: var(--lantern); color: #1a1408; }
 .mtab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
@@ -527,6 +527,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     <button class="mtab" id="mtab-ort" type="button" role="tab" aria-selected="true">🏡 Abenteuer</button>
     <button class="mtab" id="mtab-time" type="button" role="tab" aria-selected="false">⏳ Zeit</button>
     <button class="mtab" id="mtab-daily" type="button" role="tab" aria-selected="false">🗓️ Täglich</button>
+    <button class="mtab" id="mtab-farm" type="button" role="tab" aria-selected="false">🌿 Kräuter</button>
   </nav>
 
   <!-- ORT -->
@@ -760,6 +761,22 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
   </section>
 
   <!-- ZEITDUNGEONS -->
+  <section class="view" id="farmView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Kräuterpfad</h1>
+        <p class="sub">Einfache Wege zum Sammeln, ohne Tier, ohne Rätsel und ohne Haustiere. So oft du magst.</p>
+      </div>
+    </header>
+    <div class="trips" id="farmList"></div>
+    <div class="card">
+      <h3>🧺 Deine Kräutertasche</h3>
+      <div class="bag" id="farmBag"></div>
+      <div class="seg"><button class="chip" id="farmToGarden" type="button">🌱 Zum Garten</button><button class="chip" id="farmToAlch" type="button">⚗️ Zum Alchemietisch</button></div>
+    </div>
+  </section>
+
   <section class="view" id="dailyView" hidden>
     <header class="vhead">
       <div>
@@ -1359,11 +1376,6 @@ function renderVillage() {
     tr.appendChild(b);
   });
 
-  // Kräuterpfad: einfacher Weg nur zum Farmen, ohne Tier und ohne Haustier-Begleiter
-  const fb2 = document.createElement("button"); fb2.type = "button"; fb2.className = "trip"; fb2.id = "trip-farm";
-  fb2.innerHTML = `<span class="ic" aria-hidden="true">🌿</span><span class="t"><strong>Kräuterpfad</strong><span>Einfach · zum Sammeln von Kräutern und Samen, ohne Tier. Jederzeit wiederholbar.</span></span><span class="st">offen</span>`;
-  fb2.addEventListener("click", () => startLevel(farmLevel(s)));
-  tr.appendChild(fb2);
   // Superschwerer Irrgarten: öffnet sich, wenn alle drei Tiere hier gerettet sind
   const sup = getSuper(s.n), supOpen = isDone(s), sb2 = document.createElement("button");
   sb2.type = "button"; sb2.className = "trip" + (supOpen ? " secret" : " is-locked"); sb2.id = "trip-super";
@@ -1421,10 +1433,11 @@ $("rmOk").addEventListener("click", () => {
 
 function show(id) {
   if (id !== "dungeonView") stopTimer();
-  $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView");
+  $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView" || id === "farmView");
   $("mtab-daily").setAttribute("aria-selected", String(id === "dailyView"));
+  $("mtab-farm").setAttribute("aria-selected", String(id === "farmView"));
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
-  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView", "farmView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
 function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
@@ -1857,7 +1870,7 @@ function renderWiki() {
   <section class="wk-sec" id="wk-denk"><h2>🧠 Denk-Rätsel</h2>
     <p>In vielen Dungeons musst du gut überlegen, welchen Begleiter du wo einsetzt. Wie viele Denk-Rätsel es gibt, hängt vom Dungeon ab:</p>
     <div class="wk-list">
-      ${row("🌿", "Kräuterpfad", "Keine Rätsel. Ein einfacher Weg nur zum Farmen von Kräutern und Samen, ohne Tier und ohne Haustier-Begleiter.", "0")}
+      ${row("🌿", "Kräuterpfad", "Keine Rätsel. Im Reiter 🌿 Kräuter: ein kurzer oder langer Weg nur zum Farmen von Kräutern und Samen, ohne Tier und ohne Haustier-Begleiter.", "0")}
       ${row("🏡", "Normale Abenteuer", "Ein zufälliges Denk-Rätsel.", "1")}
       ${row("🗝️", "Geheimstädte (zu fünft)", "Drei zufällige Denk-Rätsel.", "3")}
       ${row("🌀", "Irrgarten und 🕸️ Nebelnetz", "Alle fünf Denk-Rätsel auf einmal.", "5")}
@@ -1944,7 +1957,7 @@ function renderWiki() {
     <p>Es gibt keine Wartezeit, alles geht sofort.</p>
     <p><b>So erkennst du deine Beete:</b> Helle, rissige Erde ist fest und muss umgegraben werden. Dunkle, gefurchte Erde ist locker und bereit zum Pflanzen. Nach dem Gießen glänzt sie nass. Ein <b>goldener Rand</b> heißt „reif, bitte ernten“, ein <b>oranger Rand</b> heißt „Unkraut oder Schnecke, bitte kümmern“.</p>
     <p>Garten und Alchemietisch sind zwei eigene Seiten. Oben rechts kommst du mit einem Knopf direkt vom einen zum anderen.</p>
-    <p><b>Samen bekommen:</b> Nach jedem Abschluss gibt es zwei zufällige Samen, manchmal sogar seltene. In manchen Abenteuern leuchtet ein seltener 🌱 Samenfund auf dem Weg. Lauf einfach drüber. Zum Farmen ist der <b>🌿 Kräuterpfad</b> da, dort gibt es immer zwei bis drei. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
+    <p><b>Samen bekommen:</b> Nach jedem Abschluss gibt es zwei zufällige Samen, manchmal sogar seltene. In manchen Abenteuern leuchtet ein seltener 🌱 Samenfund auf dem Weg. Lauf einfach drüber. Zum Farmen gibt es den Reiter <b>🌿 Kräuter</b> mit dem kurzen und dem langen Kräuterpfad, dort liegen immer mehrere Samenfunde. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
     <div class="wk-list">${Object.values(HERBS).map(hb => row(hb.ic, hb.nm + (hb.rare ? ' <small class="rare">selten</small>' : ""), hb.from)).join("")}</div>
   </section>
 
@@ -2151,7 +2164,7 @@ $("wikiView").addEventListener("click", e => {
   const a = e.target.closest(".wk-nav a"); if (!a) return;
   e.preventDefault(); const t = document.querySelector(a.getAttribute("href")); if (t) t.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
 });
-const leaveDungeon = () => { if (level && (level.daily || level.fest)) showDaily(); else if (level && level.timed && !level.coop) showTime(); else showVillage(); };
+const leaveDungeon = () => { if (level && level.farm) showFarm(); else if (level && (level.daily || level.fest)) showDaily(); else if (level && level.timed && !level.coop) showTime(); else showVillage(); };
 $("back").addEventListener("click", leaveDungeon);
 $("home").addEventListener("click", leaveDungeon);
 
@@ -2208,7 +2221,7 @@ function startLevel(l) {
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "." && !(x === px && y === py)) free.push([x, y]);
   const TF = l.fair ? { time: 0, seedSpots: 0, shield: 0, bright: 0, heart: 0, loot: 0, garden: 0, gardenSeed: 0, rareFind: 0, reveal: 0, freeze: 0, burn: 0 } : teamFx();
   // Samenfunde sind selten: in normalen Abenteuern nur manchmal einer, im Kräuterpfad zwei bis drei
-  for (let n = l.resume || l.noSeeds ? 0 : (l.farm ? 2 + Math.floor(Math.random() * 2) : (Math.random() < 0.35 ? 1 : 0)) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
+  for (let n = l.resume || l.noSeeds ? 0 : (l.farm ? (l.farmCfg ? l.farmCfg.spots[0] + Math.floor(Math.random() * (l.farmCfg.spots[1] - l.farmCfg.spots[0] + 1)) : 2) : (Math.random() < 0.35 ? 1 : 0)) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
     const [sx, sy] = free.splice(Math.floor(Math.random() * free.length), 1)[0]; grid[sy][sx] = "S";
   }
   hardSetup(l);
@@ -2335,15 +2348,17 @@ function perfectBonus() {
 const RESCUE_CHANCE = 0.20, RESCUE_PITY = 6;
 function farmLevel(s) {
   const keys = Object.keys(THEMES), tk = keys[Math.floor(Math.random() * keys.length)], th = THEMES[tk];
-  return { id: "farm-" + s.n, farm: true, baseOnly: true, name: `🌿 Kräuterpfad: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: "🌿", theme: tk, wall: th.wall, mode: 0,
-    animal: "🧺", animalName: "Kräuterkorb", who: "Der Kräuterkorb", ring: "#8fe0ad", gen: { count: 4, tier: 0 },
+  const F = typeof farmSel !== "undefined" ? farmSel : { count: 4, herbs: [4, 6], spots: [2, 3] };
+  return { id: "farm-" + s.n, farm: true, farmCfg: F, baseOnly: true, name: `🌿 Kräuterpfad: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: "🌿", theme: tk, wall: th.wall, mode: 0,
+    animal: "🧺", animalName: "Kräuterkorb", who: "Der Kräuterkorb", ring: "#8fe0ad", gen: { count: F.count, tier: 0 },
     intro: "🌿 <b>Kräuterpfad:</b> Ein gemütlicher, einfacher Weg. Hier wachsen überall Kräuter. Sammle die 🌱 Samenfunde ein und hol dir am Ende den Kräuterkorb.",
     animalHint: "Ein Korb voller frischer Kräuter, mit einem kleinen Zauber verschlossen. Deine Hände öffnen ihn." };
 }
 function farmWin() {
   done = true;
   const pool = SEED_POOL, got = {};
-  for (let i = 0; i < 4 + Math.floor(Math.random() * 3); i++) { const h = pool[Math.floor(Math.random() * pool.length)]; got[h] = (got[h] || 0) + 1; add(H.herbs, h); }
+  const fc = level.farmCfg || { herbs: [4, 6] };
+  for (let i = 0; i < fc.herbs[0] + Math.floor(Math.random() * (fc.herbs[1] - fc.herbs[0] + 1)); i++) { const h = pool[Math.floor(Math.random() * pool.length)]; got[h] = (got[h] || 0) + 1; add(H.herbs, h); }
   const sd = rollDrop(0.1); add(H.seeds, sd); saveH();
   $("winIcon").textContent = "🧺"; $("winTitle").textContent = "Kräuterkorb geöffnet!";
   $("winText").innerHTML = `Der Korb ist voller frischer Kräuter:<br>${Object.entries(got).map(([h, n]) => `${n}× ${HERBS[h].ic} ${HERBS[h].nm}`).join(", ")}<br>Dazu ein Samen: ${HERBS[sd].ic} ${HERBS[sd].nm}.<br><br>Die Kräuter liegen schon in deiner Kräutertasche, bereit zum Brauen ⚗️`;
@@ -3132,6 +3147,27 @@ function clStop(finished) {
   saveH(); renderGlade(); clInfo(); gsay(txt);
 }
 $("clStart").addEventListener("click", clStart);
+
+/* ---------- Reiter Kräuter ---------- */
+const FARM_PATHS = [
+  { id: "kurz", ic: "🌿", nm: "Kurzer Kräuterpfad", txt: "Ein paar Schritte, schnell geschafft", count: 3, herbs: [3, 4], spots: [1, 2] },
+  { id: "lang", ic: "🍃", nm: "Langer Kräuterpfad", txt: "Mehr Hindernisse, dafür mehr Kräuter und Samenfunde", count: 6, herbs: [5, 7], spots: [2, 4] }
+];
+let farmSel = FARM_PATHS[0];
+function showFarm() {
+  const box = $("farmList"); box.innerHTML = "";
+  FARM_PATHS.forEach(f => {
+    const b = el("button", "trip"); b.type = "button"; b.id = "farm-" + f.id;
+    b.innerHTML = `<span class="ic" aria-hidden="true">${f.ic}</span><span class="t"><strong>${f.nm}</strong><span>${f.txt} · ${f.herbs[0]} bis ${f.herbs[1]} Kräuter im Korb</span></span><span class="st">Start</span>`;
+    b.addEventListener("click", () => { farmSel = f; startLevel(farmLevel(getSettlement(cur))); });
+    box.appendChild(b);
+  });
+  $("farmBag").innerHTML = bagHtml(H.herbs, HERBS, "Noch keine Kräuter. Lauf einen Kräuterpfad!");
+  show("farmView");
+}
+$("mtab-farm").addEventListener("click", showFarm);
+$("farmToGarden").addEventListener("click", () => openHouse("gardenSec"));
+$("farmToAlch").addEventListener("click", () => openHouse("alchSec"));
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
