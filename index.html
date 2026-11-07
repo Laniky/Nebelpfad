@@ -2193,7 +2193,7 @@ function renderWiki() {
       <li>💧 <b>Gießen:</b> Dreimal gießen. Aus dem Keimling wird ein Pflänzchen, dann eine Knospe, dann blüht das Kraut.</li>
       <li>✋ <b>Unkraut</b> und 👋 <b>Schnecken:</b> Nach dem Gießen kann Unkraut wachsen oder eine Schnecke auftauchen. Dann musst du sie zuerst wegschaffen, bevor du wieder gießen kannst. Manchmal hängt im Unkraut sogar ein Samen.</li>
       <li>💎 <b>Diamanten:</b> Sie liegen manchmal funkelnd auf dem Weg in Abenteuern (in Geheimstädten, Irrgärten und im Nebelnetz öfter). Außerdem gibt es sie manchmal bei Rettungen, beim Ernten, im Kräuterkorb, beim Aufräumen, für das Tagesrätsel, für Festtiere und für große Siege.</li>
-      <li>🔮 <b>Zeit verhexen:</b> Tippe im Hexenhaus auf die Uhr. Für 5 💎 machst du aus Tag Nacht oder aus Nacht Tag, 30 Minuten lang. So kannst du Nacht- oder Tagkräuter gießen, wann du willst.</li>
+      <li>🔮 <b>Zeit verhexen:</b> Tippe im Hexenhaus auf die Uhr. Für 5 💎 machst du aus Tag Nacht oder aus Nacht Tag, 30 Minuten lang. Das geht in beide Richtungen, auch wenn die Zeit gerade schon verhext ist. So kannst du Nacht- oder Tagkräuter gießen, wann du willst.</li>
       <li>🕰️ <b>Uhr:</b> Im Hexenhaus zeigt eine Uhr die Spielzeit und wie lange es noch bis zur Nacht oder zum Morgen dauert. Die Spielzeit ist die echte Uhrzeit.</li>
       <li>🌙☀️ <b>Tag und Nacht:</b> Manche Kräuter wachsen nur nachts (🌙 Mondkraut, Mondtulpe, Glühpilz, Sternmoos), andere nur am Tag (☀️ Sonnenkraut, Feuerblüte, Kirschblüte). Es zählt die echte Uhrzeit: Nacht ist von 19 bis 7 Uhr. Pflanzen kannst du jederzeit, aber gießen nur, wenn das Kraut wach ist. Alle anderen Kräuter wachsen immer.</li>
       <li>🧺 <b>Ernten:</b> Du bekommst zwei Kräuter. Nur ab und zu (20 %) schenkt dir die Pflanze auch einen neuen Samen.</li>
@@ -3644,13 +3644,13 @@ function openTimeHex() {
   $("rmTitle").textContent = "Zeit verhexen";
   if (act) {
     const m = Math.ceil((act.until - Date.now()) / 60000);
-    $("rmText").innerHTML = `Die Zeit ist schon verhext! Noch <b>${m} Minuten</b> ist es ${act.mode === "nacht" ? "🌙 Nacht" : "☀️ Tag"}. Danach läuft die Uhr wieder ganz normal.`;
-    $("rmOk").hidden = true;
+    $("rmText").innerHTML = `Die Zeit ist gerade verhext! Noch <b>${m} Minuten</b> ist es ${act.mode === "nacht" ? "🌙 Nacht" : "☀️ Tag"}. Danach läuft die Uhr wieder ganz normal.<br><br>Du kannst sie auch wieder <b>umgekehrt verhexen</b> und ${act.mode === "nacht" ? "den ☀️ Tag" : "die 🌙 Nacht"} herbeizaubern, für ${HEX_MIN} Minuten. Das kostet ${HEX_COST} 💎. Du hast <b>${gems()} 💎</b>.`;
+    $("rmOk").hidden = false; $("rmOk").disabled = gems() < HEX_COST; $("rmOk").textContent = `🔮 ${want} herbeizaubern (${HEX_COST} 💎)`;
   } else {
     $("rmText").innerHTML = `Mit einem Zauberspruch machst du aus ${night ? "der Nacht einen hellen ☀️ Tag" : "dem Tag eine dunkle 🌙 Nacht"}, für <b>${HEX_MIN} Minuten</b>. So wachsen ${night ? "die Tagkräuter" : "die Nachtkräuter"}, auch wenn es draußen ${night ? "dunkel" : "hell"} ist.<br><br>Das kostet <b>${HEX_COST} 💎</b>. Du hast <b>${gems()} 💎</b>.` + (gems() < HEX_COST ? "<br><br>Dir fehlen noch Diamanten. Du findest sie in Abenteuern, beim Ernten, im Kräuterpfad, im Tagesrätsel, auf Festen und beim Aufräumen." : "");
     $("rmOk").hidden = false; $("rmOk").disabled = gems() < HEX_COST; $("rmOk").textContent = `🔮 ${want} herbeizaubern (${HEX_COST} 💎)`;
   }
-  resetStep = "hex"; $("resetModal").hidden = false; $("rmCancel").textContent = act || gems() < HEX_COST ? "Schließen" : "Abbrechen"; $("rmCancel").focus();
+  resetStep = "hex"; $("resetModal").hidden = false; $("rmCancel").textContent = gems() < HEX_COST ? "Schließen" : "Abbrechen"; $("rmCancel").focus();
 }
 function castTimeHex() {
   if (gems() < HEX_COST) return;
