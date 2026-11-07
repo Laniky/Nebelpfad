@@ -295,6 +295,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .card.fest-sommer { background: linear-gradient(160deg, #2c3a22, var(--panel) 70%); border-color: #e8ff8a; }
 .card.fest-herbst { background: linear-gradient(160deg, #3d2914, var(--panel) 70%); border-color: #ffb35a; }
 .card.fest-winter { background: linear-gradient(160deg, #22344a, var(--panel) 70%); border-color: #cfe8ff; }
+/* Tagebuch */
+.diary { display: flex; flex-direction: column; gap: 10px; }
+.page { background: linear-gradient(180deg, #f3e6c8, #e6d3a8); color: #3a2a18; border-radius: 6px 14px 14px 6px; padding: 14px 16px 14px 22px; box-shadow: 0 6px 16px #0008, inset 6px 0 0 #c9b083; font-family: Georgia, "Times New Roman", serif; line-height: 1.55; position: relative; }
+.page h3 { margin: 0 0 6px; font-size: 1rem; color: #5a3a1a; }
+.page p { margin: 0; font-size: .95rem; }
+.page.missing { background: #1a1f2b; color: var(--muted); box-shadow: inset 6px 0 0 #2a3040; font-style: italic; }
+.page.missing h3 { color: var(--muted); }
+.page.new::after { content: "neu"; position: absolute; top: 8px; right: 10px; font: 700 .7rem/1 var(--font-body); background: var(--lantern); color: #1a1408; padding: 3px 7px; border-radius: 99px; }
 /* Tierlichtung */
 .glade { position: relative; height: 340px; border-radius: 18px; overflow: hidden; border: 1px solid #2f4a2f; cursor: pointer; user-select: none; -webkit-user-select: none;
   background: radial-gradient(circle at 78% 12%, #fff6d0 0 9px, #fff6d055 11px, transparent 26px), linear-gradient(180deg, #24344f 0, #3a5a5a 20%, #4a7a48 30%, #5a9650 62%, #477f40 100%); }
@@ -470,7 +478,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
         <h1 id="vName">Mondtal</h1>
         <p class="sub" id="vSub"></p>
       </div>
-      <div class="btns"><button class="back" id="toGlade" type="button">🌳 Lichtung</button><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button><button class="back sndBtn" data-full="1" type="button">🎵 Musik an</button></div>
+      <div class="btns"><button class="back" id="toGlade" type="button">🌳 Lichtung</button><button class="back" id="toDiary" type="button">📜 Tagebuch</button><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button><button class="back sndBtn" data-full="1" type="button">🎵 Musik an</button></div>
     </header>
     <div class="places" id="places" aria-label="Deine Orte"></div>
     <div class="village" id="village" aria-label="Dein Ort bei Nacht"></div>
@@ -544,7 +552,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
-      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-weber">Nebelweber</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
     </nav>
     <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
   </section>
@@ -585,6 +593,20 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <p class="sub" style="margin:0">Die schnellsten Teams gegen die Uhr.</p>
       <div class="wk-list" id="coopBest"><span class="none">Wird geladen …</span></div>
     </div>
+  </section>
+
+  <!-- TAGEBUCH -->
+  <section class="view" id="diaryView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Das Tagebuch</h1>
+        <p class="sub" id="diarySub"></p>
+      </div>
+      <button class="back" id="diaryBack" type="button">Zurück</button>
+    </header>
+    <div class="card" id="weaverCard"></div>
+    <div class="diary" id="diaryPages"></div>
   </section>
 
   <!-- TIERLICHTUNG -->
@@ -1226,6 +1248,14 @@ function renderVillage() {
   sb2.innerHTML = `<span class="ic" aria-hidden="true">🌀</span><span class="t"><strong>${sup.name}</strong><span>Superschwer · ${supOpen ? "ein Irrgarten mit mehreren Wegen, am Ende wartet das Kristallherz 💎" : "öffnet sich, wenn alle drei Tiere hier gerettet sind"}</span></span>${stS}`;
   sb2.addEventListener("click", () => { if (supOpen) startLevel(sup); });
   tr.appendChild(sb2);
+  if (isCapital(s)) {
+    const wv = getWeaver(s.n), wOpen = isDone(s), wb = document.createElement("button");
+    wb.type = "button"; wb.className = "trip" + (wOpen ? " secret" : " is-locked"); wb.id = "trip-weaver";
+    const stW = !wOpen ? `<span class="st">🔒</span>` : H.weaver && H.weaver[s.n] ? `<span class="st ok">🧶 getroffen</span>` : `<span class="st">offen</span>`;
+    wb.innerHTML = `<span class="ic" aria-hidden="true">🕸️</span><span class="t"><strong>${wv.name}</strong><span>Großes Abschlussrätsel · ${wOpen ? "silberne Fäden überall, und am Ende wartet jemand Geheimnisvolles" : "öffnet sich, wenn alle drei Tiere hier gerettet sind"}</span></span>${stW}`;
+    wb.addEventListener("click", () => { if (wOpen) startLevel(wv); });
+    tr.appendChild(wb);
+  }
 
   const tasks = tasksOf(s), open = tasks.every(t => t.done), sec = getSecret(s.n);
   $("tasks").innerHTML = tasks.map(t => `<div class="task${t.done ? " ok" : ""}"><span class="ck" aria-hidden="true">${t.done ? "✓" : ""}</span><span class="tt">${t.txt}</span><span class="pg">${t.prog}</span></div>`).join("");
@@ -1243,7 +1273,7 @@ function show(id) {
   $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView");
   $("mtab-daily").setAttribute("aria-selected", String(id === "dailyView"));
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
-  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
 function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
@@ -1499,6 +1529,7 @@ function secretWin() {
   add(H.seeds, "rose", 2); add(H.seeds, "klee", 2); add(H.seeds, "pilz", 1); add(H.seeds, extra, 1); saveH();
   text += `In der Rolle versteckt: ${HERBS.rose.ic} 2× Nebelrose, ${HERBS.klee.ic} 2× Kristallklee, ${HERBS[extra].ic} 1× ${HERBS[extra].nm} und ${HERBS.pilz.ic} 1× Glühpilz als Samen.`;
   text += perfectBonus();
+  text += weaverHint();
   $("winIcon").textContent = "📜";
   $("winTitle").textContent = `${level.name} geschafft!`;
   $("winText").innerHTML = text;
@@ -1664,6 +1695,15 @@ function renderWiki() {
 
   <section class="wk-sec" id="wk-mit"><h2>Mitspieler</h2>
     <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
+  </section>
+
+  <section class="wk-sec" id="wk-weber"><h2>🕸️ Der Nebelweber und das Tagebuch</h2>
+    <p>Wer hat eigentlich den Nebel gemacht? Das findest du nach und nach heraus.</p>
+    <ul class="wk-tip">
+      <li><b>📜 Tagebuchseiten:</b> In manchen Abenteuern liegt irgendwo auf dem Weg eine leuchtende Seite. Lauf darüber, um sie einzusammeln. Es gibt ${DIARY.length} Seiten, und sie erzählen die Geschichte der Reihe nach. Lesen kannst du sie im Ort unter <b>📜 Tagebuch</b>. In Geheimstädten und Irrgärten liegen sie öfter.</li>
+      <li><b>Hinweise:</b> Nach einer Rettung siehst du manchmal etwas Seltsames im Nebel, zum Beispiel einen silbernen Faden.</li>
+      <li><b>🕸️ Das große Abschlussrätsel:</b> In jeder Hauptstadt und jeder noch größeren Stadt öffnet sich ein Nebelnetz, wenn dort alle drei Tiere gerettet sind. Es ist ein langer Irrgarten voller verzauberter Felder. Am Ende triffst du den <b>Nebelweber</b>. Bei jedem Treffen erzählt er dir mehr, und du bekommst seltene Samen, Tränke und eine Tagebuchseite.</li>
+    </ul>
   </section>
 
   <section class="wk-sec" id="wk-fest"><h2>🎉 Feste im Jahr</h2>
@@ -2000,6 +2040,7 @@ function startLevel(l) {
   renderActs();
   $("dTitle").textContent = l.name;
   $("back").textContent = "Zurück";
+  placeDiary(l);
   say(l.intro);
   showDungeon();
 }
@@ -2035,7 +2076,7 @@ function tryStep(tx, ty) {
     say(`🌱 Du findest Samen: <b>${fx.seedx2 ? "2× " : ""}${HERBS[k2].ic} ${HERBS[k2].nm}</b>!${HERBS[k2].rare ? " Ein seltener Fund ✨" : ""}`);
     return;
   }
-  if (t === "." || t === "B") { px = tx; py = ty; SND.fx.step(); return; }
+  if (t === "." || t === "B") { px = tx; py = ty; SND.fx.step(); checkDiary(); return; }
   if (t === "#") { say(WALL_MSG[level.wall]); return; }
   if (t === "~") { say(WALL_MSG.lake); return; }
   const k = tx + "," + ty, o = getObst(t, k); if (!o) return;
@@ -2091,6 +2132,7 @@ function perfectBonus() {
 }
 function rescue() {
   if (level.coop) { coopWin(); return; }
+  if (level.weaver) { weaverWin(); return; }
   if (level.daily) { dailyWin(); return; }
   if (level.fest) { festWin(); return; }
   if (level.timed) { timeWin(); return; }
@@ -2105,6 +2147,7 @@ function rescue() {
   const gift = Array.from({ length: (fx.loot ? 4 : 2) + teamFx().loot }, () => rollDrop()); gift.forEach(k => add(H.seeds, k)); saveH();
   text += `<br><br>🎁 Zufällige Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen.`;
   text += perfectBonus();
+  text += weaverHint();
   if (!wasOpen && secretOpen(s)) text += `<br><br>🗝️ Alle Geheimaufgaben erfüllt! <b>${getSecret(s.n).name}</b> ist jetzt offen.`;
   text += `<br>🧺 Für die Tierlichtung: ${foodGot.map(k => FOODS[k].ic + " " + FOODS[k].nm).join(", ")}.`;
   if (pet) text += `<br><br>Ab jetzt hilft dir <b>${pet.nm}</b> als ${pet.rl}!`;
@@ -2476,6 +2519,102 @@ function festFx(t) {
   });
   ctx.restore();
 }
+
+/* ---------- Der Nebelweber und sein Tagebuch ---------- */
+const DIARY = [
+  ["Der Sturm", "Ich weiß noch, wie der große Sturm kam. Die Bäume bogen sich, und die Tiere zitterten in ihren Bauen. Ich hatte nur meinen Webstuhl und meine silbernen Fäden."],
+  ["Die Decke", "Also webte ich. Tag und Nacht webte ich eine Decke aus Nebel, so groß wie das ganze Land. Darunter war es still und weich. Kein Wind kam hindurch."],
+  ["Stille", "Der Sturm ist längst vorbei. Aber unter meiner Decke ist es so ruhig geworden. Manchmal höre ich tagelang nichts außer meinen eigenen Schritten."],
+  ["Vergessen", "Heute wollte ich die Decke wieder aufziehen. Ich habe am Faden gezogen, aber er hat sich nur fester gewickelt. Ich habe vergessen, wie man aufhört."],
+  ["Die Tiere", "Einige Tiere haben sich im Nebel verirrt. Damit ihnen nichts geschieht, habe ich sie in Zauber gehüllt, wie in kleine Kokons. Dort schlafen sie sicher, bis ich einen Weg finde."],
+  ["Ein Licht", "Heute sah ich ein Licht im Nebel. Eine Laterne! Jemand ging mutig durch den Wald, mit einem Bären und einem Igel an der Seite. Ich habe mich hinter einem Baum versteckt."],
+  ["Sie löst die Zauber", "Die Heilerin mit der Laterne kann meine Kokons öffnen. Die Tiere wachen auf und laufen ihr nach. Ich bin froh. Und ein bisschen traurig, denn jetzt bin ich wieder allein."],
+  ["Die Lichtung", "Ich habe mich zur Lichtung geschlichen. Dort spielen alle Tiere, die sie gerettet hat. Ein Hase hat mich gesehen und ist nicht weggelaufen. Er hat mir sogar zugezwinkert."],
+  ["Mut", "Ich glaube, ich muss mit ihr sprechen. Aber was, wenn sie böse ist, weil ich den Nebel gemacht habe? Ich habe meine Fäden heute dreimal verknotet vor Aufregung."],
+  ["Ein Brief", "Ich habe ihr diese Seiten hingelegt, Stück für Stück, in den Dungeons. Wenn sie sie findet, versteht sie vielleicht, warum es den Nebel gibt."],
+  ["Der Faden", "Ich weiß jetzt, wie man den Nebel auflöst. Nicht mit Ziehen und nicht mit Zaubern. Mit Freundschaft. Jedes gerettete Tier lockert einen Faden."],
+  ["Morgen", "Wenn alle Tiere frei sind, wird die Decke ganz leicht. Dann falte ich sie zusammen und lege sie auf die Lichtung, als Kissen für die Tiere. Und vielleicht darf ich dann bleiben."]
+];
+const WEAVER_TALK = [
+  ["Das erste Treffen", "Du hast mich gefunden … Bitte erschrick nicht. Ich bin der Nebelweber. Den Nebel habe ich gemacht, damals beim großen Sturm. Ich wollte nur, dass alle sicher sind."],
+  ["Das zweite Treffen", "Du bist schon wieder da. Und du bist nicht böse auf mich? Die Tiere erzählen, dass du ihnen jeden Tag Futter bringst. Vielleicht kann ich auch helfen. Ich kenne alle Wege im Nebel."],
+  ["Das dritte Treffen", "Weißt du, was ich gemerkt habe? Seit du da bist, ist mein Nebel ein bisschen heller geworden. Jedes Lachen auf deiner Lichtung lockert einen Faden. Danke."],
+  ["Das vierte Treffen", "Ich webe jetzt etwas Neues: Decken für die Tiere, Schals für Bruno und kleine Hüte für Pip. Es macht viel mehr Freude, für Freunde zu weben als gegen den Sturm."],
+  ["Ein Freund", "Du kommst immer wieder zu mir, obwohl ich nur ein alter Weber bin. Ich glaube, das nennt man Freundschaft. Wenn du magst, warte ich in jeder großen Stadt auf dich."]
+];
+const WEAVER_HINTS = [
+  "Am Rand des Nebels glitzert kurz ein silberner Faden, dann ist er weg.",
+  "Für einen Moment siehst du eine Gestalt in einem langen grauen Mantel zwischen den Bäumen.",
+  "Ein feiner Faden hängt an einem Ast. Er fühlt sich kühl an, wie Nebel.",
+  "Du hörst ganz leise das Klappern eines Webstuhls, irgendwo weit weg.",
+  "Das gerettete Tier schaut zurück in den Nebel, als würde es jemandem zuwinken."
+];
+let diaryAt = null, diaryNew = new Set();
+const isCapital = s => s.tier >= 2;
+function placeDiary(l) {
+  diaryAt = null;
+  H.diary = H.diary || [];
+  if (l.coop || l.daily || l.timed || l.resume || H.diary.length >= DIARY.length) return;
+  if (Math.random() > (l.secret || l.superD ? 0.7 : 0.35)) return;
+  const free = []; for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "." && Math.abs(x - px) + Math.abs(y - py) > 2) free.push([x, y]);
+  if (free.length) { const [x, y] = free[Math.floor(Math.random() * free.length)]; diaryAt = x + "," + y; }
+}
+function checkDiary() {
+  if (!diaryAt || diaryAt !== px + "," + py) return;
+  diaryAt = null; H.diary = H.diary || [];
+  const i = H.diary.length; if (i >= DIARY.length) return;
+  H.diary.push(i); diaryNew.add(i); saveH(); SND.fx.seed();
+  say(`📜 Du findest eine <b>Tagebuchseite</b>: „${DIARY[i][0]}“. Lies sie im Ort unter 📜 Tagebuch.`);
+}
+function drawDiary(t) {
+  if (!diaryAt) return;
+  const [x, y] = diaryAt.split(",").map(Number), cx = x * S + S / 2, cy = y * S + S / 2;
+  const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, 22);
+  g.addColorStop(0, `rgba(243,230,200,${reduce ? .5 : .35 + .25 * Math.sin(t / 420)})`); g.addColorStop(1, "rgba(243,230,200,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 22, 0, 7); ctx.fill();
+  ctx.font = "22px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("📜", cx, cy + (reduce ? 0 : Math.sin(t / 500) * 2));
+}
+function weaverHint() { return Math.random() < 0.25 ? `<br><br><i>🕸️ ${WEAVER_HINTS[Math.floor(Math.random() * WEAVER_HINTS.length)]}</i>` : ""; }
+function getWeaver(n) {
+  const rng = rngFor(n * 3301 + 77), keys = Object.keys(THEMES), tk = pick(rng, keys), th = THEMES[tk], tier = tierOf(n);
+  return { id: `w${n}`, weaver: true, name: `Das Nebelnetz von ${getSettlement(n).name}`, ic: "🕸️", theme: tk, wall: th.wall, mode: 2, map: [],
+    animal: "🧶", animalName: "Nebelweber", who: "Der Nebelweber", ring: "#c9d4ff",
+    gen: { maze: true, count: Math.min(16 + tier * 2, 24), tier: Math.min(tier + 2, 4), multiP: 0.6 },
+    intro: `🕸️ <b>Das große Abschlussrätsel!</b> Silberne Nebelfäden spannen sich über den ganzen Weg. Ganz am Ende sitzt jemand an einem Webstuhl …`,
+    animalHint: "Eine Gestalt im grauen Mantel, ganz in Nebelfäden eingesponnen. Vielleicht kannst du sie befreien?" };
+}
+function weaverWin() {
+  done = true;
+  const s = getSettlement(cur); H.weaver = H.weaver || {};
+  const first = !H.weaver[s.n]; H.weaver[s.n] = true;
+  const met = Object.keys(H.weaver).length, talk = WEAVER_TALK[Math.min(met, WEAVER_TALK.length) - 1];
+  const seeds = [0, 1, 2].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]); seeds.forEach(k => add(H.seeds, k));
+  if (first) { add(H.potions, "voll"); add(H.potions, "herz"); }
+  let page = "";
+  H.diary = H.diary || [];
+  if (first && H.diary.length < DIARY.length) { const i = H.diary.length; H.diary.push(i); diaryNew.add(i); page = `<br>📜 Er schenkt dir eine Tagebuchseite: „${DIARY[i][0]}“.`; }
+  saveH();
+  $("winIcon").textContent = "🧶"; $("winTitle").textContent = first ? talk[0] : "Der Nebelweber winkt dir zu";
+  $("winText").innerHTML = (first ? `<i>„${talk[1]}“</i><br>` : `<i>„Schön, dass du mich wieder besuchst!“</i><br>`)
+    + `<br>🎁 ${seeds.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als seltene Samen${first ? ", dazu ein 💖 Vollherz-Trank und ein 💛 Herztrank" : ""}.${page}`;
+  $("home").textContent = `Zurück nach ${s.name}`;
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+}
+function openDiary() {
+  H.diary = H.diary || [];
+  const n = H.diary.length, met = Object.keys(H.weaver || {}).length;
+  $("diarySub").textContent = `${n} von ${DIARY.length} Seiten gefunden. Sie liegen versteckt in den Abenteuern.`;
+  $("weaverCard").innerHTML = met
+    ? `<h2>🧶 Der Nebelweber</h2><p class="sub" style="margin:0">Du hast ihn ${met === 1 ? "einmal" : met + " Mal"} getroffen.</p>` + WEAVER_TALK.slice(0, Math.min(met, WEAVER_TALK.length)).map(w => `<p style="margin:0"><b>${w[0]}:</b> <i>„${w[1]}“</i></p>`).join("")
+    : `<h2>🕸️ Ein Geheimnis im Nebel</h2><p class="sub" style="margin:0">Wer hat den Nebel gemacht? In jeder <b>Hauptstadt</b> und jeder größeren Stadt wartet ein großes Abschlussrätsel, sobald dort alle drei Tiere gerettet sind. Vielleicht findest du dort eine Antwort.</p>`;
+  $("diaryPages").innerHTML = DIARY.map((d, i) => H.diary.includes(i)
+    ? `<article class="page${diaryNew.has(i) ? " new" : ""}"><h3>Seite ${i + 1}: ${d[0]}</h3><p>${d[1]}</p></article>`
+    : `<article class="page missing"><h3>Seite ${i + 1}</h3><p>Diese Seite hast du noch nicht gefunden.</p></article>`).join("");
+  diaryNew.clear();
+  show("diaryView");
+}
+$("toDiary").addEventListener("click", openDiary);
+$("diaryBack").addEventListener("click", showVillage);
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
@@ -2936,6 +3075,7 @@ function draw(t) {
       } else if (p < .75) { ctx.save(); ctx.globalAlpha = 1 - p / .75; cell(an.from, x, y, true); ctx.restore(); } }
   }
   rolling.forEach(f => f());
+  drawDiary(t);
   drawAnims(now);
   // Heilerin mit Laterne
   const lx = px * S + S / 2, ly = py * S + S / 2;
