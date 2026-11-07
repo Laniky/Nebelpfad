@@ -443,6 +443,29 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .mg-res { text-align: center; } .mg-res .big { font-size: 3rem; }
 /* Spielfeld ruhig halten: das Nachrichtenfeld hat immer dieselbe Höhe und scrollt innen */
 #dungeonView #msg { height: 7.4em; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+
+/* Level der Heilerin */
+.lvlbar { font: inherit; display: flex; align-items: center; gap: 10px; width: 100%; background: linear-gradient(90deg, #2a2414, var(--panel)); border: 1px solid #6b5530; border-radius: 14px; padding: 8px 12px; color: var(--mist); cursor: pointer; text-align: left; }
+.lvlbar:hover { border-color: var(--lantern); }
+.lvlbar .lv { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.05rem; color: #1a1408; background: radial-gradient(circle at 35% 30%, #fff1b8, var(--lantern) 60%, #c98a2e); box-shadow: 0 0 12px #f2c76b66; }
+.lvlbar .info { flex: 1; min-width: 0; }
+.lvlbar .ti2 { font-weight: 800; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xpbar { height: 8px; border-radius: 99px; background: #0c111b; overflow: hidden; margin-top: 4px; border: 1px solid var(--line); }
+.xpbar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f2c76b, #ffe9a8); transition: width .8s cubic-bezier(.3,1,.4,1); }
+.lvlbar small, .hero-card small { color: var(--muted); font-size: .72rem; }
+.hero-card { align-items: center; text-align: center; }
+.hero-card .lv { width: 72px; height: 72px; font-size: 1.8rem; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #1a1408; background: radial-gradient(circle at 35% 30%, #fff1b8, var(--lantern) 60%, #c98a2e); box-shadow: 0 0 22px #f2c76b88; }
+.hero-card .xpbar { width: 100%; height: 12px; }
+.rw-row.lock { opacity: .5; }
+.lamp { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; }
+.lamp[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 10px #fff8; }
+.lamp:disabled { opacity: .25; cursor: not-allowed; }
+.lamp.rainbow { background: conic-gradient(#e0566b, #ffd36b, #7cd67c, #6fc3ff, #b48cf2, #e0566b) !important; }
+.toast { position: fixed; left: 0; right: 0; margin: 0 auto; width: fit-content; top: 14px; z-index: 95; background: #2a2414; border: 1.5px solid var(--lantern); color: #fff; border-radius: 14px; padding: 10px 16px; font-weight: 700; box-shadow: 0 10px 30px #000a; max-width: calc(100vw - 32px); text-align: center; animation: toastIn .4s cubic-bezier(.3,1.6,.5,1); }
+.toast.big { font-size: 1.05rem; padding: 14px 20px; }
+@keyframes toastIn { from { transform: translateY(-30px); opacity: 0; } }
+.lvlbar.up .lv { animation: lvlPop .9s cubic-bezier(.3,1.6,.5,1); }
+@keyframes lvlPop { 40% { transform: scale(1.35) rotate(-8deg); box-shadow: 0 0 30px #ffe9a8; } }
 /* Tagebuch */
 .diary { display: flex; flex-direction: column; gap: 10px; }
 .page { background: linear-gradient(180deg, #f3e6c8, #e6d3a8); color: #3a2a18; border-radius: 6px 14px 14px 6px; padding: 14px 16px 14px 22px; box-shadow: 0 6px 16px #0008, inset 6px 0 0 #c9b083; font-family: Georgia, "Times New Roman", serif; line-height: 1.55; position: relative; }
@@ -640,6 +663,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
 
   <!-- ORT -->
   <section class="view" id="villageView">
+    <button class="lvlbar" id="lvlBar" type="button" aria-label="Deine Heilerin: Level und Belohnungen"></button>
     <header class="vhead">
       <div>
         <p class="eyebrow">Nebelpfad</p>
@@ -722,7 +746,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
-      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-weber">Nebelweber</a><a href="#wk-kostuem">Kostüme</a><a href="#wk-denk">Denk-Rätsel</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-weber">Nebelweber</a><a href="#wk-kostuem">Kostüme</a><a href="#wk-denk">Denk-Rätsel</a><a href="#wk-lvl">Level</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
     </nav>
     <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
   </section>
@@ -785,6 +809,22 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <form class="chatForm" id="wcForm"><input class="tin" id="wcIn" maxlength="200" autocomplete="off" placeholder="Nachricht schreiben …" aria-label="Nachricht"><button class="btn sm" type="submit">Senden</button></form>
     </div>
     <p class="help">Im Koop gibt es zusätzlich oben im Spiel einen eigenen 💬-Knopf nur für eure Gruppe.</p>
+  </section>
+
+  <!-- HEILERIN -->
+  <section class="view" id="heroView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Deine Heilerin</h1>
+        <p class="sub" id="heroSub"></p>
+      </div>
+      <button class="back" id="heroBack" type="button">Zurück</button>
+    </header>
+    <div class="card hero-card" id="heroCard"></div>
+    <div class="card"><h3>🏮 Laternenfarbe</h3><p class="sub" style="margin:0">Mit jedem Level leuchtet deine Laterne in neuen Farben. Tippe auf eine Farbe.</p><div class="bag" id="heroLamps"></div></div>
+    <div class="card"><h3>🎁 Belohnungen für jedes Level</h3><p class="sub" style="margin:0">Jedes Level schenkt dir 💎 Diamanten. Dazu gibt es Titel, Laternenfarben, mehr Beete, Kleidung, Schmuck und mehr.</p><div class="wk-list" id="heroRewards"></div></div>
+    <div class="card"><h3>⭐ So bekommst du Erfahrung</h3><div class="wk-list" id="heroXp"></div></div>
   </section>
 
   <!-- TAGEBUCH -->
@@ -1118,6 +1158,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </section>
   </section>
   <div id="fxLayer" aria-hidden="true"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   <div class="modal mg" id="mgModal" role="dialog" aria-modal="true" aria-labelledby="mgTitle" hidden>
     <div class="modal-box mg-box">
       <div class="mg-head"><h2 id="mgTitle"></h2><button class="back" id="mgX" type="button" aria-label="Minispiel schließen">✖</button></div>
@@ -1454,6 +1495,7 @@ if (!H.v2) {
   H.seeds.sonne = (H.seeds.sonne || 0) + 2; H.seeds.tulpe = (H.seeds.tulpe || 0) + 2; H.seeds.kleeb = (H.seeds.kleeb || 0) + 1;
 }
 while (H.plots.length < 9) H.plots.push(null);
+setTimeout(() => { try { while (H.plots.length < 9 + extraPlots(heroLvl())) H.plots.push(null); renderLvlBar(); } catch (e) {} }, 0);
 const saveH = () => { try { localStorage.setItem(KEY_H, JSON.stringify(H)); } catch (e) {} };
 const add = (bag, k, n = 1) => { bag[k] = (bag[k] || 0) + n; if (bag[k] <= 0) delete bag[k]; };
 const statsOf = n => H.stats[n] || (H.stats[n] = { perfect: false, harvest: 0, brew: 0 });
@@ -1665,7 +1707,7 @@ function show(id) {
   $("mtab-daily").setAttribute("aria-selected", String(id === "dailyView"));
   $("mtab-farm").setAttribute("aria-selected", String(id === "farmView"));
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
-  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView", "farmView", "hexView", "festView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView", "farmView", "hexView", "festView", "heroView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
 function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
@@ -1865,7 +1907,7 @@ function plotClick(i) {
     const s = getSettlement(cur), was = secretOpen(s);
     const TFg = teamFx(), hv2 = 2 + TFg.garden;
     if (Math.random() < 0.08) { H.gems = (H.gems || 0) + 1; setTimeout(() => hsay($("hMsg").innerHTML + " 💎 Zwischen den Wurzeln funkelt ein Diamant!"), 0); fly("💎", r, null, { dy: -70, dx: -26, delay: 400 }); }
-    add(H.herbs, p.h, hv2); statsOf(cur).harvest += hv2; H.plots[i] = null; lastAct = { i, t: "harvest" }; SND.fx.harvest();
+    add(H.herbs, p.h, hv2); statsOf(cur).harvest += hv2; xpAdd(2); H.plots[i] = null; lastAct = { i, t: "harvest" }; SND.fx.harvest();
     const back = Math.random() < (TFg.gardenSeed > 0 ? 0.5 : 0.2); if (back) add(H.seeds, p.h);
     const hb = $("herbBag") && !$("herbBag").closest("[hidden]") ? rectOf($("herbBag")) : null;
     for (let k = 0; k < hv2; k++) fly(HERBS[p.h].ic, r, hb, { dx: (k - (hv2 - 1) / 2) * 34, dy: -80, delay: k * 120, ms: 1100 });
@@ -1880,7 +1922,7 @@ function brew(id) {
   const p = POTIONS[id], s = getSettlement(cur), was = secretOpen(s);
   const btn = $("brew-" + id), from = btn ? rectOf(btn) : null, c = $("cauldron"), cr = rectOf(c);
   Object.entries(p.need).forEach(([h, n]) => add(H.herbs, h, -n));
-  add(H.potions, id, 1); statsOf(cur).brew++; saveH();
+  add(H.potions, id, 1); statsOf(cur).brew++; saveH(); xpAdd(3);
   const finish = () => {
     renderHouse();
     const pb = $("potBag"); fly(p.ic, rectOf(c), rectOf(pb), { ms: 950 });
@@ -2103,6 +2145,17 @@ function renderWiki() {
     <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
   </section>
 
+  <section class="wk-sec" id="wk-lvl"><h2>⭐ Level der Heilerin</h2>
+    <p>Oben im Ort siehst du das Level deiner Heilerin. Für fast alles bekommst du Erfahrung: gerettete Tiere, Geheimstädte, Irrgärten, Koop, Tagesrätsel, Zeitdungeons, Feste, Minispiele, Ernten und Brauen. Tippe auf die Leiste, dann siehst du alle Belohnungen.</p>
+    <ul class="wk-tip">
+      <li>Auf <b>jedem Level</b> gibt es 💎 Diamanten, auf jedem 5. Level sogar 4.</li>
+      <li><b>Titel:</b> ${TITLES.map(t => `${t[1]} (Level ${t[0]})`).join(", ")}.</li>
+      <li><b>Laternenfarben:</b> ${LAMPS.map(L => `${L[3]} (Level ${L[0]})`).join(", ")}. Die Farbe wählst du auf der Seite deiner Heilerin.</li>
+      <li><b>Mehr Möglichkeiten:</b> größerer Futterkorb (Level 6), neue Beete (Level 7, 14 und 21), 3 Tränke pro Abenteuer (Level 10) und ein 4. Herz (Level 30, nicht in Zeitdungeons und im Tagesrätsel).</li>
+      <li><b>Kleidung:</b> 🪶 Federschmuck (Level 13), 🌈 Regenbogenband (Level 22), 🦄 Einhornhorn (Level 35). <b>Lichtungsschmuck:</b> 🗿 Statue (Level 11), 🎠 Karussell (Level 17), 🏰 Schlösschen (Level 24).</li>
+    </ul>
+  </section>
+
   <section class="wk-sec" id="wk-denk"><h2>🧠 Denk-Rätsel</h2>
     <p>In vielen Dungeons musst du gut überlegen, welchen Begleiter du wo einsetzt. Wie viele Denk-Rätsel es gibt, hängt vom Dungeon ab:</p>
     <div class="wk-list">
@@ -2123,7 +2176,7 @@ function renderWiki() {
   <section class="wk-sec" id="wk-kostuem"><h2>🧣 Kostüme</h2>
     <p>Im <b>🐾 Tierbuch</b> ziehst du deinen Begleitern Kostüme an. Sie tragen sie auf den Knöpfen unter dem Spielfeld und auch, wenn sie im Abenteuer ein Hindernis lösen.</p>
     <p>Kostüme schaltest du mit Sternen frei. Jedes Abenteuer, das du ohne verlorenes Herz schaffst, gibt einen ⭐, und jede Sternentruhe zählt doppelt.</p>
-    <div class="wk-list">${Object.values(COSTUMES).map(c => row(c.ic, c.nm, c.fest ? `Festkleidung vom Festmarkt (${FESTS[c.fest].nm})` : "", c.fest ? "Festmarkt" : `ab ${c.stars} ⭐`)).join("")}</div>
+    <div class="wk-list">${Object.values(COSTUMES).map(c => row(c.ic, c.nm, c.fest ? `Festkleidung vom Festmarkt (${FESTS[c.fest].nm})` : "", c.fest ? "Festmarkt" : c.lvl ? `ab Level ${c.lvl}` : `ab ${c.stars} ⭐`)).join("")}</div>
   </section>
 
   <section class="wk-sec" id="wk-weber"><h2>🕸️ Der Nebelweber und das Tagebuch</h2>
@@ -2416,7 +2469,7 @@ $("home").addEventListener("click", leaveDungeon);
 const COLS = 7, ROWS = 10, S = 60;
 let level, theme, grid, stage, px, py, role = "heil", done, burst = [], tries = 3;
 let fx = { shield: false, reveal: false, skip: false }, lostHeart = false, runCustom = {}, potUsed = 0, startTries = 3, actUsed = new Set();
-const POT_MAX = 2;
+let POT_MAX = 2;
 const MAX_TRIES = 3;
 function paintLives() {
   let h = "Versuche:";
@@ -2474,7 +2527,8 @@ function startLevel(l) {
   try { chatSetup(l.coop); } catch (e) {}
   $("shouts").hidden = !l.coop || (!!DB && !guestMode); if (l.coop && !$("shouts").hidden) buildShouts();
   $("timer").hidden = !l.timed; if (l.timed) { if (timerId) { clearInterval(timerId); timerId = null; } timeLeft = l.limit + TF.time; }
-  tries = MAX_TRIES + TF.heart; startTries = tries; actUsed = new Set(); paintLives();
+  POT_MAX = l.fair ? 2 : potMaxFor(heroLvl());
+  tries = MAX_TRIES + TF.heart + (l.fair ? 0 : heartBonus(heroLvl())); startTries = tries; actUsed = new Set(); paintLives();
   fx = { shield: TF.shield, reveal: !!TF.reveal, skip: false, bright: !!TF.bright, seedx2: false, loot: false }; lostHeart = false; potUsed = 0; renderPotbar();
   if (TF.burn) for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "T") grid[y][x] = ".";
   if (TF.freeze) { let left = TF.freeze; for (let y = ROWS - 1; y >= 0 && left; y--) for (let x = 0; x < COLS && left; x++) if ("WU".includes(grid[y][x])) { grid[y][x] = "B"; left--; } }
@@ -2610,7 +2664,7 @@ function farmWin() {
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 900);
 }
 function escapeWin(n) {
-  done = true;
+  done = true; window.__escaped = true;
   const s = getSettlement(cur), g = rollDrop(0.1); add(H.seeds, g); saveH();
   const left = RESCUE_PITY - n;
   $("winIcon").textContent = "🌫️";
@@ -2870,7 +2924,7 @@ document.querySelectorAll(".sndBtn").forEach(b => b.addEventListener("click", SN
 SND.applyMode();
 addEventListener("keydown", e => { if ((e.key === "m" || e.key === "M") && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && !e.ctrlKey && !e.metaKey && !waitKey && !Object.values(KEYS).includes("m")) SND.cycle(); });
 // Gewinn- und Verlustbild hören (gilt für alle Spielarten, auch im Koop)
-new MutationObserver(() => { if (!$("win").hidden) { gemFlush(); SND.fx.win(); if (level && level.animalName) setTimeout(() => SND.fx.voice(level.animalName), 900); } }).observe($("win"), { attributes: true, attributeFilter: ["hidden"] });
+new MutationObserver(() => { if (!$("win").hidden) { try { xpAdd(winXp(), true); xpFlush(); } catch (e) {} gemFlush(); SND.fx.win(); if (level && level.animalName) setTimeout(() => SND.fx.voice(level.animalName), 900); } }).observe($("win"), { attributes: true, attributeFilter: ["hidden"] });
 new MutationObserver(() => { if (!$("fail").hidden) SND.fx.fail(); }).observe($("fail"), { attributes: true, attributeFilter: ["hidden"] });
 
 
@@ -3099,7 +3153,7 @@ function mgEnd(win, txt) {
   let out = txt;
   const earn = win ? 3 + Math.floor(Math.random() * 3) : 1;
   out += `<br><br>${coinGain(earn)}`;
-  if (win) { st.pieces = Math.min(FEST_NEED, (st.pieces || 0) + 1); saveH(); SND.fx.win(); out += `<br>${P[0]} <b>+1 ${P[2]}!</b> Du hast jetzt ${st.pieces}/${FEST_NEED}.` + (st.pieces >= FEST_NEED && st.done.length < 3 ? " Das reicht! Jetzt kannst du das Festabenteuer starten." : ""); }
+  if (win) { st.pieces = Math.min(FEST_NEED, (st.pieces || 0) + 1); saveH(); SND.fx.win(); xpAdd(6); out += `<br>${P[0]} <b>+1 ${P[2]}!</b> Du hast jetzt ${st.pieces}/${FEST_NEED}.` + (st.pieces >= FEST_NEED && st.done.length < 3 ? " Das reicht! Jetzt kannst du das Festabenteuer starten." : ""); }
   else SND.fx.fail();
   $("mgBody").innerHTML = `<div class="mg-res"><div class="big">${win ? "🎉" : "🌫️"}</div><p>${out}</p></div>`;
   const again = btnEl("Noch einmal", () => openMinigame(MG.id), "btn"), back = btnEl("Zurück zum Fest", mgClose, "back");
@@ -3426,12 +3480,13 @@ const COSTUMES = {
   // Festkleidung: nur auf dem Festmarkt zu kaufen
 };
 Object.entries(FESTS).forEach(([k, f]) => { COSTUMES["f_" + k] = { ic: f.cos[0], nm: f.cos[1], fest: k }; });
-const cosOk = k => { const C = COSTUMES[k]; return !!C && (C.fest ? (H.costOwned || []).includes(k) : starCount() >= C.stars); };
+Object.assign(COSTUMES, { l_feder: { ic: "🪶", nm: "Federschmuck", lvl: 13 }, l_regen: { ic: "🌈", nm: "Regenbogenband", lvl: 22 }, l_horn: { ic: "🦄", nm: "Einhornhorn", lvl: 35 } });
+const cosOk = k => { const C = COSTUMES[k]; return !!C && (C.fest ? (H.costOwned || []).includes(k) : C.lvl ? heroLvl() >= C.lvl : starCount() >= C.stars); };
 const starCount = () => Object.keys(H.stars || {}).length + Object.keys(H.starOrt || {}).length * 2;
 const cosOf = r => { const k = (H.costume || {})[r]; return k && cosOk(k) ? COSTUMES[k] : null; };
 function renderCostumes() {
   const n = starCount(), box = $("costList"); if (!box) return;
-  const next = Object.values(COSTUMES).find(c => !c.fest && c.stars > n);
+  const next = Object.values(COSTUMES).find(c => !c.fest && !c.lvl && c.stars > n);
   $("costSum").textContent = `Du hast ${n} ⭐ (jedes Abenteuer mit allen Herzen gibt einen Stern, eine Sternentruhe zählt doppelt).` + (next ? ` Nächstes Kostüm: ${next.ic} ${next.nm} ab ${next.stars} ⭐.` : " Du hast alle Kostüme freigeschaltet!");
   box.innerHTML = "";
   [...BASE_ROLES, ...PET_ROLES.filter(p => rescued[p.from])].forEach(r => {
@@ -3439,7 +3494,7 @@ function renderCostumes() {
     row.innerHTML = `<span class="ic" aria-hidden="true">${r.ic}${c ? `<small>${c.ic}</small>` : ""}</span><span class="t"><strong>${r.nm}</strong><span>${c ? `trägt: ${c.nm}` : "noch ohne Kostüm"}</span></span>`;
     const bx = el("div", "bx");
     const none = btnEl("✖", () => { H.costume = H.costume || {}; delete H.costume[r.id]; saveH(); renderCostumes(); }); none.setAttribute("aria-label", "Kein Kostüm"); none.setAttribute("aria-pressed", String(!c)); bx.appendChild(none);
-    Object.entries(COSTUMES).filter(([k, C]) => !C.fest || cosOk(k)).forEach(([k, C]) => {
+    Object.entries(COSTUMES).filter(([k, C]) => !(C.fest || C.lvl) || cosOk(k)).forEach(([k, C]) => {
       const ok = cosOk(k), b = btnEl(C.ic, () => {
         if (!ok) { $("beastMsg").textContent = `${C.ic} ${C.nm} gibt es ab ${C.stars} ⭐. Hol dir Sterne, indem du Abenteuer ohne verlorenes Herz schaffst.`; return; }
         H.costume = H.costume || {}; H.costume[r.id] = k; saveH(); SND.fx.seed(); $("beastMsg").textContent = `${r.ic} ${r.nm} trägt jetzt ${C.ic} ${C.nm}. Steht ${r.id === "heil" ? "dir" : r.nm === "Luna" || r.nm === "Ole" ? "ihr" : "ihm"} super!`; renderCostumes();
@@ -3572,7 +3627,7 @@ function clStop(finished) {
   if (rec) G.cleanBest = res.score;
   let txt = `🧹 <b>Fertig!</b> Du hast ${res.sorted} Dinge richtig einsortiert und <b>${res.score} Punkte</b> geholt.${rec ? " 🏆 Neuer Rekord!" : ""}`;
   if (first) {
-    G.cleanDay = today();
+    G.cleanDay = today(); xpAdd(8);
     const food = addFood(res.score >= 25 ? 4 : res.score >= 12 ? 3 : 2), seed = rollDrop(res.score >= 25 ? 0.3 : 0.1); add(H.seeds, seed);
     txt += `<br>🎁 Die Tiere bedanken sich: ${food.map(k => FOODS[k].ic).join(" ")} für den Futterkorb und ${HERBS[seed].ic} ${HERBS[seed].nm} als Samen.`;
     if (res.score >= 12) { H.gems = gems() + 1; txt += " 💎 Unter dem Laub lag ein Diamant!"; }
@@ -3605,6 +3660,99 @@ $("farmToGarden").addEventListener("click", () => openHouse("gardenSec"));
 $("farmToAlch").addEventListener("click", () => openHouse("alchSec"));
 
 
+
+/* ---------- Level der Heilerin ---------- */
+const LVL_MAX = 50;
+const xpNeed = l => 40 + 20 * (l - 1);           // so viel Erfahrung braucht ein Level
+function heroLvl(xp = H.xp || 0) { let l = 1; while (l < LVL_MAX && xp >= xpNeed(l)) { xp -= xpNeed(l); l++; } return l; }
+function heroProg(xp = H.xp || 0) { let l = 1; while (l < LVL_MAX && xp >= xpNeed(l)) { xp -= xpNeed(l); l++; } return { l, cur: xp, need: l < LVL_MAX ? xpNeed(l) : 0 }; }
+const TITLES = [[1, "Lehrling der Laterne"], [3, "Nebelwandlerin"], [5, "Laternenträgerin"], [8, "Tierfreundin"], [10, "Kräuterhexe"], [15, "Mondheilerin"], [20, "Sternenhüterin"], [25, "Hüterin des Nebels"], [30, "Meisterheilerin"], [40, "Legende von Nebelpfad"], [50, "Herz des Waldes"]];
+const titleOf = l => TITLES.filter(t => t[0] <= l).pop()[1];
+const LAMPS = [[1, "gold", "#f2c76b", "Gold"], [4, "rosa", "#f5a3c7", "Rosenlicht"], [6, "gruen", "#7cd67c", "Waldgrün"], [9, "blau", "#6fc3ff", "Mondblau"], [12, "lila", "#b48cf2", "Zauberlila"], [18, "weiss", "#f3f6ff", "Sternenweiß"], [28, "rainbow", "rainbow", "Regenbogen"]];
+const lampCol = t => { const k = (H.lamp || "gold"), L = LAMPS.find(x => x[1] === k && x[0] <= heroLvl()) || LAMPS[0]; if (L[2] !== "rainbow") return L[2]; return `hsl(${((t || performance.now()) / 20) % 360}, 85%, 70%)`; };
+const extraPlots = l => (l >= 7) + (l >= 14) + (l >= 21);
+const potMaxFor = l => l >= 10 ? 3 : 2;
+const heartBonus = l => l >= 30 ? 1 : 0;
+const foodBonus = l => l >= 6 ? 2 : 0;
+// Was es auf jedem besonderen Level gibt (Diamanten gibt es auf jedem Level)
+const LVL_REWARDS = [
+  ...TITLES.slice(1).map(t => [t[0], "📜", "Titel", `„${t[1]}“`]),
+  ...LAMPS.slice(1).map(L => [L[0], "🏮", "Laternenfarbe", L[3]]),
+  [6, "🧺", "Größerer Futterkorb", "Jeden Tag 2 Leckerbissen mehr für die Lichtung"],
+  [7, "🌱", "Neues Beet", "Ein 10. Beet im Kräutergarten"],
+  [10, "🧪", "Größere Tranktasche", "3 statt 2 Tränke pro Abenteuer"],
+  [11, "🗿", "Lichtungsschmuck", "Eine Statue für deine Tierlichtung"],
+  [13, "🪶", "Kleidung", "Federschmuck für einen Begleiter"],
+  [14, "🌱", "Neues Beet", "Ein 11. Beet im Kräutergarten"],
+  [17, "🎠", "Lichtungsschmuck", "Ein Karussell für die Tiere"],
+  [21, "🌱", "Neues Beet", "Ein 12. Beet im Kräutergarten"],
+  [22, "🌈", "Kleidung", "Regenbogenband für einen Begleiter"],
+  [24, "🏰", "Lichtungsschmuck", "Ein kleines Schloss für die Lichtung"],
+  [30, "💛", "Extra-Herz", "Ein 4. Herz in allen Abenteuern (außer Zeitdungeons und Tagesrätsel)"],
+  [35, "🦄", "Kleidung", "Einhornhorn für einen Begleiter"]
+].sort((a, b) => a[0] - b[0]);
+const gemsFor = l => 1 + (l % 5 === 0 ? 3 : 0);
+let xpNote = 0, lvlNote = [];
+function xpAdd(n, quiet) {
+  if (!n || typeof H === "undefined") return;
+  const before = heroLvl(); H.xp = (H.xp || 0) + n; const after = heroLvl();
+  for (let l = before + 1; l <= after; l++) {
+    const g = gemsFor(l); H.gems = (H.gems || 0) + g;
+    const rw = LVL_REWARDS.filter(r => r[0] === l).map(r => `${r[1]} ${r[2]}: ${r[3]}`);
+    lvlNote.push(`⬆️ <b>Level ${l}!</b> ${titleOf(l) !== titleOf(l - 1) ? `Neuer Titel: <b>${titleOf(l)}</b>. ` : ""}Geschenk: 💎 ${g}${rw.length ? " · " + rw.join(" · ") : ""}`);
+  }
+  while (H.plots.length < 9 + extraPlots(after)) H.plots.push(null);
+  saveH();
+  xpNote += n;
+  if (after > before) { SND.fx.win(); $("lvlBar").classList.remove("up"); void $("lvlBar").offsetWidth; $("lvlBar").classList.add("up"); }
+  if (!quiet) xpToast();
+  renderLvlBar();
+}
+let toastT = null;
+function xpToast() {
+  if (!xpNote && !lvlNote.length) return;
+  const t = $("toast"); t.className = "toast" + (lvlNote.length ? " big" : "");
+  const notes = lvlNote.length > 2 ? [`⬆️ <b>${lvlNote.length} Level aufgestiegen!</b> Alle Geschenke siehst du auf der Seite deiner Heilerin.`, lvlNote[lvlNote.length - 1]] : lvlNote;
+  t.innerHTML = (xpNote ? `⭐ +${xpNote} Erfahrung` : "") + (notes.length ? "<br>" + notes.join("<br>") : "");
+  t.hidden = false; xpNote = 0; lvlNote = [];
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4200);
+}
+// Beim Gewinnbild: Erfahrung und Level-Aufstieg direkt in den Text
+function xpFlush() {
+  if (!xpNote && !lvlNote.length) return;
+  $("winText").innerHTML += `<br><br>⭐ <b>+${xpNote} Erfahrung</b>` + (lvlNote.length ? "<br>" + lvlNote.join("<br>") : "");
+  xpNote = 0; lvlNote = [];
+}
+function winXp() {
+  if (!level) return 0;
+  if (window.__escaped) { window.__escaped = false; return 12; }
+  if (level.coop) return 20; if (level.weaver) return 60; if (level.superD) return 50; if (level.secret) return 40;
+  if (level.daily) return 25; if (level.timed) return 15; if (level.farm) return 8; if (level.fest) return level.festReplay ? 10 : 25;
+  return 30;
+}
+function renderLvlBar() {
+  const P = heroProg(), b = $("lvlBar"); if (!b) return;
+  b.innerHTML = `<span class="lv">${P.l}</span><span class="info"><span class="ti2">${titleOf(P.l)}</span><span class="xpbar"><i style="width:${P.need ? Math.round(P.cur / P.need * 100) : 100}%"></i></span><small>${P.need ? `${P.cur} / ${P.need} Erfahrung bis Level ${P.l + 1}` : "Höchstes Level erreicht!"}</small></span>`;
+}
+function openHero() {
+  const P = heroProg(), l = P.l;
+  $("heroSub").textContent = `Level ${l} · ${titleOf(l)}`;
+  $("heroCard").innerHTML = `<span class="lv">${l}</span><h2 style="margin:4px 0 0">${titleOf(l)}</h2><span class="xpbar"><i style="width:${P.need ? Math.round(P.cur / P.need * 100) : 100}%"></i></span><small>${P.need ? `${P.cur} / ${P.need} Erfahrung bis Level ${l + 1}` : "Höchstes Level erreicht!"} · insgesamt ${H.xp || 0} Erfahrung</small>
+    <small>Gerade aktiv: ${9 + extraPlots(l)} Beete · ${potMaxFor(l)} Tränke pro Abenteuer${heartBonus(l) ? " · 4 Herzen" : ""}${foodBonus(l) ? " · größerer Futterkorb" : ""}</small>`;
+  const lp = $("heroLamps"); lp.innerHTML = "";
+  LAMPS.forEach(L => { const b = el("button", "lamp" + (L[2] === "rainbow" ? " rainbow" : "")); b.type = "button"; b.style.background = L[2]; b.title = `${L[3]} (ab Level ${L[0]})`; b.setAttribute("aria-label", b.title);
+    b.disabled = l < L[0]; b.setAttribute("aria-pressed", String((H.lamp || "gold") === L[1]));
+    b.addEventListener("click", () => { H.lamp = L[1]; saveH(); openHero(); }); lp.appendChild(b); });
+  const all = [];
+  for (let k = 2; k <= Math.min(LVL_MAX, Math.max(l + 6, 36)); k++) { const rw = LVL_REWARDS.filter(r => r[0] === k); all.push([k, `💎 ${gemsFor(k)}` + (rw.length ? " · " + rw.map(r => `${r[1]} ${r[2]}: ${r[3]}`).join(" · ") : "")]); }
+  $("heroRewards").innerHTML = all.map(([k, t]) => `<div class="wk-row rw-row${k > l ? " lock" : ""}"><span class="ic" aria-hidden="true">${k <= l ? "✅" : "🔒"}</span><span class="t"><strong>Level ${k}</strong><span>${t}</span></span></div>`).join("");
+  $("heroXp").innerHTML = [["🐾", "Tier gerettet", 30], ["🌫️", "Tier entwischt (Fast geschafft)", 12], ["🗝️", "Geheimstadt", 40], ["🌀", "Irrgarten", 50], ["🕸️", "Nebelnetz", 60], ["🤝", "Koop", 20], ["🧩", "Tagesrätsel", 25], ["⏳", "Zeitdungeon", 15], ["🎉", "Festtier (Festgeschenk 10)", 25], ["🌿", "Kräuterpfad", 8], ["🎲", "Fest-Minispiel gewonnen", 6], ["🧹", "Aufräum-Spiel", 8], ["🧺", "Ernten", 2], ["⚗️", "Trank brauen", 3]]
+    .map(([ic, t, n]) => `<div class="wk-row"><span class="ic" aria-hidden="true">${ic}</span><span class="t"><strong>${t}</strong></span><span class="need">+${n} ⭐</span></div>`).join("");
+  show("heroView");
+}
+$("lvlBar").addEventListener("click", openHero);
+setTimeout(renderLvlBar, 0);
+$("heroBack").addEventListener("click", showVillage);
 /* ---------- Diamanten 💎 und Zeit verhexen ---------- */
 let gemAt = null, gemNote = 0;
 const gems = () => H.gems || 0;
@@ -3716,7 +3864,8 @@ const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
   stamm:  { ic: "🪵", nm: "Baumstamm", cost: 3 }, stein: { ic: "🪨", nm: "Stein", cost: 3 }, laterne: { ic: "🏮", nm: "Laterne", cost: 4 },
   busch:  { ic: "🌳", nm: "Baum", cost: 5, cls: "big" }, brunnen: { ic: "⛲", nm: "Brunnen", cost: 6, cls: "big" }, haus: { ic: "🏡", nm: "Tierhäuschen", cost: 8, cls: "big" },
-  regen:  { ic: "🌈", nm: "Regenbogen", cost: 10, cls: "big" }
+  regen:  { ic: "🌈", nm: "Regenbogen", cost: 10, cls: "big" },
+  statue: { ic: "🗿", nm: "Statue", cost: 6, cls: "big", lvl: 11 }, karussell: { ic: "🎠", nm: "Karussell", cost: 8, cls: "big", lvl: 17 }, schloss: { ic: "🏰", nm: "Schlösschen", cost: 12, cls: "big", lvl: 24 }
 };
 const GL_LINES = ["Danke, dass du mich gerettet hast!", "Hier ist es so schön ruhig.", "Spielst du ein bisschen mit mir?", "Ich hab heute schon drei Schmetterlinge gesehen!", "Erzählst du mir, was du im Nebel erlebt hast?", "Ich fühl mich hier richtig zu Hause.", "Hast du etwas Leckeres dabei?", "Die anderen Tiere sind sehr nett zu mir."];
 const GL_FAV = ["mond", "tau", "stern", "pilz", "sonne", "tulpe", "kleeb"];
@@ -3730,7 +3879,7 @@ function refillBasket() {
   const first = !G.foodDay; G.foodDay = today();
   // Lieblingsfutter der Bewohner kommt bevorzugt in den Korb
   const favs = rescuedAnimals().map(a => foodFav(a.nm)); const got = [];
-  for (let i = 0; i < (first ? 10 : 8); i++) { const k = favs.length && Math.random() < 0.6 ? favs[Math.floor(Math.random() * favs.length)] : Object.keys(FOODS)[Math.floor(Math.random() * 8)]; G.food[k] = Math.min(20, (G.food[k] || 0) + 1); got.push(k); }
+  for (let i = 0; i < (first ? 10 : 8) + foodBonus(heroLvl()); i++) { const k = favs.length && Math.random() < 0.6 ? favs[Math.floor(Math.random() * favs.length)] : Object.keys(FOODS)[Math.floor(Math.random() * 8)]; G.food[k] = Math.min(20, (G.food[k] || 0) + 1); got.push(k); }
   saveH(); return got;
 }
 let glSel = null, glTimer = null, glPos = {};
@@ -3791,7 +3940,7 @@ function renderGlade(greet) {
   const db = $("gDeco"); db.innerHTML = "";
   (H.festDeco || []).forEach(fk => { const F = FESTS[fk]; if (F && !GL_DECO["fest_" + fk]) GL_DECO["fest_" + fk] = { ic: F.deco[0], nm: F.deco[1], cost: 3 }; });
   (H.festDeco2 || []).forEach(fk => { const D2 = FEST_DECO2[fk]; if (D2 && !GL_DECO["fest2_" + fk]) GL_DECO["fest2_" + fk] = { ic: D2[0], nm: D2[1], cost: 2 }; });
-  Object.entries(GL_DECO).forEach(([k, D]) => { const c = btnEl(`${D.ic} ${D.nm} · ${D.cost} 🌿`, () => { glSel = glSel === "d:" + k ? null : "d:" + k; renderGlade(); gsay(glSel ? `${D.ic} ${D.nm} ausgewählt. Tippe auf die Wiese, wo es stehen soll.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "d:" + k)); db.appendChild(c); });
+  Object.entries(GL_DECO).filter(([k, D]) => !D.lvl || heroLvl() >= D.lvl).forEach(([k, D]) => { const c = btnEl(`${D.ic} ${D.nm} · ${D.cost} 🌿`, () => { glSel = glSel === "d:" + k ? null : "d:" + k; renderGlade(); gsay(glSel ? `${D.ic} ${D.nm} ausgewählt. Tippe auf die Wiese, wo es stehen soll.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "d:" + k)); db.appendChild(c); });
   const sw = btnEl("↩️ Wegnehmen", () => { glSel = glSel === "sweep" ? null : "sweep"; renderGlade(); gsay(glSel ? "↩️ Tippe auf einen Schmuck, um ihn wegzunehmen." : "Nichts ausgewählt."); }); sw.setAttribute("aria-pressed", String(glSel === "sweep")); db.appendChild(sw);
   // Freundschaft
   const fl = $("gFriends");
@@ -4191,11 +4340,12 @@ function draw(t) {
   // Heilerin mit Laterne
   const lx = px * S + S / 2, ly = py * S + S / 2;
   const glow = ctx.createRadialGradient(lx, ly, 2, lx, ly, S * .55);
-  glow.addColorStop(0, "#f2c76bcc"); glow.addColorStop(1, "#f2c76b00");
+  const lc = lampCol(t), lg = lc.startsWith("hsl") ? lc.replace("hsl", "hsla").replace(")", ", .8)") : lc + "cc", lg0 = lc.startsWith("hsl") ? lc.replace("hsl", "hsla").replace(")", ", 0)") : lc + "00";
+  glow.addColorStop(0, lg); glow.addColorStop(1, lg0);
   ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(lx, ly, S * .55, 0, 7); ctx.fill();
   ctx.fillStyle = "#3b2c5c"; ctx.beginPath(); ctx.moveTo(lx, ly - 18); ctx.lineTo(lx + 13, ly + 16); ctx.lineTo(lx - 13, ly + 16); ctx.closePath(); ctx.fill();
   ctx.fillStyle = "#f3dcc0"; ctx.beginPath(); ctx.arc(lx, ly - 6, 6, 0, 7); ctx.fill();
-  ctx.fillStyle = "#f2c76b"; ctx.beginPath(); ctx.arc(lx + 12, ly + 4, 4, 0, 7); ctx.fill();
+  ctx.fillStyle = lc; ctx.beginPath(); ctx.arc(lx + 12, ly + 4, 4, 0, 7); ctx.fill();
 
   // Nebel rund um die Laterne
   const fr = fx.bright ? 1.9 : 1;
