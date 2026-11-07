@@ -509,9 +509,13 @@ select, .chatform input { font: inherit; background: #0c111b; color: var(--mist)
 .note:empty { display: none; }
 .note { background: #241f12; border: 1px solid #6b5530; border-radius: 12px; padding: 10px 14px; font-size: .9rem; }
 select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
-.maintabs { display: grid; grid-template-columns: 1.25fr 1fr 1fr 1fr; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 4px; }
-.mtab { font: inherit; font-weight: 700; font-size: .88rem; white-space: nowrap; background: transparent; color: var(--muted); border: 0; border-radius: 99px; padding: 9px 4px; cursor: pointer; }
+.maintabs { display: grid; grid-template-columns: 1.3fr 1fr 1.1fr 1.1fr 1fr; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 4px; }
+.mtab { font: inherit; font-weight: 700; font-size: .88rem; white-space: nowrap; background: transparent; color: var(--muted); border: 0; border-radius: 99px; padding: 9px 3px; min-width: 0; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 .mtab[aria-selected="true"] { background: var(--lantern); color: #1a1408; }
+.mtab { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px !important; border-radius: 16px !important; }
+.mtab .ti { font-size: 1.15rem; line-height: 1.1; }
+.mtab .tl { font-size: .74rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.maintabs { border-radius: 20px !important; grid-template-columns: 1.35fr 0.85fr 1fr 1fr 0.9fr !important; }
 .mtab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
 /* Spielfeld und Begleiter passen auf einen Bildschirm */
 .board { width: min(100%, calc((100vh - 395px) * .7)); width: min(100%, calc((100dvh - 395px) * .7)); min-width: min(100%, 240px); align-self: center; }
@@ -582,10 +586,11 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
 
 <div class="wrap">
   <nav class="maintabs" id="mainTabs" role="tablist" aria-label="Spielbereiche">
-    <button class="mtab" id="mtab-ort" type="button" role="tab" aria-selected="true">🏡 Abenteuer</button>
-    <button class="mtab" id="mtab-time" type="button" role="tab" aria-selected="false">⏳ Zeit</button>
-    <button class="mtab" id="mtab-daily" type="button" role="tab" aria-selected="false">🗓️ Täglich</button>
-    <button class="mtab" id="mtab-farm" type="button" role="tab" aria-selected="false">🌿 Kräuter</button>
+    <button class="mtab" id="mtab-ort" type="button" role="tab" aria-selected="true"><span class="ti" aria-hidden="true">🏡</span><span class="tl">Abenteuer</span></button>
+    <button class="mtab" id="mtab-time" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true">⏳</span><span class="tl">Zeit</span></button>
+    <button class="mtab" id="mtab-daily" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true">🗓️</span><span class="tl">Täglich</span></button>
+    <button class="mtab" id="mtab-farm" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true">🌿</span><span class="tl">Kräuter</span></button>
+    <button class="mtab" id="mtab-hex" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true">🍭</span><span class="tl">Haus</span></button>
   </nav>
 
   <!-- ORT -->
@@ -1590,7 +1595,8 @@ $("rmOk").addEventListener("click", () => {
 
 function show(id) {
   if (id !== "dungeonView") stopTimer();
-  $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView" || id === "farmView");
+  $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView" || id === "farmView" || id === "hexView");
+  $("mtab-hex").setAttribute("aria-selected", String(id === "hexView"));
   $("mtab-daily").setAttribute("aria-selected", String(id === "dailyView"));
   $("mtab-farm").setAttribute("aria-selected", String(id === "farmView"));
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
@@ -3379,6 +3385,7 @@ function openHex() {
 }
 $("toHex").addEventListener("click", openHex);
 $("toHexCard").addEventListener("click", openHex);
+$("mtab-hex").addEventListener("click", openHex);
 $("hexBack").addEventListener("click", showVillage);
 $("hxPot").addEventListener("click", () => openHouse("alchSec"));
 $("hxBeds").addEventListener("click", () => openHouse("gardenSec"));
