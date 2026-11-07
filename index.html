@@ -377,6 +377,8 @@ select, .chatform input { font: inherit; background: #0c111b; color: var(--mist)
 .cm time { color: var(--muted); font-size: .7rem; margin-left: 6px; }
 .chatform { display: flex; gap: 6px; }
 .on { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #5fd18c; margin-right: 6px; }
+.have { display: inline-block; font-size: .75rem; font-weight: 800; background: #2a2414; color: var(--lantern); border: 1px solid #6b5530; border-radius: 99px; padding: 1px 7px; margin-left: 4px; vertical-align: middle; }
+.have.zero { color: var(--muted); background: transparent; border-color: var(--line); }
 .seg { display: flex; gap: 6px; flex-wrap: wrap; }
 .chk { display: flex; gap: 8px; align-items: center; font-size: .9rem !important; color: var(--mist) !important; font-weight: 600 !important; }
 .chk input { width: 18px; height: 18px; accent-color: var(--lantern); }
@@ -1454,7 +1456,8 @@ function renderHouse() {
       rl.appendChild(row); return;
     }
     const ing = Object.entries(p.need).map(([h, n]) => `${HERBS[h].ic} ${Math.min(H.herbs[h] || 0, n)}/${n}`).join(" · ");
-    row.innerHTML = `<span class="ic" aria-hidden="true">${p.ic}</span><span class="t"><strong>${p.nm}${p.rare ? ' <small class="rare">selten</small>' : ""}</strong><span>${p.eff}<br>${ing}</span></span>`;
+    const have = H.potions[id] || 0;
+    row.innerHTML = `<span class="ic" aria-hidden="true">${p.ic}</span><span class="t"><strong>${p.nm}${p.rare ? ' <small class="rare">selten</small>' : ""} <span class="have${have ? "" : " zero"}" title="So viele hast du schon">🧪 ${have} im Vorrat</span></strong><span>${p.eff}<br>${ing}</span></span>`;
     const b = document.createElement("button"); b.type = "button"; b.className = "btn sm"; b.id = "brew-" + id; b.textContent = "Brauen"; b.disabled = !canBrew(id);
     b.addEventListener("click", () => brew(id));
     row.appendChild(b); rl.appendChild(row);
@@ -1824,7 +1827,7 @@ function renderWiki() {
   </section>
 
   <section class="wk-sec" id="wk-alch"><h2>Alchemietisch</h2>
-    <p>Am Alchemietisch braust du aus Kräutern Tränke. Im Abenteuer trinkst du sie über die Tränke-Leiste. <b>Pro Abenteuer kannst du höchstens 2 Tränke trinken</b>, wähle also gut aus.</p>
+    <p>Am Alchemietisch braust du aus Kräutern Tränke. Neben jedem Rezept steht, wie viele du davon schon im Vorrat hast (🧪). Im Abenteuer trinkst du sie über die Tränke-Leiste. <b>Pro Abenteuer kannst du höchstens 2 Tränke trinken</b>, wähle also gut aus.</p>
     ${[["Einfache Rezepte", false], ["Seltene Rezepte", true]].map(([title, rare]) => `
     <h3>${title}</h3>
     ${rare ? "<p>Seltene Rezepte findest du in Geheimstädten: bei jedem ersten Sieg dort ein neues, in der Reihenfolge dieser Tabelle.</p>" : ""}
