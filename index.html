@@ -289,6 +289,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .plot:hover { transform: translateY(-2px); }
 .plot:active { transform: translateY(1px) scale(.97); }
 
+/* Feste */
+.card.fest { border-width: 1.5px; }
+.card.fest-fruehling { background: linear-gradient(160deg, #3a2436, var(--panel) 70%); border-color: #f5b8d0; }
+.card.fest-sommer { background: linear-gradient(160deg, #2c3a22, var(--panel) 70%); border-color: #e8ff8a; }
+.card.fest-herbst { background: linear-gradient(160deg, #3d2914, var(--panel) 70%); border-color: #ffb35a; }
+.card.fest-winter { background: linear-gradient(160deg, #22344a, var(--panel) 70%); border-color: #cfe8ff; }
 /* Tierlichtung */
 .glade { position: relative; height: 340px; border-radius: 18px; overflow: hidden; border: 1px solid #2f4a2f; cursor: pointer; user-select: none; -webkit-user-select: none;
   background: radial-gradient(circle at 78% 12%, #fff6d0 0 9px, #fff6d055 11px, transparent 26px), linear-gradient(180deg, #24344f 0, #3a5a5a 20%, #4a7a48 30%, #5a9650 62%, #477f40 100%); }
@@ -538,7 +544,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
-      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
     </nav>
     <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
   </section>
@@ -608,7 +614,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <div class="bag" id="gDeco"></div>
     </div>
     <div class="card">
-      <h3>💛 Freundschaft</h3>
+      <h3>⭐ Ruf bei den Tieren</h3>
       <div class="wk-list" id="gFriends"></div>
     </div>
   </section>
@@ -866,7 +872,11 @@ const HERBS = {
   rose:  { ic: "🌹", nm: "Nebelrose",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
   klee:  { ic: "☘️", nm: "Kristallklee", from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
   frost: { ic: "❄️", nm: "Frostfarn",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
-  moos:  { ic: "🌟", nm: "Sternmoos",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true }
+  moos:  { ic: "🌟", nm: "Sternmoos",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
+  kirsch: { ic: "🌸", nm: "Kirschblüte",  from: "Nur im Frühling: Blütenfest", fest: true },
+  gluehb: { ic: "🍒", nm: "Glühkirsche",  from: "Nur im Sommer: Glühwürmchenfest", fest: true },
+  kuerb:  { ic: "🎃", nm: "Kürbisranke",  from: "Nur im Herbst: Laternenfest", fest: true },
+  eisbl:  { ic: "💠", nm: "Eisblüte",     from: "Nur im Winter: Schneedorf", fest: true }
 };
 const POTIONS = {
   gluck: { ic: "🍵", nm: "Glückstee",        eff: "Der nächste falsche Begleiter kostet kein Herz.", need: { mond: 1, tau: 1 } },
@@ -1173,6 +1183,7 @@ function renderVillage() {
   const s = getSettlement(cur), T = TIERS[s.tier];
   $("vName").textContent = s.name;
   $("vSub").textContent = `${T.name} · Ort ${s.n}. Jedes Tier, das du rettest, findet hier ein Zuhause.`;
+  { const F = festNow(); $("vSub").textContent += ` ${F.ic} Gerade ist ${F.nm}! Schau in den Reiter Täglich.`; }
 
   const max = unlockedMax(), pl = $("places"); pl.innerHTML = "";
   for (let n = 1; n <= max; n++) {
@@ -1655,6 +1666,16 @@ function renderWiki() {
     <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
   </section>
 
+  <section class="wk-sec" id="wk-fest"><h2>🎉 Feste im Jahr</h2>
+    <p>Zu jeder Jahreszeit feiert das Land ein Fest. Das aktuelle Fest findest du im Reiter <b>🗓️ Täglich</b>, und im Ort steht ein Hinweis.</p>
+    <div class="wk-list">${Object.values(FESTS).map(F => row(F.ic, F.nm, `${F.txt} Festtiere: ${F.animals.map(a => a[0] + " " + a[1]).join(", ")}. Nur dann: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.`, ["März bis Mai", "Juni bis August", "September bis November", "Dezember bis Februar"][Object.values(FESTS).indexOf(F)])).join("")}</div>
+    <ul class="wk-tip">
+      <li>Im Festabenteuer schweben Blüten, Glühwürmchen, Laternen oder Schneeflocken über dem Spielfeld.</li>
+      <li>Jedes gerettete Festtier zieht auf deine Tierlichtung und bleibt dort für immer.</li>
+      <li>Nach allen drei Festtieren kannst du weiterspielen, um mehr Festsamen zu sammeln.</li>
+    </ul>
+  </section>
+
   <section class="wk-sec" id="wk-tag"><h2>🧩 Tagesrätsel</h2>
     <p>Im Reiter <b>🗓️ Täglich</b> wartet jeden Tag ein neues Rätsel-Dungeon. Es ist an diesem Tag für <b>alle Spieler gleich</b>, so könnt ihr vergleichen, wer es am besten geschafft hat. Es helfen nur die fünf Grund-Begleiter, damit alle die gleichen Chancen haben.</p>
     <ul class="wk-tip">
@@ -1668,7 +1689,8 @@ function renderWiki() {
     <p>Über <b>🌳 Lichtung</b> im Ort besuchst du alle Tiere, die du gerettet hast. Sie laufen über die Wiese und freuen sich, wenn du vorbeikommst.</p>
     <ul class="wk-tip">
       <li><b>Streicheln:</b> Tippe auf ein Tier, dann hüpft es und erzählt dir etwas. Jedes Tier hat seine eigene Stimme.</li>
-      <li><b>Füttern:</b> Im <b>🧺 Futterkorb</b> liegen Karotten 🥕, Äpfel 🍎, Nüsse 🌰, Beeren 🍓, Fisch 🐟, Honig 🍯, Klee 🍀 und Körner 🌾. Er füllt sich jeden Tag neu, und nach jeder Rettung kommen zwei Leckerbissen dazu. Auch Kräuter kannst du verfüttern. Wähle das Futter und tippe auf ein Tier. Das gibt ❤️ Freundschaft. Lieblingsfutter (zum Beispiel 🥕 für den Hasen oder 🐟 für die Katze) zählt doppelt. Pro Tag mag jedes Tier bis zu drei Leckerbissen.</li>
+      <li><b>Füttern:</b> Im <b>🧺 Futterkorb</b> liegen Karotten 🥕, Äpfel 🍎, Nüsse 🌰, Beeren 🍓, Fisch 🐟, Honig 🍯, Klee 🍀 und Körner 🌾. Er füllt sich jeden Tag neu, und nach jeder Rettung kommen zwei Leckerbissen dazu. Auch Kräuter kannst du verfüttern. Wähle das Futter und tippe auf ein Tier. Das bringt dir ❤️ <b>Ruf</b> bei diesem Tier. Lieblingsfutter (zum Beispiel 🥕 für den Hasen oder 🐟 für die Katze) und das Lieblingskraut zählen doppelt. Pro Tag mag jedes Tier bis zu drei Leckerbissen.</li>
+      <li><b>Ruf-Stufen:</b> 🙈 Scheu → 👀 Neugierig (1 Herz) → 😊 Freundlich (3) → 💛 Vertraut (6) → 🌟 Beste Freunde (10). Deinen Ruf bei jedem Tier siehst du unten auf der Lichtung.</li>
       <li><b>Geschenke:</b> Bei 3 Herzen schenkt dir das Tier zwei Samen, bei 6 Herzen einen seltenen Samen, und bei 10 Herzen seid ihr beste Freunde 🌟 und du bekommst einen Herztrank.</li>
       <li><b>Schmücken:</b> Blumen, Pilze, Laternen, ein Brunnen, ein Tierhäuschen und sogar ein Regenbogen. Du bezahlst mit Kräutern, egal welchen. Mit 🧹 räumst du wieder weg und bekommst die Kräuter zurück.</li>
     </ul>
@@ -1906,7 +1928,7 @@ $("wikiView").addEventListener("click", e => {
   const a = e.target.closest(".wk-nav a"); if (!a) return;
   e.preventDefault(); const t = document.querySelector(a.getAttribute("href")); if (t) t.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
 });
-const leaveDungeon = () => { if (level && level.daily) showDaily(); else if (level && level.timed && !level.coop) showTime(); else showVillage(); };
+const leaveDungeon = () => { if (level && (level.daily || level.fest)) showDaily(); else if (level && level.timed && !level.coop) showTime(); else showVillage(); };
 $("back").addEventListener("click", leaveDungeon);
 $("home").addEventListener("click", leaveDungeon);
 
@@ -2070,6 +2092,7 @@ function perfectBonus() {
 function rescue() {
   if (level.coop) { coopWin(); return; }
   if (level.daily) { dailyWin(); return; }
+  if (level.fest) { festWin(); return; }
   if (level.timed) { timeWin(); return; }
   if (level.superD) { superWin(); return; }
   const wasOpen = secretOpen(getSettlement(cur));
@@ -2390,7 +2413,69 @@ function dailyWin() {
 }
 $("mtab-daily").addEventListener("click", showDaily);
 $("dailyName").addEventListener("change", () => { try { localStorage.setItem("nebelpfad-coopname", $("dailyName").value.trim().slice(0, 20)); } catch (e) {} });
-function renderFest() {}
+
+/* ---------- Feste im Jahr ---------- */
+const FESTS = {
+  fruehling: { nm: "Blütenfest", ic: "🌷", months: [2, 3, 4], theme: "wiese", seed: "kirsch", fx: "petal", col: "#f5b8d0",
+    txt: "Überall blühen die Bäume, und rosa Blüten tanzen durch die Luft.", animals: [["🐣", "Frühlingsküken", "Das Frühlingsküken"], ["🐝", "Blütenbiene", "Die Blütenbiene"], ["🐞", "Marienkäfer", "Der Marienkäfer"]], deco: ["🌷", "Tulpenbeet"] },
+  sommer: { nm: "Glühwürmchenfest", ic: "✨", months: [5, 6, 7], theme: "see", seed: "gluehb", fx: "firefly", col: "#e8ff8a",
+    txt: "In den warmen Nächten leuchten tausend Glühwürmchen über dem Wasser.", animals: [["🦩", "Flamingo", "Der Flamingo"], ["🐠", "Sonnenfisch", "Der Sonnenfisch"], ["🦗", "Grille", "Die Grille"]], deco: ["🪁", "Drachen"] },
+  herbst: { nm: "Laternenfest", ic: "🏮", months: [8, 9, 10], theme: "wald", seed: "kuerb", fx: "lantern", col: "#ffb35a",
+    txt: "Im Wald schweben warme Laternen, und es riecht nach Kürbis und Kastanien.", animals: [["🦔", "Laternenigel", "Der Laternenigel"], ["🦉", "Herbstkauz", "Der Herbstkauz"], ["🐿️", "Kastanienhörnchen", "Das Kastanienhörnchen"]], deco: ["🎃", "Kürbis"] },
+  winter: { nm: "Schneedorf", ic: "❄️", months: [11, 0, 1], theme: "gipfel", seed: "eisbl", fx: "snow", col: "#ffffff",
+    txt: "Leise fällt Schnee auf die Berge, und im Dorf glitzern die Eiszapfen.", animals: [["🐧", "Schneepinguin", "Der Schneepinguin"], ["🦌", "Rentier", "Das Rentier"], ["🐻‍❄️", "Eisbär", "Der Eisbär"]], deco: ["⛄", "Schneemann"] }
+};
+const festNow = (d = new Date()) => { const k = Object.keys(FESTS).find(k => FESTS[k].months.includes(d.getMonth())); return { k, ...FESTS[k] }; };
+const festYear = (d = new Date()) => d.getMonth() <= 1 ? d.getFullYear() - 1 : d.getFullYear();
+function festState() { const F = festNow(), id = F.k + "-" + festYear(); H.fest = H.fest || {}; H.fest[id] = H.fest[id] || { done: [] }; return { F, id, st: H.fest[id] }; }
+function festLevel() {
+  const { F, st } = festState(), th = THEMES[F.theme];
+  const next = F.animals.find(a => !st.done.includes(a[1])) || F.animals[Math.floor(Math.random() * 3)];
+  return { id: "fest-" + F.k, fest: F.k, name: `${F.ic} ${F.nm}: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: F.ic, theme: F.theme, wall: th.wall, mode: 0,
+    animal: next[0], animalName: next[1], who: next[2],
+    ring: F.col, gen: { count: 9, tier: 1 },
+    intro: `${F.ic} <b>${F.nm}!</b> ${F.txt} Irgendwo hier wartet <b>${next[2].replace(/^D/, "d")}</b> auf dich.`,
+    animalHint: `${next[2]} ist in einem Festzauber gefangen. Nur die Heilerin kann den Zauber lösen.` };
+}
+function festWin() {
+  done = true;
+  const { F, st } = festState(), nm = level.animalName, first = !st.done.includes(nm);
+  if (first) st.done.push(nm);
+  H.festAnimals = H.festAnimals || []; if (!H.festAnimals.some(a => a.nm === nm)) H.festAnimals.push({ ic: level.animal, nm });
+  const n = first ? 2 : 1; add(H.seeds, F.seed, n);
+  const extra = [rollDrop(0.2)]; extra.forEach(k => add(H.seeds, k)); addFood(2);
+  let txt = `${level.animal} <b>${nm}</b> zieht auf deine Tierlichtung 🌳<br><br>🎁 Belohnung: ${n}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} (gibt es nur zu diesem Fest!) und ${extra.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
+  H.festDeco = H.festDeco || []; if (!H.festDeco.includes(F.k)) { H.festDeco.push(F.k); txt += `<br>${F.deco[0]} Neu für die Lichtung: <b>${F.deco[1]}</b>.`; }
+  if (first && st.done.length === 3) txt += `<br><br>🌟 Du hast alle drei Festtiere des ${F.nm}s gerettet! Weiterspielen kannst du trotzdem, für Festsamen.`;
+  saveH();
+  $("winIcon").textContent = level.animal; $("winTitle").textContent = `${F.nm}: ${nm} ist frei!`; $("winText").innerHTML = txt; $("home").textContent = "Zurück";
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+}
+function renderFest() {
+  const { F, st } = festState(), box = $("festBox"); if (!box) return;
+  box.className = "card fest fest-" + F.k;
+  box.innerHTML = `<h2>${F.ic} ${F.nm}</h2><p class="sub" style="margin:0">${F.txt}</p>
+    <p style="margin:0">Festtiere: ${F.animals.map(a => st.done.includes(a[1]) ? `${a[0]} ${a[1]} ✅` : `❔ ${a[1]}`).join(" · ")}</p>
+    <p class="sub" style="margin:0">Nur jetzt: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.</p>`;
+  box.appendChild(btnEl(st.done.length < 3 ? "Festabenteuer starten" : "Noch einmal feiern", () => startLevel(festLevel()), "btn"));
+}
+// Festliche Teilchen über dem Spielfeld
+let festParts = [];
+function festFx(t) {
+  const F = FESTS[level.fest]; if (!F || reduce) return;
+  if (!festParts.length) for (let i = 0; i < 22; i++) festParts.push({ x: Math.random() * cv.width, y: Math.random() * cv.height, s: Math.random(), p: Math.random() * 6 });
+  if (festParts.length < 26 && Math.random() < 0.05) festParts.push({ x: Math.random() * cv.width, y: F.fx === "lantern" || F.fx === "firefly" ? cv.height + 10 : -10, s: Math.random(), p: Math.random() * 6 });
+  ctx.save();
+  festParts = festParts.filter(q => q.y > -30 && q.y < cv.height + 30);
+  festParts.forEach(q => {
+    q.p += 0.03;
+    if (F.fx === "snow") { q.y += 0.6 + q.s; q.x += Math.sin(q.p) * 0.5; ctx.fillStyle = "#ffffffcc"; ctx.beginPath(); ctx.arc(q.x, q.y, 1.5 + q.s * 2, 0, 7); ctx.fill(); }
+    if (F.fx === "petal") { q.y += 0.5 + q.s * 0.6; q.x += Math.sin(q.p) * 1.1; ctx.fillStyle = "#f5b8d0dd"; ctx.beginPath(); ctx.ellipse(q.x, q.y, 3.5, 2, q.p, 0, 7); ctx.fill(); }
+    if (F.fx === "lantern") { q.y -= 0.35 + q.s * 0.3; q.x += Math.sin(q.p) * 0.3; const g = ctx.createRadialGradient(q.x, q.y, 1, q.x, q.y, 14); g.addColorStop(0, "#ffd08acc"); g.addColorStop(1, "#ff9a3a00"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q.x, q.y, 14, 0, 7); ctx.fill(); ctx.fillStyle = "#ff9a3a"; ctx.fillRect(q.x - 3, q.y - 4, 6, 8); }
+    if (F.fx === "firefly") { q.y -= 0.25 + q.s * 0.3; q.x += Math.sin(q.p * 1.7) * 0.8; const a = 0.4 + 0.6 * Math.abs(Math.sin(q.p * 2)); ctx.fillStyle = `rgba(232,255,138,${a})`; ctx.shadowColor = "#e8ff8a"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(q.x, q.y, 2.2, 0, 7); ctx.fill(); ctx.shadowBlur = 0; }
+  });
+  ctx.restore();
+}
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
@@ -2423,8 +2508,10 @@ function rescuedAnimals() {
     if (!l) { const [n, i] = id.split("-").map(Number); l = n ? getSettlement(n).levels[i] : null; }
     if (l && l.animalName && !seen.has(l.animalName)) { seen.add(l.animalName); out.push({ ic: l.animal, nm: l.animalName }); }
   });
+  (H.festAnimals || []).forEach(a => { if (!seen.has(a.nm)) { seen.add(a.nm); out.push(a); } });
   return out;
 }
+const rufName = f => f >= 10 ? "🌟 Beste Freunde" : f >= 6 ? "💛 Vertraut" : f >= 3 ? "😊 Freundlich" : f >= 1 ? "👀 Neugierig" : "🙈 Scheu";
 const favOf = nm => GL_FAV[[...nm].reduce((a, c) => a + c.charCodeAt(0), 0) % GL_FAV.length];
 const today = () => new Date().toISOString().slice(0, 10);
 function payHerbs(n) {
@@ -2440,6 +2527,7 @@ function openGlade() {
 function renderGlade(greet) {
   const G = glState(), an = rescuedAnimals(), box = $("glItems");
   box.innerHTML = "";
+  (H.festDeco || []).forEach(fk => { const F = FESTS[fk]; if (F && !GL_DECO["fest_" + fk]) GL_DECO["fest_" + fk] = { ic: F.deco[0], nm: F.deco[1], cost: 3 }; });
   G.deco.forEach((d, i) => {
     const D = GL_DECO[d.k]; if (!D) return;
     const e = el("span", "gl-deco" + (D.cls ? " " + D.cls : ""), D.ic); e.style.left = d.x + "%"; e.style.top = d.y + "%"; e.style.zIndex = Math.round(d.y);
@@ -2465,12 +2553,13 @@ function renderGlade(greet) {
   hk.forEach(k => { const c = btnEl(`${HERBS[k].ic} ${HERBS[k].nm} ×${H.herbs[k]}`, () => { glSel = glSel === "f:" + k ? null : "f:" + k; renderGlade(); gsay(glSel ? `${HERBS[k].ic} ausgewählt. Tippe auf ein Tier, um es zu füttern.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "f:" + k)); fb.appendChild(c); });
   // Schmuck
   const db = $("gDeco"); db.innerHTML = "";
+  (H.festDeco || []).forEach(fk => { const F = FESTS[fk]; if (F && !GL_DECO["fest_" + fk]) GL_DECO["fest_" + fk] = { ic: F.deco[0], nm: F.deco[1], cost: 3 }; });
   Object.entries(GL_DECO).forEach(([k, D]) => { const c = btnEl(`${D.ic} ${D.nm} · ${D.cost} 🌿`, () => { glSel = glSel === "d:" + k ? null : "d:" + k; renderGlade(); gsay(glSel ? `${D.ic} ${D.nm} ausgewählt. Tippe auf die Wiese, wo es stehen soll.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "d:" + k)); db.appendChild(c); });
   const sw = btnEl("🧹 Wegräumen", () => { glSel = glSel === "sweep" ? null : "sweep"; renderGlade(); gsay(glSel ? "🧹 Tippe auf einen Schmuck, um ihn wegzuräumen." : "Nichts ausgewählt."); }); sw.setAttribute("aria-pressed", String(glSel === "sweep")); db.appendChild(sw);
   // Freundschaft
   const fl = $("gFriends");
   fl.innerHTML = an.length ? an.map(a => { const f = G.friend[a.nm] || 0, fav = HERBS[favOf(a.nm)];
-    return `<div class="wk-row"><span class="ic" aria-hidden="true">${a.ic}</span><span class="t"><strong>${a.nm}</strong><span>${"❤️".repeat(Math.min(f, 10))}${"🤍".repeat(Math.max(0, 10 - f))}<br>Mag am liebsten: ${FOODS[foodFav(a.nm)].ic} ${FOODS[foodFav(a.nm)].nm} und ${fav.ic} ${fav.nm}${f >= 10 ? " · Beste Freunde 🌟" : ""}</span></span></div>`; }).join("")
+    return `<div class="wk-row"><span class="ic" aria-hidden="true">${a.ic}</span><span class="t"><strong>${a.nm} · ${rufName(f)}</strong><span>Ruf: ${"❤️".repeat(Math.min(f, 10))}${"🤍".repeat(Math.max(0, 10 - f))}<br>Mag am liebsten: ${FOODS[foodFav(a.nm)].ic} ${FOODS[foodFav(a.nm)].nm} und ${fav.ic} ${fav.nm}${f >= 10 ? " · Beste Freunde 🌟" : ""}</span></span></div>`; }).join("")
     : `<span class="none">Rette Tiere in den Abenteuern, dann ziehen sie hier ein.</span>`;
   if (greet) {
     if (!an.length) gsay("🌳 Die Lichtung ist noch leer. Jedes Tier, das du rettest, zieht hier ein.");
@@ -2500,9 +2589,10 @@ function petAnimal(a, b) {
     let gift = "";
     if (before < 3 && now >= 3) { const g = [rollDrop(0.2), rollDrop(0.2)]; g.forEach(x => add(H.seeds, x)); gift = ` 🎁 Zum Dank schenkt ${a.nm} dir Samen: ${g.map(x => HERBS[x].ic + " " + HERBS[x].nm).join(", ")}.`; }
     if (before < 6 && now >= 6) { const r = RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]; add(H.seeds, r); gift += ` 🎁 ${a.nm} bringt dir einen seltenen Samen: ${HERBS[r].ic} ${HERBS[r].nm}!`; }
+    if (rufName(before) !== rufName(now)) gift = ` ⭐ Dein Ruf bei ${a.nm} steigt: <b>${rufName(now)}</b>!` + gift;
     if (before < 10 && now >= 10) { add(H.potions, "herz"); gift += ` 🌟 Ihr seid jetzt beste Freunde! ${a.nm} schenkt dir einen ${POTIONS.herz.ic} ${POTIONS.herz.nm}.`; SND.fx.win(); }
     glBubble(b, fav ? "Mmh, mein Lieblingsessen! 💖" : "Lecker, danke!");
-    gsay(`${a.ic} ${a.nm} futtert ${DEF[k].ic} ${DEF[k].nm}.${fav ? " Das mag es am allerliebsten, doppelte Freundschaft!" : ""}${gift}`);
+    gsay(`${a.ic} ${a.nm} futtert ${DEF[k].ic} ${DEF[k].nm}.${fav ? " Das mag es am allerliebsten, doppelter Ruf!" : " +1 Ruf."}${gift}`);
     if (!bag[k]) glSel = null; saveH(); renderGlade(); return;
   }
   hopFx(b, "❤️");
@@ -2870,7 +2960,7 @@ function draw(t) {
   burst = burst.filter(p => (p.life -= .015) > 0);
   burst.forEach(p => { p.x += p.vx; p.y += p.vy; ctx.fillStyle = `rgba(242,199,107,${p.life})`; ctx.beginPath(); ctx.arc(p.x * S, p.y * S, 2.5, 0, 7); ctx.fill(); });
 }
-function loop(t) { if (!$("dungeonView").hidden) draw(t); requestAnimationFrame(loop); }
+function loop(t) { if (!$("dungeonView").hidden) { draw(t); if (level && level.fest) festFx(t); } requestAnimationFrame(loop); }
 
 /* ---------- Mitspieler: Dungeonbrowser, Freunde, Chat ---------- */
 let DB = null, USER = null, ROOM = null, ME = null;
