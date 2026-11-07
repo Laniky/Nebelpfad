@@ -288,6 +288,39 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .plot.pesty { box-shadow: inset 0 2px 0 #c58a52, inset 0 -3px 0 #4a2c14, 0 4px 0 #2e1b0c, 0 0 0 2px #e08a4f, 0 0 14px #e08a4f55 !important; }
 .plot:hover { transform: translateY(-2px); }
 .plot:active { transform: translateY(1px) scale(.97); }
+
+/* Tierlichtung */
+.glade { position: relative; height: 340px; border-radius: 18px; overflow: hidden; border: 1px solid #2f4a2f; cursor: pointer; user-select: none; -webkit-user-select: none;
+  background: radial-gradient(circle at 78% 12%, #fff6d0 0 9px, #fff6d055 11px, transparent 26px), linear-gradient(180deg, #24344f 0, #3a5a5a 20%, #4a7a48 30%, #5a9650 62%, #477f40 100%); }
+.gl-flowers { position: absolute; left: 0; right: 0; top: 31%; bottom: 0; pointer-events: none; opacity: .9;
+  background:
+    radial-gradient(circle, #f5a3c7 0 2.2px, transparent 3px) 7px 11px / 53px 41px,
+    radial-gradient(circle, #ffe27a 0 2.2px, transparent 3px) 31px 23px / 67px 59px,
+    radial-gradient(circle, #ffffff 0 1.8px, transparent 2.6px) 17px 37px / 37px 71px,
+    radial-gradient(ellipse 1.5px 5px, #4b8445 0 100%, transparent 100%) 3px 5px / 41px 37px,
+    radial-gradient(ellipse 1.5px 5px, #66a058 0 100%, transparent 100%) 23px 19px / 47px 43px; }
+.gl-back { position: absolute; left: 0; right: 0; top: 4%; height: 30%; pointer-events: none; }
+.gl-back i { position: absolute; bottom: 0; font-style: normal; font-size: 3rem; filter: brightness(.7) saturate(.8); }
+.gl-pond { position: absolute; right: 8%; bottom: 10%; width: 26%; height: 14%; border-radius: 50%; background: radial-gradient(ellipse at 40% 35%, #9fd8ff, #3f7fb4 60%, #2b5f8c); box-shadow: inset 0 3px 6px #0006, 0 0 0 4px #6a8f4a; pointer-events: none; }
+.gl-items > * { position: absolute; transform: translate(-50%, -100%); line-height: 1; }
+.gl-deco { font-size: 1.8rem; pointer-events: none; filter: drop-shadow(0 3px 2px #0007); }
+.gl-deco.sm { font-size: 1.3rem; }
+.gl-deco.big { font-size: 2.4rem; }
+.glade.sweep .gl-deco { pointer-events: auto; cursor: pointer; outline: 2px dashed #ffffff55; border-radius: 8px; }
+.gl-an { font-size: 2.1rem; background: none; border: 0; padding: 0; cursor: pointer; transition: left var(--ms, 3s) linear, top var(--ms, 3s) linear; filter: drop-shadow(0 4px 3px #0008); }
+.gl-an .bd { display: inline-block; animation: amble .5s ease-in-out infinite alternate; }
+.gl-an.rest .bd { animation: breathe 2.4s ease-in-out infinite; }
+.gl-an.flip .bd { transform: scaleX(-1); }
+.gl-an.hop .bd { animation: hop .5s cubic-bezier(.3,1.6,.5,1) 2; }
+.gl-an .nm { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); font-size: .62rem; font-weight: 700; color: #fff; background: #0b0f18aa; border-radius: 8px; padding: 1px 5px; white-space: nowrap; }
+.gl-an:focus-visible { outline: 3px solid var(--magic); border-radius: 10px; }
+.gl-say { position: absolute; transform: translate(-50%, -100%); background: #fff8e8; color: #2a2030; font-size: .78rem; font-weight: 700; border-radius: 12px; padding: 5px 9px; max-width: 60%; text-align: center; box-shadow: 0 4px 12px #0008; animation: bubble 3.2s ease-out forwards; pointer-events: none; z-index: 50; }
+@keyframes amble { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-3px) rotate(3deg); } }
+.gl-an.flip .bd { animation-name: amblef; }
+@keyframes amblef { from { transform: scaleX(-1) translateY(0) rotate(-3deg); } to { transform: scaleX(-1) translateY(-3px) rotate(3deg); } }
+@keyframes breathe { 50% { transform: scale(1.04, .97); } }
+@keyframes hop { 40% { transform: translateY(-18px) scale(1.1); } }
+@media (prefers-reduced-motion: reduce) { .gl-an, .gl-an .bd { transition: none; animation: none !important; } }
 /* Leben im Garten */
 .garden-wrap { position: relative; }
 .garden-life { position: absolute; inset: -10px 0; pointer-events: none; z-index: 5; overflow: hidden; }
@@ -430,7 +463,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
         <h1 id="vName">Mondtal</h1>
         <p class="sub" id="vSub"></p>
       </div>
-      <div class="btns"><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button><button class="back sndBtn" data-full="1" type="button">🎵 Musik an</button></div>
+      <div class="btns"><button class="back" id="toGlade" type="button">🌳 Lichtung</button><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button><button class="back sndBtn" data-full="1" type="button">🎵 Musik an</button></div>
     </header>
     <div class="places" id="places" aria-label="Deine Orte"></div>
     <div class="village" id="village" aria-label="Dein Ort bei Nacht"></div>
@@ -504,7 +537,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
-      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
     </nav>
     <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
   </section>
@@ -544,6 +577,38 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <h2>🏆 Koop-Bestenliste</h2>
       <p class="sub" style="margin:0">Die schnellsten Teams gegen die Uhr.</p>
       <div class="wk-list" id="coopBest"><span class="none">Wird geladen …</span></div>
+    </div>
+  </section>
+
+  <!-- TIERLICHTUNG -->
+  <section class="view" id="gladeView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Tierlichtung</h1>
+        <p class="sub" id="gSub">Hier wohnen alle Tiere, die du gerettet hast.</p>
+      </div>
+      <button class="back" id="gladeBack" type="button">Zurück</button>
+    </header>
+    <div class="msg" id="gMsg" aria-live="polite"></div>
+    <div class="glade" id="glade" aria-label="Die Lichtung mit deinen Tieren">
+      <div class="gl-back" aria-hidden="true"><i style="left:4%">🌳</i><i style="left:20%;font-size:2.6rem">🌲</i><i style="left:62%">🌳</i><i style="left:82%;font-size:2.4rem">🌲</i></div>
+      <div class="gl-flowers" aria-hidden="true"></div><div class="gl-pond" aria-hidden="true"></div>
+      <div class="gl-items" id="glItems"></div>
+    </div>
+    <div class="card">
+      <h3>🥕 Füttern</h3>
+      <p class="sub" style="margin:0">Wähle ein Kraut und tippe dann auf ein Tier. Jedes Tier mag bis zu drei Leckerbissen am Tag.</p>
+      <div class="bag" id="gFood"></div>
+    </div>
+    <div class="card">
+      <h3>🌸 Schmücken</h3>
+      <p class="sub" style="margin:0">Wähle etwas aus und tippe auf die Wiese. Bezahlt wird mit Kräutern, egal welchen. Mit 🧹 räumst du etwas wieder weg und bekommst die Kräuter zurück.</p>
+      <div class="bag" id="gDeco"></div>
+    </div>
+    <div class="card">
+      <h3>💛 Freundschaft</h3>
+      <div class="wk-list" id="gFriends"></div>
     </div>
   </section>
 
@@ -1144,7 +1209,7 @@ function show(id) {
   if (id !== "dungeonView") stopTimer();
   $("mainTabs").hidden = !(id === "villageView" || id === "timeView");
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
-  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
 function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
@@ -1565,6 +1630,16 @@ function renderWiki() {
 
   <section class="wk-sec" id="wk-mit"><h2>Mitspieler</h2>
     <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
+  </section>
+
+  <section class="wk-sec" id="wk-lichtung"><h2>🌳 Tierlichtung</h2>
+    <p>Über <b>🌳 Lichtung</b> im Ort besuchst du alle Tiere, die du gerettet hast. Sie laufen über die Wiese und freuen sich, wenn du vorbeikommst.</p>
+    <ul class="wk-tip">
+      <li><b>Streicheln:</b> Tippe auf ein Tier, dann hüpft es und erzählt dir etwas. Jedes Tier hat seine eigene Stimme.</li>
+      <li><b>Füttern:</b> Wähle unten ein Kraut und tippe auf ein Tier. Das gibt ❤️ Freundschaft. Jedes Tier hat ein Lieblingskraut, das gibt doppelt. Pro Tag mag jedes Tier bis zu drei Leckerbissen.</li>
+      <li><b>Geschenke:</b> Bei 3 Herzen schenkt dir das Tier zwei Samen, bei 6 Herzen einen seltenen Samen, und bei 10 Herzen seid ihr beste Freunde 🌟 und du bekommst einen Herztrank.</li>
+      <li><b>Schmücken:</b> Blumen, Pilze, Laternen, ein Brunnen, ein Tierhäuschen und sogar ein Regenbogen. Du bezahlst mit Kräutern, egal welchen. Mit 🧹 räumst du wieder weg und bekommst die Kräuter zurück.</li>
+    </ul>
   </section>
 
   <section class="wk-sec" id="wk-koop"><h2>🤝 Koop</h2>
@@ -2183,6 +2258,8 @@ const SND = (() => {
     dig:    () => play(t => { for (let k = 0; k < 3; k++) { noise(t + k * 0.18, 0.16, { vol: 0.09, freq: 350, q: 0.9 }); tone(140, t + k * 0.18, 0.12, { type: "triangle", vol: 0.06, wet: 0.05, slide: 0.6 }); } }),
     pull:   () => play(t => { noise(t, 0.2, { vol: 0.07, freq: 2200, q: 0.6 }); tone(420, t + 0.15, 0.25, { vol: 0.1, slide: 2.4, wet: 0.2 }); }),
     shoo:   () => play(t => { [0, 5].forEach((s, i) => tone(mtof(70 + s), t + i * 0.12, 0.3, { type: "triangle", vol: 0.08, wet: 0.2 })); noise(t, 0.25, { vol: 0.04, freq: 1500, q: 0.5 }); }),
+    voice:  nm => play(t => { const h = [...String(nm)].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) >>> 0, base = 300 + (h % 9) * 70, n = 1 + (h >> 4) % 3, up = (h >> 7) % 2;
+      for (let k = 0; k < n; k++) tone(base * (1 + k * 0.12), t + k * 0.13, 0.16, { type: (h >> 9) % 2 ? "triangle" : "sine", vol: 0.1, slide: up ? 1.5 : 0.7, wet: 0.25 }); }),
     click:  () => play(t => tone(700, t, 0.06, { type: "triangle", vol: 0.04, wet: 0 }))
   };
   // Browser erlauben Ton erst nach der ersten Berührung
@@ -2199,6 +2276,135 @@ addEventListener("keydown", e => { if ((e.key === "m" || e.key === "M") && !/INP
 new MutationObserver(() => { if (!$("win").hidden) SND.fx.win(); }).observe($("win"), { attributes: true, attributeFilter: ["hidden"] });
 new MutationObserver(() => { if (!$("fail").hidden) SND.fx.fail(); }).observe($("fail"), { attributes: true, attributeFilter: ["hidden"] });
 
+
+/* ---------- Tierlichtung ---------- */
+const GL_DECO = {
+  blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
+  stamm:  { ic: "🪵", nm: "Baumstamm", cost: 3 }, stein: { ic: "🪨", nm: "Stein", cost: 3 }, laterne: { ic: "🏮", nm: "Laterne", cost: 4 },
+  busch:  { ic: "🌳", nm: "Baum", cost: 5, cls: "big" }, brunnen: { ic: "⛲", nm: "Brunnen", cost: 6, cls: "big" }, haus: { ic: "🏡", nm: "Tierhäuschen", cost: 8, cls: "big" },
+  regen:  { ic: "🌈", nm: "Regenbogen", cost: 10, cls: "big" }
+};
+const GL_LINES = ["Danke, dass du mich gerettet hast!", "Hier ist es so schön ruhig.", "Spielst du ein bisschen mit mir?", "Ich hab heute schon drei Schmetterlinge gesehen!", "Erzählst du mir, was du im Nebel erlebt hast?", "Ich fühl mich hier richtig zu Hause.", "Hast du etwas Leckeres dabei?", "Die anderen Tiere sind sehr nett zu mir."];
+const GL_FAV = ["mond", "tau", "stern", "pilz", "sonne", "tulpe", "kleeb"];
+let glSel = null, glTimer = null, glPos = {};
+const gsay = h => { $("gMsg").innerHTML = h; };
+function glState() { H.glade = H.glade || { friend: {}, deco: [], fed: {} }; return H.glade; }
+function rescuedAnimals() {
+  const out = [], seen = new Set();
+  Object.keys(rescued).forEach(id => {
+    let l = MONDTAL.find(m => m.id === id);
+    if (!l) { const [n, i] = id.split("-").map(Number); l = n ? getSettlement(n).levels[i] : null; }
+    if (l && l.animalName && !seen.has(l.animalName)) { seen.add(l.animalName); out.push({ ic: l.animal, nm: l.animalName }); }
+  });
+  return out;
+}
+const favOf = nm => GL_FAV[[...nm].reduce((a, c) => a + c.charCodeAt(0), 0) % GL_FAV.length];
+const today = () => new Date().toISOString().slice(0, 10);
+function payHerbs(n) {
+  const total = Object.values(H.herbs).reduce((a, b) => a + b, 0); if (total < n) return false;
+  for (let k = 0; k < n; k++) { const top = Object.keys(H.herbs).filter(h => H.herbs[h] > 0).sort((a, b) => H.herbs[b] - H.herbs[a])[0]; add(H.herbs, top, -1); }
+  return true;
+}
+function openGlade() {
+  show("gladeView"); renderGlade(true);
+}
+function renderGlade(greet) {
+  const G = glState(), an = rescuedAnimals(), box = $("glItems");
+  box.innerHTML = "";
+  G.deco.forEach((d, i) => {
+    const D = GL_DECO[d.k]; if (!D) return;
+    const e = el("span", "gl-deco" + (D.cls ? " " + D.cls : ""), D.ic); e.style.left = d.x + "%"; e.style.top = d.y + "%"; e.style.zIndex = Math.round(d.y);
+    e.addEventListener("click", ev => { if (glSel !== "sweep") return; ev.stopPropagation(); G.deco.splice(i, 1); add(H.herbs, GL_FAV[i % GL_FAV.length], D.cost); saveH(); gsay(`🧹 ${D.ic} ${D.nm} weggeräumt. Du bekommst ${D.cost} Kräuter zurück.`); renderGlade(); });
+    box.appendChild(e);
+  });
+  an.forEach((a, i) => {
+    const p = glPos[a.nm] || (glPos[a.nm] = { x: 12 + Math.random() * 76, y: 45 + Math.random() * 45 });
+    const b = el("button", "gl-an rest"); b.type = "button"; b.id = "gl-" + i; b.setAttribute("aria-label", a.nm);
+    b.innerHTML = `<span class="bd">${a.ic}</span><span class="nm">${a.nm}</span>`;
+    b.style.left = p.x + "%"; b.style.top = p.y + "%"; b.style.zIndex = Math.round(p.y) + 1;
+    b.addEventListener("click", ev => { if (glSel && glSel.startsWith("d:")) return; ev.stopPropagation(); petAnimal(a, b); });
+    box.appendChild(b);
+  });
+  $("glade").classList.toggle("sweep", glSel === "sweep");
+  $("gSub").textContent = an.length ? `${an.length} ${an.length === 1 ? "Tier wohnt" : "Tiere wohnen"} hier.` : "Noch wohnt hier niemand.";
+  // Futter
+  const fb = $("gFood"); fb.innerHTML = "";
+  const hk = Object.keys(HERBS).filter(k => H.herbs[k]);
+  if (!hk.length) fb.innerHTML = `<span class="none">Keine Kräuter. Ernte welche im Garten.</span>`;
+  hk.forEach(k => { const c = btnEl(`${HERBS[k].ic} ${HERBS[k].nm} ×${H.herbs[k]}`, () => { glSel = glSel === "f:" + k ? null : "f:" + k; renderGlade(); gsay(glSel ? `${HERBS[k].ic} ausgewählt. Tippe auf ein Tier, um es zu füttern.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "f:" + k)); fb.appendChild(c); });
+  // Schmuck
+  const db = $("gDeco"); db.innerHTML = "";
+  Object.entries(GL_DECO).forEach(([k, D]) => { const c = btnEl(`${D.ic} ${D.nm} · ${D.cost} 🌿`, () => { glSel = glSel === "d:" + k ? null : "d:" + k; renderGlade(); gsay(glSel ? `${D.ic} ${D.nm} ausgewählt. Tippe auf die Wiese, wo es stehen soll.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "d:" + k)); db.appendChild(c); });
+  const sw = btnEl("🧹 Wegräumen", () => { glSel = glSel === "sweep" ? null : "sweep"; renderGlade(); gsay(glSel ? "🧹 Tippe auf einen Schmuck, um ihn wegzuräumen." : "Nichts ausgewählt."); }); sw.setAttribute("aria-pressed", String(glSel === "sweep")); db.appendChild(sw);
+  // Freundschaft
+  const fl = $("gFriends");
+  fl.innerHTML = an.length ? an.map(a => { const f = G.friend[a.nm] || 0, fav = HERBS[favOf(a.nm)];
+    return `<div class="wk-row"><span class="ic" aria-hidden="true">${a.ic}</span><span class="t"><strong>${a.nm}</strong><span>${"❤️".repeat(Math.min(f, 10))}${"🤍".repeat(Math.max(0, 10 - f))}<br>Mag am liebsten: ${fav.ic} ${fav.nm}${f >= 10 ? " · Beste Freunde 🌟" : ""}</span></span></div>`; }).join("")
+    : `<span class="none">Rette Tiere in den Abenteuern, dann ziehen sie hier ein.</span>`;
+  if (greet) {
+    if (!an.length) gsay("🌳 Die Lichtung ist noch leer. Jedes Tier, das du rettest, zieht hier ein.");
+    else { const few = an.slice(0, 3).map(a => a.ic + " " + a.nm).join(", "); gsay(`🌳 ${few}${an.length > 3 ? " und die anderen" : ""} ${an.length === 1 ? "freut sich" : "freuen sich"}, dass du vorbeikommst!`);
+      setTimeout(() => document.querySelectorAll(".gl-an").forEach((b, i) => setTimeout(() => hopFx(b, "❤️"), i * 120)), 300); }
+  }
+  startWander();
+}
+function hopFx(b, ic) { b.classList.remove("hop"); void b.offsetWidth; b.classList.add("hop"); if (ic) fly(ic, rectOf(b), null, { dy: -50, ms: 900 }); }
+function glBubble(b, txt) {
+  const sb = el("div", "gl-say", txt); sb.style.left = b.style.left; sb.style.top = `calc(${b.style.top} - 44px)`;
+  $("glItems").appendChild(sb); setTimeout(() => sb.remove(), 3300);
+}
+function petAnimal(a, b) {
+  const G = glState();
+  SND.fx.voice(a.nm);
+  if (glSel && glSel.startsWith("f:")) {
+    const k = glSel.slice(2); if (!H.herbs[k]) { glSel = null; renderGlade(); return; }
+    const fd = G.fed[a.nm] && G.fed[a.nm].d === today() ? G.fed[a.nm] : (G.fed[a.nm] = { d: today(), n: 0 });
+    if (fd.n >= 3) { hopFx(b); glBubble(b, "Ich bin pappsatt! Morgen wieder? 😊"); gsay(`${a.ic} ${a.nm} ist für heute satt.`); return; }
+    add(H.herbs, k, -1); fd.n++;
+    const fav = favOf(a.nm) === k, plus = fav ? 2 : 1, before = G.friend[a.nm] || 0, now = Math.min(10, before + plus); G.friend[a.nm] = now;
+    fly(HERBS[k].ic, rectOf(b), null, { dy: -10, ms: 600 });
+    setTimeout(() => { hopFx(b, fav ? "💖" : "❤️"); if (fav) fly("❤️", rectOf(b), null, { dx: 24, dy: -40, delay: 150 }); }, 450);
+    SND.fx.plop();
+    let gift = "";
+    if (before < 3 && now >= 3) { const g = [rollDrop(0.2), rollDrop(0.2)]; g.forEach(x => add(H.seeds, x)); gift = ` 🎁 Zum Dank schenkt ${a.nm} dir Samen: ${g.map(x => HERBS[x].ic + " " + HERBS[x].nm).join(", ")}.`; }
+    if (before < 6 && now >= 6) { const r = RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]; add(H.seeds, r); gift += ` 🎁 ${a.nm} bringt dir einen seltenen Samen: ${HERBS[r].ic} ${HERBS[r].nm}!`; }
+    if (before < 10 && now >= 10) { add(H.potions, "herz"); gift += ` 🌟 Ihr seid jetzt beste Freunde! ${a.nm} schenkt dir einen ${POTIONS.herz.ic} ${POTIONS.herz.nm}.`; SND.fx.win(); }
+    glBubble(b, fav ? "Mmh, mein Lieblingsessen! 💖" : "Lecker, danke!");
+    gsay(`${a.ic} ${a.nm} knabbert ${HERBS[k].ic} ${HERBS[k].nm}.${fav ? " Das ist sein Lieblingskraut, doppelte Freundschaft!" : ""}${gift}`);
+    saveH(); const keep = glSel; renderGlade(); glSel = keep; return;
+  }
+  hopFx(b, "❤️");
+  glBubble(b, GL_LINES[Math.floor(Math.random() * GL_LINES.length)]);
+}
+function startWander() {
+  if (glTimer) clearInterval(glTimer);
+  if (reduce) return;
+  glTimer = setInterval(() => {
+    if ($("gladeView").hidden) { clearInterval(glTimer); glTimer = null; return; }
+    document.querySelectorAll(".gl-an").forEach(b => {
+      if (Math.random() < 0.45) return;
+      const nm = b.getAttribute("aria-label"), p = glPos[nm]; if (!p) return;
+      const nx = Math.max(6, Math.min(94, p.x + (Math.random() - 0.5) * 36)), ny = Math.max(42, Math.min(94, p.y + (Math.random() - 0.5) * 22));
+      const dist = Math.hypot(nx - p.x, (ny - p.y) * 1.4), ms = Math.max(1200, dist * 140);
+      b.classList.toggle("flip", nx > p.x); b.classList.remove("rest"); b.style.setProperty("--ms", ms + "ms");
+      p.x = nx; p.y = ny; b.style.left = nx + "%"; b.style.top = ny + "%"; b.style.zIndex = Math.round(ny) + 1;
+      setTimeout(() => b.classList.add("rest"), ms);
+    });
+  }, 2600);
+}
+$("glade").addEventListener("click", e => {
+  if (!glSel || !glSel.startsWith("d:")) { if (!glSel) gsay("Tippe auf ein Tier, um es zu streicheln, oder wähle unten Futter oder Schmuck."); return; }
+  const G = glState(), k = glSel.slice(2), D = GL_DECO[k], r = $("glade").getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width * 100, y = (e.clientY - r.top) / r.height * 100;
+  if (y < 30) { gsay("Da oben stehen die großen Bäume. Stell es lieber auf die Wiese."); return; }
+  if (G.deco.length >= 24) { gsay("Die Lichtung ist schon ganz voll. Räum mit 🧹 etwas weg."); return; }
+  if (!payHerbs(D.cost)) { gsay(`Dafür brauchst du ${D.cost} Kräuter. Ernte welche im Garten.`); return; }
+  G.deco.push({ k, x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 }); saveH();
+  SND.fx.plant(); gsay(`${D.ic} ${D.nm} steht jetzt auf der Lichtung!`);
+  renderGlade(); fly("✨", { left: e.clientX - 5, top: e.clientY - 20, width: 10, height: 10 }, null, { dy: -40 });
+});
+$("toGlade").addEventListener("click", openGlade);
+$("gladeBack").addEventListener("click", () => { glSel = null; showVillage(); });
 /* ---------- Tastatur ---------- */
 const KEY_ACTIONS = [
   ["up", "Nach oben laufen"], ["down", "Nach unten laufen"], ["left", "Nach links laufen"], ["right", "Nach rechts laufen"],
