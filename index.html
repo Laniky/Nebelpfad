@@ -395,6 +395,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 
 /* Uhr im Hexenhaus */
 .hx-clock { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; margin-bottom: 10px; }
+.hx-clock { cursor: pointer; transition: transform .15s; } .hx-clock:hover { transform: translateY(-2px); } .hx-clock:active { transform: scale(.98); }
+.hx-clock > div { flex: 1; min-width: 0; }
+.hx-hint { display: block; color: #c9b4ff; font-size: .72rem; margin-top: 2px; }
+.hx-gems { font-weight: 800; background: #10304a; border: 1px solid #9fd8ff; color: #dff4ff; border-radius: 99px; padding: 4px 10px; white-space: nowrap; }
+.hx-clock.hexed { border-color: #b48cf2; box-shadow: 0 0 16px #b48cf255; }
 .hx-clock svg { width: 54px; height: 54px; flex-shrink: 0; }
 .hx-clock b { display: block; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
 .hx-clock span { color: var(--muted); font-size: .85rem; }
@@ -831,13 +836,14 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       </div>
       <button class="back" id="hexBack" type="button">Zurück</button>
     </header>
-    <div class="hx-clock" id="hxClock" aria-live="off">
+    <div class="hx-clock" id="hxClock" aria-live="off" role="button" tabindex="0" aria-label="Uhr. Tippen, um die Zeit zu verhexen">
       <svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="#f3e6c8" stroke="#8e5528" stroke-width="4"/>
         <g stroke="#6b3c19" stroke-width="2" stroke-linecap="round"><line x1="30" y1="7" x2="30" y2="13" transform="rotate(0 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(30 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(60 30 30)"/><line x1="30" y1="7" x2="30" y2="13" transform="rotate(90 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(120 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(150 30 30)"/><line x1="30" y1="7" x2="30" y2="13" transform="rotate(180 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(210 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(240 30 30)"/><line x1="30" y1="7" x2="30" y2="13" transform="rotate(270 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(300 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(330 30 30)"/></g>
         <line id="hxHour" x1="30" y1="30" x2="30" y2="17" stroke="#3a2a18" stroke-width="3.5" stroke-linecap="round"/>
         <line id="hxMin" x1="30" y1="30" x2="30" y2="11" stroke="#3a2a18" stroke-width="2.2" stroke-linecap="round"/>
         <circle cx="30" cy="30" r="2.6" fill="#e0566b"/></svg>
-      <div><b id="hxTime">12:00</b><span id="hxPhase"></span></div>
+      <div><b id="hxTime">12:00</b><span id="hxPhase"></span><small class="hx-hint">🔮 Tippe auf die Uhr, um die Zeit zu verhexen</small></div>
+      <span class="hx-gems" id="hxGems">💎 0</span>
     </div>
     <div class="hx-scene" id="hxScene">
       <svg class="hx-svg" viewBox="0 0 360 250" role="img" aria-label="Ein Hexenhaus aus Lebkuchen">
@@ -1194,7 +1200,8 @@ const HERBS = {
   eisbl:  { ic: "💠", nm: "Eisblüte",     from: "Nur im Winter: Schneedorf", fest: true }
 };
 // Tag und Nacht nach der echten Uhrzeit: Nacht ist von 19 bis 7 Uhr
-const isNight = (d = new Date()) => d.getHours() >= 19 || d.getHours() < 7;
+const realNight = (d = new Date()) => d.getHours() >= 19 || d.getHours() < 7;
+const isNight = d => { if (!d && typeof H !== "undefined" && H && H.timeHex && Date.now() < H.timeHex.until) return H.timeHex.mode === "nacht"; return realNight(d || new Date()); };
 const timeOk = h => !HERBS[h].time || (HERBS[h].time === "nacht") === isNight();
 const timeIc = h => HERBS[h].time === "nacht" ? "🌙" : HERBS[h].time === "tag" ? "☀️" : "";
 const POTIONS = {
@@ -1427,7 +1434,7 @@ function superWin() {
   const s = getSettlement(cur); H.superDone = H.superDone || {};
   const first = !H.superDone[s.n]; H.superDone[s.n] = true;
   const seeds = [0, 1, 2].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
-  seeds.forEach(k => add(H.seeds, k)); if (first) add(H.potions, "voll"); saveH();
+  seeds.forEach(k => add(H.seeds, k)); if (first) add(H.potions, "voll"); gemAdd(first ? 2 : 0); saveH();
   $("winIcon").textContent = "💎";
   $("winTitle").textContent = `${level.name} bezwungen!`;
   $("winText").innerHTML = (first ? `🏆 Das Meisterabzeichen von ${s.name} gehört dir!<br><br>` : "Du hast den Irrgarten wieder bezwungen.<br><br>")
@@ -1566,7 +1573,7 @@ $("travel").addEventListener("click", () => { cur = getSettlement(cur).n + 1; sa
 // Zwei Warnungen, bevor wirklich alles gelöscht wird
 let resetStep = 0;
 function resetDialog(step) {
-  resetStep = step;
+  resetStep = step; $("rmOk").hidden = false; $("rmOk").disabled = false; $("rmCancel").textContent = "Abbrechen";
   const m = $("resetModal");
   if (step === 1) {
     $("rmIcon").textContent = "⚠️"; $("rmTitle").textContent = "Spielstand zurücksetzen?";
@@ -1584,6 +1591,7 @@ try { if (sessionStorage.getItem("nebelpfad-was-reset")) { sessionStorage.remove
 $("rmCancel").addEventListener("click", () => { $("resetModal").hidden = true; resetStep = 0; });
 $("resetModal").addEventListener("keydown", e => { if (e.key === "Escape") { $("resetModal").hidden = true; resetStep = 0; } });
 $("rmOk").addEventListener("click", () => {
+  if (resetStep === "hex") { castTimeHex(); return; }
   if (resetStep === 1) { resetDialog(2); return; }
   $("resetModal").hidden = true; resetStep = 0;
   // Wirklich alles löschen, was das Spiel gespeichert hat, und neu starten
@@ -1799,6 +1807,7 @@ function plotClick(i) {
   } else {
     const s = getSettlement(cur), was = secretOpen(s);
     const TFg = teamFx(), hv2 = 2 + TFg.garden;
+    if (Math.random() < 0.08) { H.gems = (H.gems || 0) + 1; setTimeout(() => hsay($("hMsg").innerHTML + " 💎 Zwischen den Wurzeln funkelt ein Diamant!"), 0); fly("💎", r, null, { dy: -70, dx: -26, delay: 400 }); }
     add(H.herbs, p.h, hv2); statsOf(cur).harvest += hv2; H.plots[i] = null; lastAct = { i, t: "harvest" }; SND.fx.harvest();
     const back = Math.random() < (TFg.gardenSeed > 0 ? 0.5 : 0.2); if (back) add(H.seeds, p.h);
     const hb = $("herbBag") && !$("herbBag").closest("[hidden]") ? rectOf($("herbBag")) : null;
@@ -1866,7 +1875,7 @@ function secretWin() {
   add(H.seeds, "rose", 2); add(H.seeds, "klee", 2); add(H.seeds, "pilz", 1); add(H.seeds, extra, 1); saveH();
   text += `In der Rolle versteckt: ${HERBS.rose.ic} 2× Nebelrose, ${HERBS.klee.ic} 2× Kristallklee, ${HERBS[extra].ic} 1× ${HERBS[extra].nm} und ${HERBS.pilz.ic} 1× Glühpilz als Samen.`;
   text += perfectBonus();
-  text += weaverHint();
+  text += weaverHint(); if (Math.random() < 0.15) gemAdd(1);
   $("winIcon").textContent = "📜";
   $("winTitle").textContent = `${level.name} geschafft!`;
   $("winText").innerHTML = text;
@@ -2123,6 +2132,8 @@ function renderWiki() {
       <li>🌱 <b>Pflanzen:</b> Wähle unten einen Samen und tippe auf die lockere Erde.</li>
       <li>💧 <b>Gießen:</b> Dreimal gießen. Aus dem Keimling wird ein Pflänzchen, dann eine Knospe, dann blüht das Kraut.</li>
       <li>✋ <b>Unkraut</b> und 👋 <b>Schnecken:</b> Nach dem Gießen kann Unkraut wachsen oder eine Schnecke auftauchen. Dann musst du sie zuerst wegschaffen, bevor du wieder gießen kannst. Manchmal hängt im Unkraut sogar ein Samen.</li>
+      <li>💎 <b>Diamanten:</b> Sie liegen manchmal funkelnd auf dem Weg in Abenteuern (in Geheimstädten, Irrgärten und im Nebelnetz öfter). Außerdem gibt es sie manchmal bei Rettungen, beim Ernten, im Kräuterkorb, beim Aufräumen, für das Tagesrätsel, für Festtiere und für große Siege.</li>
+      <li>🔮 <b>Zeit verhexen:</b> Tippe im Hexenhaus auf die Uhr. Für 5 💎 machst du aus Tag Nacht oder aus Nacht Tag, eine Stunde lang. So kannst du Nacht- oder Tagkräuter gießen, wann du willst.</li>
       <li>🕰️ <b>Uhr:</b> Im Hexenhaus zeigt eine Uhr die Spielzeit und wie lange es noch bis zur Nacht oder zum Morgen dauert. Die Spielzeit ist die echte Uhrzeit.</li>
       <li>🌙☀️ <b>Tag und Nacht:</b> Manche Kräuter wachsen nur nachts (🌙 Mondkraut, Mondtulpe, Glühpilz, Sternmoos), andere nur am Tag (☀️ Sonnenkraut, Feuerblüte, Kirschblüte). Es zählt die echte Uhrzeit: Nacht ist von 19 bis 7 Uhr. Pflanzen kannst du jederzeit, aber gießen nur, wenn das Kraut wach ist. Alle anderen Kräuter wachsen immer.</li>
       <li>🧺 <b>Ernten:</b> Du bekommst zwei Kräuter. Nur ab und zu (20 %) schenkt dir die Pflanze auch einen neuen Samen.</li>
@@ -2413,7 +2424,7 @@ function startLevel(l) {
   renderActs();
   $("dTitle").textContent = l.name;
   $("back").textContent = "Zurück";
-  placeDiary(l);
+  placeDiary(l); placeGem(l);
   say(l.intro + (HP && HP.note ? HP.note : ""));
   showDungeon();
 }
@@ -2450,7 +2461,7 @@ function tryStep(tx, ty) {
     say(`🌱 Du findest Samen: <b>${fx.seedx2 ? "2× " : ""}${HERBS[k2].ic} ${HERBS[k2].nm}</b>!${HERBS[k2].rare ? " Ein seltener Fund ✨" : ""}`);
     afterMove(); return;
   }
-  if (t === "." || t === "B") { px = tx; py = ty; SND.fx.step(); checkDiary(); afterMove(); return; }
+  if (t === "." || t === "B") { px = tx; py = ty; SND.fx.step(); checkDiary(); checkGem(); afterMove(); return; }
   if (t === "#") { say(WALL_MSG[level.wall]); return; }
   if (t === "~") { say(WALL_MSG.lake); return; }
   const k = tx + "," + ty, o = getObst(t, k); if (!o) return;
@@ -2532,7 +2543,7 @@ function farmWin() {
   const pool = SEED_POOL, got = {};
   const fc = level.farmCfg || { herbs: [4, 6] };
   for (let i = 0; i < fc.herbs[0] + Math.floor(Math.random() * (fc.herbs[1] - fc.herbs[0] + 1)); i++) { const h = pool[Math.floor(Math.random() * pool.length)]; got[h] = (got[h] || 0) + 1; add(H.herbs, h); }
-  const sd = rollDrop(0.1); add(H.seeds, sd); saveH();
+  const sd = rollDrop(0.1); add(H.seeds, sd); if (Math.random() < 0.2) gemAdd(1); saveH();
   $("winIcon").textContent = "🧺"; $("winTitle").textContent = "Kräuterkorb geöffnet!";
   $("winText").innerHTML = `Der Korb ist voller frischer Kräuter:<br>${Object.entries(got).map(([h, n]) => `${n}× ${HERBS[h].ic} ${HERBS[h].nm}`).join(", ")}<br>Dazu ein Samen: ${HERBS[sd].ic} ${HERBS[sd].nm}.<br><br>Die Kräuter liegen schon in deiner Kräutertasche, bereit zum Brauen ⚗️`;
   $("home").textContent = "Zurück";
@@ -2571,7 +2582,7 @@ function rescue() {
   const gift = Array.from({ length: (fx.loot ? 4 : 2) + teamFx().loot }, () => rollDrop()); gift.forEach(k => add(H.seeds, k)); saveH();
   text += `<br><br>🎁 Zufällige Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen.`;
   text += perfectBonus();
-  text += weaverHint();
+  text += weaverHint(); if (Math.random() < 0.15) gemAdd(1);
   if (!wasOpen && secretOpen(s)) text += `<br><br>🗝️ Alle Geheimaufgaben erfüllt! <b>${getSecret(s.n).name}</b> ist jetzt offen.`;
   text += `<br>🧺 Für die Tierlichtung: ${foodGot.map(k => FOODS[k].ic + " " + FOODS[k].nm).join(", ")}.`;
   if (pet) text += `<br><br>Ab jetzt hilft dir <b>${pet.nm}</b> als ${pet.rl}!`;
@@ -2798,7 +2809,7 @@ document.querySelectorAll(".sndBtn").forEach(b => b.addEventListener("click", SN
 SND.applyMode();
 addEventListener("keydown", e => { if ((e.key === "m" || e.key === "M") && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && !e.ctrlKey && !e.metaKey && !waitKey && !Object.values(KEYS).includes("m")) SND.cycle(); });
 // Gewinn- und Verlustbild hören (gilt für alle Spielarten, auch im Koop)
-new MutationObserver(() => { if (!$("win").hidden) { SND.fx.win(); if (level && level.animalName) setTimeout(() => SND.fx.voice(level.animalName), 900); } }).observe($("win"), { attributes: true, attributeFilter: ["hidden"] });
+new MutationObserver(() => { if (!$("win").hidden) { gemFlush(); SND.fx.win(); if (level && level.animalName) setTimeout(() => SND.fx.voice(level.animalName), 900); } }).observe($("win"), { attributes: true, attributeFilter: ["hidden"] });
 new MutationObserver(() => { if (!$("fail").hidden) SND.fx.fail(); }).observe($("fail"), { attributes: true, attributeFilter: ["hidden"] });
 
 
@@ -2865,7 +2876,7 @@ function dailyWin() {
   if (first) {
     e.won = true; e.hearts = tries; e.t = Math.round(used * 10) / 10;
     gift = [rollDrop(0.2), rollDrop(0.2)]; if (tries >= 3) gift.push(RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
-    gift.forEach(g => add(H.seeds, g));
+    gift.forEach(g => add(H.seeds, g)); gemAdd(1);
     let nm = ""; try { nm = ($("dailyName").value || localStorage.getItem("nebelpfad-coopname") || "").trim().slice(0, 20); } catch (x) {}
     addDaily(k, { name: nm || "Ohne Namen", hearts: tries, t: e.t, tries: e.tries || 1 });
   }
@@ -2910,7 +2921,7 @@ function festWin() {
   if (first) st.done.push(nm);
   H.festAnimals = H.festAnimals || []; if (!H.festAnimals.some(a => a.nm === nm)) H.festAnimals.push({ ic: level.animal, nm });
   const n = first ? 2 : 1; add(H.seeds, F.seed, n);
-  const extra = [rollDrop(0.2)]; extra.forEach(k => add(H.seeds, k)); addFood(2);
+  const extra = [rollDrop(0.2)]; extra.forEach(k => add(H.seeds, k)); addFood(2); gemAdd(first ? 1 : 0);
   let txt = `${level.animal} <b>${nm}</b> zieht auf deine Tierlichtung 🌳<br><br>🎁 Belohnung: ${n}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} (gibt es nur zu diesem Fest!) und ${extra.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
   H.festDeco = H.festDeco || []; if (!H.festDeco.includes(F.k)) { H.festDeco.push(F.k); txt += `<br>${F.deco[0]} Neu für die Lichtung: <b>${F.deco[1]}</b>.`; }
   if (first && st.done.length === 3) txt += `<br><br>🌟 Du hast alle drei Festtiere des ${F.nm}s gerettet! Weiterspielen kannst du trotzdem, für Festsamen.`;
@@ -3133,7 +3144,7 @@ function weaverWin() {
   const first = !H.weaver[s.n]; H.weaver[s.n] = true;
   const met = Object.keys(H.weaver).length, talk = WEAVER_TALK[Math.min(met, WEAVER_TALK.length) - 1];
   const seeds = [0, 1, 2].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]); seeds.forEach(k => add(H.seeds, k));
-  if (first) { add(H.potions, "voll"); add(H.potions, "herz"); }
+  if (first) { add(H.potions, "voll"); add(H.potions, "herz"); gemAdd(3); }
   let page = "";
   H.diary = H.diary || [];
   if (first && H.diary.length < DIARY.length) { const i = H.diary.length; H.diary.push(i); diaryNew.add(i); page = `<br>📜 Er schenkt dir eine Tagebuchseite: „${DIARY[i][0]}“.`; }
@@ -3314,6 +3325,7 @@ function clStop(finished) {
     G.cleanDay = today();
     const food = addFood(res.score >= 25 ? 4 : res.score >= 12 ? 3 : 2), seed = rollDrop(res.score >= 25 ? 0.3 : 0.1); add(H.seeds, seed);
     txt += `<br>🎁 Die Tiere bedanken sich: ${food.map(k => FOODS[k].ic).join(" ")} für den Futterkorb und ${HERBS[seed].ic} ${HERBS[seed].nm} als Samen.`;
+    if (res.score >= 12) { H.gems = gems() + 1; txt += " 💎 Unter dem Laub lag ein Diamant!"; }
     if (res.score >= 12) { rescuedAnimals().forEach(a => { G.friend[a.nm] = Math.min(10, (G.friend[a.nm] || 0) + 1); }); txt += " ⭐ Alle Tiere freuen sich über die saubere Lichtung: +1 Ruf bei allen!"; }
     SND.fx.win();
   } else txt += " Heute gab es die Belohnung schon, morgen wieder.";
@@ -3342,11 +3354,68 @@ $("mtab-farm").addEventListener("click", showFarm);
 $("farmToGarden").addEventListener("click", () => openHouse("gardenSec"));
 $("farmToAlch").addEventListener("click", () => openHouse("alchSec"));
 
+
+/* ---------- Diamanten 💎 und Zeit verhexen ---------- */
+let gemAt = null, gemNote = 0;
+const gems = () => H.gems || 0;
+function gemAdd(n) { if (!n) return; H.gems = gems() + n; gemNote += n; saveH(); }
+// Beim Gewinnbild einen Hinweis auf gefundene Diamanten anhängen
+function gemFlush() {
+  if (!gemNote) return;
+  $("winText").innerHTML += `<br><br>💎 <b>+${gemNote} ${gemNote === 1 ? "Diamant" : "Diamanten"}!</b> Du hast jetzt ${gems()} 💎.`;
+  gemNote = 0;
+}
+function placeGem(l) {
+  gemAt = null;
+  if (l.coop || l.fair || l.resume) return;
+  if (Math.random() > (l.secret || l.superD || l.weaver ? 0.6 : 0.25)) return;
+  const free = []; for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "." && Math.abs(x - px) + Math.abs(y - py) > 2 && diaryAt !== x + "," + y) free.push([x, y]);
+  if (free.length) { const [x, y] = free[Math.floor(Math.random() * free.length)]; gemAt = x + "," + y; }
+}
+function checkGem() {
+  if (!gemAt || gemAt !== px + "," + py) return;
+  gemAt = null; H.gems = gems() + 1; saveH(); SND.fx.seed(); sparkle(px, py);
+  say(`💎 Du findest einen funkelnden <b>Diamanten</b>! Jetzt hast du ${gems()} 💎. Damit kannst du im Hexenhaus die Zeit verhexen.`);
+}
+function drawGem(t) {
+  if (!gemAt) return;
+  const [x, y] = gemAt.split(",").map(Number), cx = x * S + S / 2, cy = y * S + S / 2;
+  const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, 22);
+  g.addColorStop(0, `rgba(159,228,255,${reduce ? .5 : .35 + .3 * Math.sin(t / 300)})`); g.addColorStop(1, "rgba(159,228,255,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 22, 0, 7); ctx.fill();
+  ctx.font = "22px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("💎", cx, cy + (reduce ? 0 : Math.sin(t / 450) * 2));
+}
+// Zeit verhexen: für 5 Diamanten eine Stunde lang Tag oder Nacht
+const HEX_COST = 5, HEX_MIN = 60;
+const hexActive = () => H && H.timeHex && Date.now() < H.timeHex.until ? H.timeHex : null;
+function openTimeHex() {
+  const night = isNight(), act = hexActive(), want = night ? "Tag" : "Nacht";
+  $("rmIcon").textContent = "🔮";
+  $("rmTitle").textContent = "Zeit verhexen";
+  if (act) {
+    const m = Math.ceil((act.until - Date.now()) / 60000);
+    $("rmText").innerHTML = `Die Zeit ist schon verhext! Noch <b>${m} Minuten</b> ist es ${act.mode === "nacht" ? "🌙 Nacht" : "☀️ Tag"}. Danach läuft die Uhr wieder ganz normal.`;
+    $("rmOk").hidden = true;
+  } else {
+    $("rmText").innerHTML = `Mit einem Zauberspruch machst du aus ${night ? "der Nacht einen hellen ☀️ Tag" : "dem Tag eine dunkle 🌙 Nacht"}, für <b>${HEX_MIN} Minuten</b>. So wachsen ${night ? "die Tagkräuter" : "die Nachtkräuter"}, auch wenn es draußen ${night ? "dunkel" : "hell"} ist.<br><br>Das kostet <b>${HEX_COST} 💎</b>. Du hast <b>${gems()} 💎</b>.` + (gems() < HEX_COST ? "<br><br>Dir fehlen noch Diamanten. Du findest sie in Abenteuern, beim Ernten, im Kräuterpfad, im Tagesrätsel, auf Festen und beim Aufräumen." : "");
+    $("rmOk").hidden = false; $("rmOk").disabled = gems() < HEX_COST; $("rmOk").textContent = `🔮 ${want} herbeizaubern (${HEX_COST} 💎)`;
+  }
+  resetStep = "hex"; $("resetModal").hidden = false; $("rmCancel").textContent = act || gems() < HEX_COST ? "Schließen" : "Abbrechen"; $("rmCancel").focus();
+}
+function castTimeHex() {
+  if (gems() < HEX_COST) return;
+  H.gems -= HEX_COST; H.timeHex = { mode: isNight() ? "tag" : "nacht", until: Date.now() + HEX_MIN * 60000 }; saveH();
+  SND.fx.brewed(); $("resetModal").hidden = true; resetStep = 0;
+  for (let i = 0; i < 8; i++) fly(["✨", "🔮", "⭐"][i % 3], rectOf($("hxClock")), null, { dx: (i - 4) * 18, dy: -60 - (i % 3) * 20, delay: i * 70, ms: 1100 });
+  openHex();
+  $("hxSub").textContent = H.timeHex.mode === "nacht" ? "🔮 Du hast die Nacht herbeigezaubert! Eine Stunde lang wachsen jetzt die Nachtkräuter." : "🔮 Du hast den Tag herbeigezaubert! Eine Stunde lang wachsen jetzt die Tagkräuter.";
+}
 /* ---------- Hexenhaus-Übersicht ---------- */
 // Uhr: Spielzeit ist die echte Uhrzeit. Nacht von 19 bis 7 Uhr.
 function untilSwitch(d = new Date()) {
   const t = new Date(d); t.setSeconds(0, 0);
-  const night = isNight(d);
+  const act = hexActive(); if (act) { const m = Math.ceil((act.until - d) / 60000); return `${m} Min. (verhext 🔮)`; }
+  const night = realNight(d);
   if (night) { if (d.getHours() >= 19) t.setDate(t.getDate() + 1); t.setHours(7, 0); }
   else t.setHours(19, 0);
   const m = Math.max(0, Math.round((t - d) / 60000)), h = Math.floor(m / 60), mm = m % 60;
@@ -3361,6 +3430,7 @@ function tickClock() {
     $("hxHour").setAttribute("transform", `rotate(${(h % 12) * 30 + m * .5} 30 30)`);
     $("hxMin").setAttribute("transform", `rotate(${m * 6} 30 30)`);
   }
+  if ($("hxGems")) $("hxGems").textContent = `💎 ${gems()}`;
   if (!$("hexView").hidden && $("hxScene").classList.contains("night") !== isNight()) openHex();
   if (!$("houseView").hidden) { const s = getSettlement(cur); $("hSub").textContent = `Dein Hexenhaus in ${s.name}. 🕰️ ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} Uhr · ${phaseText()}`; }
 }
@@ -3379,7 +3449,7 @@ function openHex() {
     else { if (p.pest) { c.className = "hx-pest"; pest++; } c.textContent = p.pest === "snail" ? "🐌" : p.pest === "weed" ? "🌾" : p.w === 0 ? "🌱" : "☘️"; }
     g.appendChild(c);
   });
-  tickClock();
+  tickClock(); $("hxClock").classList.toggle("hexed", !!hexActive());
   $("hxBedInfo").textContent = ripe ? `✨ ${ripe} ${ripe === 1 ? "Beet ist" : "Beete sind"} reif!` : pest ? `🐌 ${pest} ${pest === 1 ? "Beet braucht" : "Beete brauchen"} Hilfe` : free === 9 ? "Alles frei, pflanze etwas!" : "Pflanzen, gießen, ernten";
   show("hexView");
 }
@@ -3388,6 +3458,8 @@ $("toHexCard").addEventListener("click", openHex);
 $("mtab-hex").addEventListener("click", openHex);
 $("hexBack").addEventListener("click", showVillage);
 $("hxPot").addEventListener("click", () => openHouse("alchSec"));
+$("hxClock").addEventListener("click", openTimeHex);
+$("hxClock").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTimeHex(); } });
 $("hxBeds").addEventListener("click", () => openHouse("gardenSec"));
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
@@ -3862,7 +3934,7 @@ function draw(t) {
       } else if (p < .75) { ctx.save(); ctx.globalAlpha = 1 - p / .75; cell(an.from, x, y, true); ctx.restore(); } }
   }
   rolling.forEach(f => f());
-  drawDiary(t);
+  drawDiary(t); drawGem(t);
   drawAnims(now);
   // Heilerin mit Laterne
   const lx = px * S + S / 2, ly = py * S + S / 2;
