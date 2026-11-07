@@ -466,6 +466,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 @keyframes toastIn { from { transform: translateY(-30px); opacity: 0; } }
 .lvlbar.up .lv { animation: lvlPop .9s cubic-bezier(.3,1.6,.5,1); }
 @keyframes lvlPop { 40% { transform: scale(1.35) rotate(-8deg); box-shadow: 0 0 30px #ffe9a8; } }
+.riddle { background: #2a2244; border: 1px solid #b48cf2; border-radius: 10px; padding: 6px 9px; margin-bottom: 6px; }
+.riddle small { color: var(--muted); }
 /* Tagebuch */
 .diary { display: flex; flex-direction: column; gap: 10px; }
 .page { background: linear-gradient(180deg, #f3e6c8, #e6d3a8); color: #3a2a18; border-radius: 6px 14px 14px 6px; padding: 14px 16px 14px 22px; box-shadow: 0 6px 16px #0008, inset 6px 0 0 #c9b083; font-family: Georgia, "Times New Roman", serif; line-height: 1.55; position: relative; }
@@ -1062,9 +1064,9 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <div class="trips" id="timeList"></div>
     <div class="wk-list">
-      <div class="wk-row"><span class="ic" aria-hidden="true">🥇</span><span class="t"><strong>Gold</strong><span>Mehr als die Hälfte der Zeit übrig: 3 Samen, einer davon sicher selten</span></span></div>
-      <div class="wk-row"><span class="ic" aria-hidden="true">🥈</span><span class="t"><strong>Silber</strong><span>Mehr als ein Viertel der Zeit übrig: 2 Samen</span></span></div>
-      <div class="wk-row"><span class="ic" aria-hidden="true">🥉</span><span class="t"><strong>Bronze</strong><span>Gerade noch geschafft: 1 Samen</span></span></div>
+      <div class="wk-row"><span class="ic" aria-hidden="true">🥇</span><span class="t"><strong>Gold</strong><span>Mehr als die Hälfte der Zeit übrig: 2 Samen, einer davon sicher selten</span></span></div>
+      <div class="wk-row"><span class="ic" aria-hidden="true">🥈</span><span class="t"><strong>Silber</strong><span>Mehr als ein Viertel der Zeit übrig: 1 Samen</span></span></div>
+      <div class="wk-row"><span class="ic" aria-hidden="true">🥉</span><span class="t"><strong>Bronze</strong><span>Gerade noch geschafft: nur die Medaille</span></span></div>
     </div>
     <p class="help">Jeder Zeitdungeon wird bei jedem Start neu gewürfelt. Deine 3 Herzen gelten auch hier, und bis zu 2 Tränke darfst du benutzen.</p>
   </section>
@@ -1531,7 +1533,7 @@ function superWin() {
   done = true;
   const s = getSettlement(cur); H.superDone = H.superDone || {};
   const first = !H.superDone[s.n]; H.superDone[s.n] = true;
-  const seeds = [0, 1, 2].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
+  const seeds = Array.from({ length: first ? 2 : 1 }, () => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
   seeds.forEach(k => add(H.seeds, k)); if (first) add(H.potions, "voll"); gemAdd(first ? 2 : 0); saveH();
   $("winIcon").textContent = "💎";
   $("winTitle").textContent = `${level.name} bezwungen!`;
@@ -1766,8 +1768,8 @@ function openTime(m) {
 function timeWin() {
   stopTimer(); done = true;
   const m = level.tm, used = m.limit - timeLeft, ratio = timeLeft / m.limit;
-  const medal = ratio >= 0.5 ? ["🥇", "Gold", 3] : ratio >= 0.25 ? ["🥈", "Silber", 2] : ["🥉", "Bronze", 1];
-  const gift = Array.from({ length: medal[2] }, (_, i) => i === 2 ? RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)] : rollDrop(0.15));
+  const medal = ratio >= 0.5 ? ["🥇", "Gold", 2] : ratio >= 0.25 ? ["🥈", "Silber", 1] : ["🥉", "Bronze", 0];
+  const gift = Array.from({ length: medal[2] }, (_, i) => i === 1 ? RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)] : rollDrop(0.15));
   gift.forEach(k => add(H.seeds, k));
   H.timeBest = H.timeBest || {};
   const prev = H.timeBest[m.id], rec = !prev || used < prev.t;
@@ -1777,7 +1779,7 @@ function timeWin() {
   $("winTitle").textContent = `Zeitdungeon geschafft!`;
   $("winText").innerHTML = `Geschafft in <b>${used.toFixed(1).replace(".", ",")} Sekunden</b>. Medaille: ${medal[0]} ${medal[1]}.`
     + (rec ? "<br>🎉 Neue Bestzeit!" : `<br>Deine Bestzeit: ${prev.t.toFixed(1).replace(".", ",")} Sekunden`)
-    + `<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen.`;
+    + (gift.length ? `<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen.` : "<br><br>Für Bronze gibt es keine Samen. Schaffst du Silber oder Gold?");
   $("home").textContent = "Zurück zu den Zeitdungeons";
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 900);
 }
@@ -1885,7 +1887,7 @@ function plotClick(i) {
   } else if (p.w < 3 && p.pest === "weed") {
     p.pest = null; lastAct = { i, t: "pull" }; SND.fx.pull();
     fly("🌾", r, null, { dx: 70, dy: -90, ms: 900, delay: 250 }); clumps(4);
-    const bonus = Math.random() < 0.15 ? rollDrop(0.15) : null; if (bonus) { add(H.seeds, bonus); fly("🌱", r, null, { dx: -30, dy: -60, delay: 500 }); }
+    const bonus = Math.random() < 0.08 ? rollDrop(0.1) : null; if (bonus) { add(H.seeds, bonus); fly("🌱", r, null, { dx: -30, dy: -60, delay: 500 }); }
     hsay("✋ Unkraut ausgezupft! Jetzt hat dein Kraut wieder Platz." + (bonus ? ` Im Unkraut hing ein Samen: ${HERBS[bonus].ic} ${HERBS[bonus].nm} 🌱` : ""));
   } else if (p.w < 3 && p.pest === "snail") {
     p.pest = null; lastAct = { i, t: "shoo" }; SND.fx.shoo();
@@ -1971,8 +1973,8 @@ function secretWin() {
   if (first && nextRec) { H.recipes.push(nextRec); text += `Du hast ein seltenes Rezept gefunden: <b>${POTIONS[nextRec].ic} ${POTIONS[nextRec].nm}</b>!<br>${POTIONS[nextRec].eff}<br><br>`; }
   else if (first) text += "Alle seltenen Rezepte kennst du schon. Dafür ist die Rolle voller Schätze.<br><br>";
   const extra = Math.random() < 0.5 ? "frost" : "moos";
-  add(H.seeds, "rose", 2); add(H.seeds, "klee", 2); add(H.seeds, "pilz", 1); add(H.seeds, extra, 1); saveH();
-  text += `In der Rolle versteckt: ${HERBS.rose.ic} 2× Nebelrose, ${HERBS.klee.ic} 2× Kristallklee, ${HERBS[extra].ic} 1× ${HERBS[extra].nm} und ${HERBS.pilz.ic} 1× Glühpilz als Samen.`;
+  const sr = Math.random() < 0.5 ? "rose" : "klee"; add(H.seeds, sr, 1); add(H.seeds, extra, 1); saveH();
+  text += `In der Rolle versteckt: ${HERBS[sr].ic} 1× ${HERBS[sr].nm} und ${HERBS[extra].ic} 1× ${HERBS[extra].nm} als Samen.`;
   text += perfectBonus();
   text += weaverHint(); if (Math.random() < 0.15) gemAdd(1);
   $("winIcon").textContent = "📜";
@@ -2069,8 +2071,8 @@ function renderWiki() {
       <li>Am Ende legst du die Hände auf das verzauberte Tier. <b>Nur mit 20 % Glück</b> löst sich der Zauber, sonst flieht das Tier zurück in den Nebel und du versuchst es noch einmal. Damit es nicht zu frustrierend wird, klappt es nach 6 Fehlversuchen beim selben Tier ganz sicher. Bereits gerettete Tiere kannst du jederzeit wieder besuchen.</li>
       <li>Du hast <b>3 Versuche</b> 💛💛💛. Jeder falsche Begleiter kostet einen. Sind alle weg, bringt dich der Nebel an den Anfang zurück.</li>
       <li>Gegen Bäume, Wasser oder Fels zu laufen kostet nichts.</li>
-      <li>Schaffst du ein Abenteuer mit <b>allen Herzen</b>, gibt es eine Extra-Belohnung: zwei Bonus-Samen mit guter Chance auf seltene, und beim ersten Mal einen ⭐ für das Abenteuer. Ein Fehler, den der Glückstee abfängt, zählt nicht als verlorenes Herz.</li>
-      <li>Holst du in einem Ort alle 3 ⭐, öffnest du einmalig die <b>Sternentruhe</b>: drei seltene Samen, ein Herztrank und ein weiterer Trank. Über dem Ort leuchtet danach ein goldener Stern 🌟.</li>
+      <li>Schaffst du ein Abenteuer mit <b>allen Herzen</b>, gibt es eine Extra-Belohnung: ein Bonus-Samen mit guter Chance auf einen seltenen, und beim ersten Mal einen ⭐ für das Abenteuer. Ein Fehler, den der Glückstee abfängt, zählt nicht als verlorenes Herz.</li>
+      <li>Holst du in einem Ort alle 3 ⭐, öffnest du einmalig die <b>Sternentruhe</b>: zwei seltene Samen, ein Herztrank und ein weiterer Trank. Über dem Ort leuchtet danach ein goldener Stern 🌟.</li>
       <li>Jeder Ort hat einen <b>🌀 superschweren Irrgarten</b>. Er öffnet sich, wenn alle drei Tiere dort gerettet sind. Darin gibt es <b>mehrere Wege</b> zum Ziel, und überall warten Hindernisse. Such dir den Weg aus, der am besten zu deinen Begleitern und Tränken passt. Beim ersten Sieg gibt es das 🏆 Meisterabzeichen.</li>
       <li>Auch die Zeitdungeons sind Irrgärten mit mehreren Wegen. Der kürzeste Weg ist nicht immer der schnellste!</li>
       <li>In den <b>⏳ Zeitdungeons</b> läuft eine Sanduhr. Erreichst du die Zeitsanduhr rechtzeitig, gibt es je nach übriger Zeit Gold, Silber oder Bronze mit Samen als Belohnung, und deine Bestzeit wird gespeichert.</li>
@@ -2205,7 +2207,7 @@ function renderWiki() {
     <p>Im Reiter <b>🗓️ Täglich</b> wartet jeden Tag ein neues Rätsel-Dungeon. Es ist an diesem Tag für <b>alle Spieler gleich</b>, so könnt ihr vergleichen, wer es am besten geschafft hat. Es helfen nur die fünf Grund-Begleiter, damit alle die gleichen Chancen haben.</p>
     <ul class="wk-tip">
       <li>In der <b>🏆 Tages-Bestenliste</b> zählt dein erster Sieg des Tages: zuerst die meisten Herzen, dann die wenigsten Anläufe, dann die schnellste Zeit.</li>
-      <li>Belohnung beim ersten Sieg: zwei Samen, und mit allen Herzen einen seltenen Samen extra.</li>
+      <li>Belohnung beim ersten Sieg: ein Samen, und mit allen Herzen einen seltenen Samen extra.</li>
       <li>🔥 <b>Serie:</b> Schaffst du das Rätsel mehrere Tage hintereinander, wächst deine Serie.</li>
     </ul>
   </section>
@@ -2217,7 +2219,7 @@ function renderWiki() {
       <li><b>Streicheln:</b> Tippe auf ein Tier, dann hüpft es und erzählt dir etwas. Jedes Tier hat seine eigene Stimme.</li>
       <li><b>Füttern:</b> Im <b>🧺 Futterkorb</b> liegen Karotten 🥕, Äpfel 🍎, Nüsse 🌰, Beeren 🍓, Fisch 🐟, Honig 🍯, Klee 🍀 und Körner 🌾. Er füllt sich jeden Tag neu, und nach jeder Rettung kommen zwei Leckerbissen dazu. Auch Kräuter kannst du verfüttern. Wähle das Futter und tippe auf ein Tier. Das bringt dir ❤️ <b>Ruf</b> bei diesem Tier. Lieblingsfutter (zum Beispiel 🥕 für den Hasen oder 🐟 für die Katze) und das Lieblingskraut zählen doppelt. Pro Tag mag jedes Tier bis zu drei Leckerbissen.</li>
       <li><b>Ruf-Stufen:</b> 🙈 Scheu → 👀 Neugierig (1 Herz) → 😊 Freundlich (3) → 💛 Vertraut (6) → 🌟 Beste Freunde (10). Deinen Ruf bei jedem Tier siehst du unten auf der Lichtung.</li>
-      <li><b>Geschenke:</b> Bei 3 Herzen schenkt dir das Tier zwei Samen, bei 6 Herzen einen seltenen Samen, und bei 10 Herzen seid ihr beste Freunde 🌟 und du bekommst einen Herztrank.</li>
+      <li><b>Geschenke:</b> Bei 3 Herzen schenkt dir das Tier einen Samen, bei 6 Herzen einen seltenen Samen, und bei 10 Herzen seid ihr beste Freunde 🌟 und du bekommst einen Herztrank.</li>
       <li><b>🧹 Aufräum-Spiel:</b> Jeden Tag weht der Wind Laub, Steine und Federn auf die Lichtung. Tippe auf ein Ding und dann auf den richtigen Korb: 🪣 Kompost (Laub, Blätter, Apfelreste), 🪨 Steinhaufen (Steine, Zapfen, Stöcke) oder 🪺 Nestkiste (Federn, Wolle, Fäden). Du hast 40 Sekunden. Drei richtige hintereinander geben Bonuspunkte, falsch sortieren kostet 3 Sekunden. Einmal am Tag gibt es Futter und Samen, und ab 12 Punkten +1 Ruf bei allen Tieren.</li>
       <li><b>Schmücken:</b> Blumen, Pilze, Laternen, ein Brunnen, ein Tierhäuschen und sogar ein Regenbogen. Du bezahlst mit Kräutern, egal welchen. Mit ↩️ nimmst du Schmuck wieder weg und bekommst die Kräuter zurück.</li>
     </ul>
@@ -2254,7 +2256,7 @@ function renderWiki() {
     <p>Es gibt keine Wartezeit, alles geht sofort.</p>
     <p><b>So erkennst du deine Beete:</b> Helle, rissige Erde ist fest und muss umgegraben werden. Dunkle, gefurchte Erde ist locker und bereit zum Pflanzen. Nach dem Gießen glänzt sie nass. Ein <b>goldener Rand</b> heißt „reif, bitte ernten“, ein <b>oranger Rand</b> heißt „Unkraut oder Schnecke, bitte kümmern“.</p>
     <p>Garten und Alchemietisch sind zwei eigene Seiten. Oben rechts kommst du mit einem Knopf direkt vom einen zum anderen.</p>
-    <p><b>Samen bekommen:</b> Nach jedem Abschluss gibt es zwei zufällige Samen, manchmal sogar seltene. In manchen Abenteuern leuchtet ein seltener 🌱 Samenfund auf dem Weg. Lauf einfach drüber. Zum Farmen gibt es den Reiter <b>🌿 Kräuter</b> mit dem kurzen und dem langen Kräuterpfad, dort liegen immer mehrere Samenfunde. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
+    <p><b>Samen bekommen:</b> Nach jeder Rettung gibt es einen zufälligen Samen, manchmal sogar einen seltenen. Samen sind kostbar, geh sparsam mit ihnen um! In manchen Abenteuern leuchtet ein seltener 🌱 Samenfund auf dem Weg. Lauf einfach drüber. Zum Farmen gibt es den Reiter <b>🌿 Kräuter</b> mit dem kurzen und dem langen Kräuterpfad, dort liegen immer mehrere Samenfunde. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
     <div class="wk-list">${Object.values(HERBS).map(hb => row(hb.ic, hb.nm + (hb.rare ? ' <small class="rare">selten</small>' : ""), hb.from)).join("")}</div>
   </section>
 
@@ -2545,7 +2547,7 @@ function startLevel(l) {
   $("dTitle").textContent = l.name;
   $("back").textContent = "Zurück";
   placeDiary(l); placeGem(l);
-  say(l.intro + (HP && HP.note ? HP.note : ""));
+  say(l.intro + (HP && HP.note ? HP.note : "")); tellRiddle();
   showDungeon();
 }
 
@@ -2633,7 +2635,7 @@ function tryStep(tx, ty) {
 // Extra-Belohnung, wenn man kein Herz verloren hat
 function perfectBonus() {
   if (lostHeart) return "";
-  const b = [rollDrop(0.3), rollDrop(0.3)]; b.forEach(k => add(H.seeds, k));
+  const b = [rollDrop(0.3)]; b.forEach(k => add(H.seeds, k));
   H.stars = H.stars || {};
   const firstStar = !H.stars[level.id]; H.stars[level.id] = true; saveH();
   let txt = `<br><br>💛 <b>Alle Herzen behalten!</b> Extra-Belohnung: ${b.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen` + (firstStar ? " und ein ⭐ für dieses Abenteuer." : ".");
@@ -2641,7 +2643,7 @@ function perfectBonus() {
   const s = getSettlement(cur); H.starOrt = H.starOrt || {};
   if (!level.secret && !H.starOrt[s.n] && s.levels.every(l => H.stars[l.id])) {
     H.starOrt[s.n] = true;
-    const rares = [0, 1, 2].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
+    const rares = [0, 1].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
     rares.forEach(k => add(H.seeds, k));
     const pot = ["sonnen", "tulpen", "kleeg"][Math.floor(Math.random() * 3)];
     add(H.potions, "herz"); add(H.potions, pot); saveH();
@@ -2661,31 +2663,36 @@ function farmLevel(s) {
 function farmWin() {
   done = true;
   const pool = SEED_POOL, got = {};
-  const fc = level.farmCfg || { herbs: [4, 6] };
+  const fc = level.farmCfg || { herbs: [2, 3] };
   for (let i = 0; i < fc.herbs[0] + Math.floor(Math.random() * (fc.herbs[1] - fc.herbs[0] + 1)); i++) { const h = pool[Math.floor(Math.random() * pool.length)]; got[h] = (got[h] || 0) + 1; add(H.herbs, h); }
-  const sd = rollDrop(0.1); add(H.seeds, sd); if (Math.random() < 0.2) gemAdd(1); saveH();
+  const sd = Math.random() < 0.25 ? rollDrop(0.1) : null; if (sd) add(H.seeds, sd); if (Math.random() < 0.2) gemAdd(1); saveH();
   $("winIcon").textContent = "🧺"; $("winTitle").textContent = "Kräuterkorb geöffnet!";
-  $("winText").innerHTML = `Der Korb ist voller frischer Kräuter:<br>${Object.entries(got).map(([h, n]) => `${n}× ${HERBS[h].ic} ${HERBS[h].nm}`).join(", ")}<br>Dazu ein Samen: ${HERBS[sd].ic} ${HERBS[sd].nm}.<br><br>Die Kräuter liegen schon in deiner Kräutertasche, bereit zum Brauen ⚗️`;
+  $("winText").innerHTML = `Der Korb ist voller frischer Kräuter:<br>${Object.entries(got).map(([h, n]) => `${n}× ${HERBS[h].ic} ${HERBS[h].nm}`).join(", ")}${sd ? `<br>Dazu ein Samen: ${HERBS[sd].ic} ${HERBS[sd].nm}.` : ""}<br><br>Die Kräuter liegen schon in deiner Kräutertasche, bereit zum Brauen ⚗️`;
   $("home").textContent = "Zurück";
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 900);
 }
 function escapeWin(n) {
   done = true; window.__escaped = true;
-  const s = getSettlement(cur), g = rollDrop(0.1); add(H.seeds, g); saveH();
+  const s = getSettlement(cur), g = Math.random() < 0.35 ? rollDrop(0.1) : null; if (g) add(H.seeds, g); saveH();
   const left = RESCUE_PITY - n;
   $("winIcon").textContent = "🌫️";
   $("winTitle").textContent = "Fast geschafft …";
-  $("winText").innerHTML = `Du legst die Hände auf den Zauber. Er flackert und knistert, doch ${level.who.replace(/^D/, "d")} erschrickt und huscht zurück in den Nebel.<br><br>Der Zauber lässt sich nur mit Glück lösen (20 % Chance). ${left > 0 ? `Gib nicht auf! Spätestens nach ${left} weiteren ${left === 1 ? "Versuch" : "Versuchen"} klappt es ganz sicher.` : "Beim nächsten Mal klappt es ganz sicher!"}<br><br>🎁 Als Trost: ${HERBS[g].ic} ${HERBS[g].nm} als Samen.` + perfectBonus();
+  $("winText").innerHTML = `Du legst die Hände auf den Zauber. Er flackert und knistert, doch ${level.who.replace(/^D/, "d")} erschrickt und huscht zurück in den Nebel.<br><br>Der Zauber lässt sich nur mit Glück lösen (20 % Chance). ${left > 0 ? `Gib nicht auf! Spätestens nach ${left} weiteren ${left === 1 ? "Versuch" : "Versuchen"} klappt es ganz sicher.` : "Beim nächsten Mal klappt es ganz sicher!"}${g ? `<br><br>🎁 Als Trost: ${HERBS[g].ic} ${HERBS[g].nm} als Samen.` : ""}` + perfectBonus();
   $("home").textContent = `Zurück nach ${s.name}`;
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
 function replayWin() {
   done = true;
-  const s = getSettlement(cur), T = level.thanks, gift = [rollDrop(0.15), rollDrop(0.15)]; gift.forEach(k => add(H.seeds, k));
-  const food = addFood(1); saveH();
+  const s = getSettlement(cur), T = level.thanks, roll = Math.random();
+  let inside;
+  if (roll < 0.45) inside = "Das Geschenk ist leer, nur ein kleiner Zettel liegt darin: <i>„Danke, dass du mich besuchst!“</i> 💌";
+  else if (roll < 0.85) { const f = addFood(1)[0]; inside = `Im Geschenk liegt ${FOODS[f].ic} ${FOODS[f].nm} für die Lichtung.`; }
+  else if (roll < 0.93) { const pk = Object.keys(POTIONS).filter(k => !POTIONS[k].rare)[Math.floor(Math.random() * 4)]; add(H.potions, pk); inside = `Im Geschenk liegt ein Trank: ${POTIONS[pk].ic} ${POTIONS[pk].nm}.`; }
+  else { H.gems = (H.gems || 0) + 1; inside = "Im Geschenk funkelt ein 💎 Diamant!"; }
+  saveH();
   $("winIcon").textContent = T.ic;
   $("winTitle").textContent = `Ein Dankeschön ${T.who.replace(/^Der /, "vom ").replace(/^Das /, "vom ").replace(/^Die /, "von der ")}!`;
-  $("winText").innerHTML = `${T.who} wohnt schon bei dir und freut sich, dass du noch einmal vorbeikommst. Im Geschenk liegen: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen und ${FOODS[food[0]].ic} ${FOODS[food[0]].nm} für die Lichtung.` + perfectBonus() + weaverHint();
+  $("winText").innerHTML = `${T.who} wohnt schon bei dir und freut sich, dass du noch einmal vorbeikommst. ${inside}` + perfectBonus() + weaverHint();
   $("home").textContent = `Zurück nach ${s.name}`;
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
@@ -2710,7 +2717,7 @@ function rescue() {
   const foodGot = addFood(2);
   const s = getSettlement(cur), pet = PET_ROLES.find(p => p.from === level.id);
   let text = `${level.who} folgt dir zurück nach ${s.name} und zieht ${level.home} ein.`;
-  const gift = Array.from({ length: (fx.loot ? 4 : 2) + teamFx().loot }, () => rollDrop()); gift.forEach(k => add(H.seeds, k)); saveH();
+  const gift = Array.from({ length: (fx.loot ? 2 : 1) + teamFx().loot }, () => rollDrop()); gift.forEach(k => add(H.seeds, k)); saveH();
   text += `<br><br>🎁 Zufällige Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen.`;
   text += perfectBonus();
   text += weaverHint(); if (Math.random() < 0.15) gemAdd(1);
@@ -3007,7 +3014,7 @@ function dailyWin() {
   let gift = [];
   if (first) {
     e.won = true; e.hearts = tries; e.t = Math.round(used * 10) / 10;
-    gift = [rollDrop(0.2), rollDrop(0.2)]; if (tries >= 3) gift.push(RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
+    gift = [rollDrop(0.2)]; if (tries >= 3) gift.push(RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
     gift.forEach(g => add(H.seeds, g)); gemAdd(1);
     let nm = ""; try { nm = ($("dailyName").value || localStorage.getItem("nebelpfad-coopname") || "").trim().slice(0, 20); } catch (x) {}
     addDaily(k, { name: nm || "Ohne Namen", hearts: tries, t: e.t, tries: e.tries || 1 });
@@ -3073,11 +3080,11 @@ function festLevel() {
 function festWin() {
   done = true;
   if (level.festReplay) {
-    const { F } = festState(), sd = Math.random() < 0.5 ? 2 : 1; add(H.seeds, F.seed, sd);
-    const extra = rollDrop(0.2); add(H.seeds, extra); addFood(1);
+    const { F } = festState(), sd = Math.random() < 0.4 ? 1 : 0; if (sd) add(H.seeds, F.seed, sd);
+    addFood(1);
     const coinTxt = coinGain(5 + Math.floor(Math.random() * 3)); saveH();
     $("winIcon").textContent = "🎁"; $("winTitle").textContent = `${F.nm}: Festgeschenk geöffnet!`;
-    $("winText").innerHTML = `Im Geschenk liegen:<br>${coinTxt}<br>🎁 ${sd}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} und ${HERBS[extra].ic} ${HERBS[extra].nm} als Samen, dazu ein Leckerbissen für die Lichtung.`;
+    $("winText").innerHTML = `Im Geschenk liegen:<br>${coinTxt}<br>🎁 ${sd ? `1× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} als Samen und ` : ""}ein Leckerbissen für die Lichtung.`;
     $("home").textContent = "Zurück";
     setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
     return;
@@ -3085,10 +3092,10 @@ function festWin() {
   const { F, st } = festState(), nm = level.animalName, first = !st.done.includes(nm);
   if (first) st.done.push(nm);
   H.festAnimals = H.festAnimals || []; if (!H.festAnimals.some(a => a.nm === nm)) H.festAnimals.push({ ic: level.animal, nm });
-  const n = first ? 2 : 1; add(H.seeds, F.seed, n);
-  const extra = [rollDrop(0.2)]; extra.forEach(k => add(H.seeds, k)); addFood(2); gemAdd(first ? 1 : 0);
+  const n = 1; add(H.seeds, F.seed, n);
+  const extra = []; addFood(2); gemAdd(first ? 1 : 0);
   const coinTxt = coinGain(first ? 8 : 4);
-  let txt = `${level.animal} <b>${nm}</b> zieht auf deine Tierlichtung 🌳<br><br>${coinTxt}<br>🎁 Belohnung: ${n}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} (gibt es nur zu diesem Fest!) und ${extra.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
+  let txt = `${level.animal} <b>${nm}</b> zieht auf deine Tierlichtung 🌳<br><br>${coinTxt}<br>🎁 Belohnung: ${n}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} als Samen (gibt es nur zu diesem Fest!).`;
   H.festDeco = H.festDeco || []; if (!H.festDeco.includes(F.k)) { H.festDeco.push(F.k); txt += `<br>${F.deco[0]} Neu für die Lichtung: <b>${F.deco[1]}</b>.`; }
   if (first && st.done.length === 3) txt = `${level.animal} <b>${nm}</b> ist frei, und damit hast du <b>alle drei Festtiere</b> gerettet: ${F.animals.map(a => a[0] + " " + a[1]).join(", ")}. Sie wohnen jetzt alle auf deiner Tierlichtung 🌳` + txt.slice(txt.indexOf("<br><br>")) + `<br><br>🎁 Ab jetzt findest du beim Weiterfeiern Festgeschenke mit ${FEST_COIN[F.k][1]} und Festsamen.`;
   saveH();
@@ -3354,14 +3361,22 @@ function hardSetup(l) {
   HP.note = `<br><br>🧠 <b>${parts.length === 1 ? "Denk-Rätsel" : parts.length + " Denk-Rätsel"}!</b> ` + parts.join(" ");
 }
 function altOk(t, role) { return !!(HP && HP.mech.has("alt") && ALT[t] && ALT[t].includes(role)); }
+// Rätsel verraten, wenn man neben einem verhüllten Feld steht. Es kommt ganz oben ins Textfeld, damit man es sofort sieht.
+function tellRiddle() {
+  if (!HP) return;
+  for (const [a, b] of NB) {
+    const k = (px + a) + "," + (py + b), c = grid[py + b] && grid[py + b][px + a];
+    if (HP.veil.has(k) && !HP.told.has(k) && RIDDLE[c]) {
+      HP.told.add(k);
+      $("msg").innerHTML = `<div class="riddle">❔ <b>Das verhüllte Feld ${a === 0 ? (b < 0 ? "über" : "unter") : (a < 0 ? "links neben" : "rechts neben")} dir flüstert:</b><br><i>${RIDDLE[c]}</i><br><small>Welcher Begleiter ist gemeint? Wähle ihn und tippe auf das Feld.</small></div>` + $("msg").innerHTML;
+      $("msg").scrollTop = 0; break;
+    }
+  }
+}
 function afterMove() {
   if (HP) {
     HP.steps++;
-    // Rätsel verraten, wenn man neben einem verhüllten Feld steht
-    for (const [a, b] of NB) {
-      const k = (px + a) + "," + (py + b);
-      if (HP.veil.has(k) && !HP.told.has(k)) { HP.told.add(k); $("msg").innerHTML += `<br>❔ <b>Ein verhülltes Feld flüstert:</b> <i>${RIDDLE[grid[py + b][px + a]]}</i>`; break; }
-    }
+    tellRiddle();
     if (Object.keys(HP.wander).length && HP.steps % 3 === 0) SND.fx.click();
   }
 }
@@ -3461,7 +3476,7 @@ function weaverWin() {
   const s = getSettlement(cur); H.weaver = H.weaver || {};
   const first = !H.weaver[s.n]; H.weaver[s.n] = true;
   const met = Object.keys(H.weaver).length, talk = WEAVER_TALK[Math.min(met, WEAVER_TALK.length) - 1];
-  const seeds = [0, 1, 2].map(() => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]); seeds.forEach(k => add(H.seeds, k));
+  const seeds = Array.from({ length: first ? 2 : 1 }, () => RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]); seeds.forEach(k => add(H.seeds, k));
   if (first) { add(H.potions, "voll"); add(H.potions, "herz"); gemAdd(3); }
   let page = "";
   H.diary = H.diary || [];
@@ -3645,8 +3660,8 @@ function clStop(finished) {
   let txt = `🧹 <b>Fertig!</b> Du hast ${res.sorted} Dinge richtig einsortiert und <b>${res.score} Punkte</b> geholt.${rec ? " 🏆 Neuer Rekord!" : ""}`;
   if (first) {
     G.cleanDay = today(); xpAdd(8);
-    const food = addFood(res.score >= 25 ? 4 : res.score >= 12 ? 3 : 2), seed = rollDrop(res.score >= 25 ? 0.3 : 0.1); add(H.seeds, seed);
-    txt += `<br>🎁 Die Tiere bedanken sich: ${food.map(k => FOODS[k].ic).join(" ")} für den Futterkorb und ${HERBS[seed].ic} ${HERBS[seed].nm} als Samen.`;
+    const food = addFood(res.score >= 25 ? 4 : res.score >= 12 ? 3 : 2), seed = res.score >= 25 ? rollDrop(0.2) : null; if (seed) add(H.seeds, seed);
+    txt += `<br>🎁 Die Tiere bedanken sich: ${food.map(k => FOODS[k].ic).join(" ")} für den Futterkorb${seed ? ` und ${HERBS[seed].ic} ${HERBS[seed].nm} als Samen` : ""}.`;
     if (res.score >= 12) { H.gems = gems() + 1; txt += " 💎 Unter dem Laub lag ein Diamant!"; }
     if (res.score >= 12) { rescuedAnimals().forEach(a => { G.friend[a.nm] = Math.min(10, (G.friend[a.nm] || 0) + 1); }); txt += " ⭐ Alle Tiere freuen sich über die saubere Lichtung: +1 Ruf bei allen!"; }
     SND.fx.win();
@@ -3657,8 +3672,8 @@ $("clStart").addEventListener("click", clStart);
 
 /* ---------- Reiter Kräuter ---------- */
 const FARM_PATHS = [
-  { id: "kurz", ic: "🌿", nm: "Kurzer Kräuterpfad", txt: "Ein paar Schritte, schnell geschafft", count: 3, herbs: [3, 4], spots: [1, 2] },
-  { id: "lang", ic: "🍃", nm: "Langer Kräuterpfad", txt: "Mehr Hindernisse, dafür mehr Kräuter und Samenfunde", count: 6, herbs: [5, 7], spots: [2, 4] }
+  { id: "kurz", ic: "🌿", nm: "Kurzer Kräuterpfad", txt: "Ein paar Schritte, schnell geschafft", count: 3, herbs: [1, 2], spots: [0, 1] },
+  { id: "lang", ic: "🍃", nm: "Langer Kräuterpfad", txt: "Mehr Hindernisse, dafür mehr Kräuter und Samenfunde", count: 6, herbs: [2, 4], spots: [1, 2] }
 ];
 let farmSel = FARM_PATHS[0];
 function showFarm() {
@@ -3992,7 +4007,7 @@ function petAnimal(a, b) {
     setTimeout(() => { hopFx(b, fav ? "💖" : "❤️"); if (fav) fly("❤️", rectOf(b), null, { dx: 24, dy: -40, delay: 150 }); }, 450);
     SND.fx.plop();
     let gift = "";
-    if (before < 3 && now >= 3) { const g = [rollDrop(0.2), rollDrop(0.2)]; g.forEach(x => add(H.seeds, x)); gift = ` 🎁 Zum Dank schenkt ${a.nm} dir Samen: ${g.map(x => HERBS[x].ic + " " + HERBS[x].nm).join(", ")}.`; }
+    if (before < 3 && now >= 3) { const g = [rollDrop(0.2)]; g.forEach(x => add(H.seeds, x)); gift = ` 🎁 Zum Dank schenkt ${a.nm} dir Samen: ${g.map(x => HERBS[x].ic + " " + HERBS[x].nm).join(", ")}.`; }
     if (before < 6 && now >= 6) { const r = RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]; add(H.seeds, r); gift += ` 🎁 ${a.nm} bringt dir einen seltenen Samen: ${HERBS[r].ic} ${HERBS[r].nm}!`; }
     if (rufName(before) !== rufName(now)) gift = ` ⭐ Dein Ruf bei ${a.nm} steigt: <b>${rufName(now)}</b>!` + gift;
     if (before < 10 && now >= 10) { add(H.potions, "herz"); gift += ` 🌟 Ihr seid jetzt beste Freunde! ${a.nm} schenkt dir einen ${POTIONS.herz.ic} ${POTIONS.herz.nm}.`; SND.fx.win(); }
@@ -4843,7 +4858,7 @@ function coopWin() {
     addBest({ names: teamNames(), size: coopSize, t: Math.round(used * 10) / 10, hearts: tries, d: new Date().toISOString().slice(0, 10) });
     if (ratio >= 0.5) add(H.seeds, RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
   }
-  const gift = [rollDrop(0.2), rollDrop(0.2)]; gift.forEach(k => add(H.seeds, k)); saveH();
+  const gift = [rollDrop(0.2)]; gift.forEach(k => add(H.seeds, k)); saveH();
   $("winIcon").textContent = level.animal;
   $("winTitle").textContent = "Gemeinsam geschafft! 🤝";
   $("winText").innerHTML = `Du${coopSize === 3 ? ", " + seatName("claude") + " und " + seatName("claude2") : " und " + PN()} habt ${akk(level.who)} zusammen befreit.${timeTxt}<br><br>🎁 Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
