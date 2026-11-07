@@ -283,6 +283,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
 .toggles .tg { flex: 1; font-weight: 700; text-align: center; padding: 6px 8px; }
 .toggles .tg[aria-expanded="true"] { border-color: var(--lantern); background: #2a2516; }
 .toggles .tg[hidden] { display: none; }
+#houseView .wk-sec[hidden] { display: none; }
 .acts-row .lbl { flex: none; font-size: .75rem; color: var(--muted); font-weight: 700; }
 .acts-row .chip { flex: none; white-space: nowrap; border-color: var(--magic); font-size: .8rem; padding: 5px 10px; }
 .acts-row .chip:disabled { opacity: .35; border-color: var(--line); cursor: default; }
@@ -541,10 +542,10 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     <header class="vhead">
       <div>
         <p class="eyebrow">Nebelpfad · Hexenhaus</p>
-        <h1>Garten und Alchemie</h1>
+        <h1 id="hTitle">Kräutergarten</h1>
         <p class="sub" id="hSub"></p>
       </div>
-      <button class="back" id="houseBack" type="button">Zurück</button>
+      <div class="btns"><button class="back" id="houseSwitch" type="button">⚗️ Alchemie</button><button class="back" id="houseBack" type="button">Zurück</button></div>
     </header>
     <div class="msg" id="hMsg" aria-live="polite"></div>
     <section class="wk-sec" id="gardenSec">
@@ -1246,15 +1247,21 @@ function brew(id) {
   }, d + 500);
   setTimeout(finish, d + 1300);
 }
+let houseSec = "gardenSec";
 function openHouse(sec) {
+  houseSec = sec === "alchSec" ? "alchSec" : "gardenSec";
+  const garden = houseSec === "gardenSec";
   renderHouse();
-  hsay("Willkommen im Hexenhaus. Pflanze Kräuter und braue daraus Tränke für deine Abenteuer.");
+  $("gardenSec").hidden = !garden; $("alchSec").hidden = garden;
+  $("hTitle").textContent = garden ? "Kräutergarten" : "Alchemietisch";
+  $("houseSwitch").textContent = garden ? "⚗️ Alchemie" : "🌱 Garten";
+  hsay(garden ? "Willkommen im Kräutergarten 🌱 Pflanze Samen, gieße sie und ernte Kräuter." : "Willkommen am Alchemietisch ⚗️ Braue aus deinen Kräutern Tränke für deine Abenteuer.");
   show("houseView");
-  if (sec) $(sec).scrollIntoView({ behavior: "auto" });
 }
 $("toGarden").addEventListener("click", () => openHouse("gardenSec"));
 $("toAlchemy").addEventListener("click", () => openHouse("alchSec"));
 $("houseBack").addEventListener("click", showVillage);
+$("houseSwitch").addEventListener("click", () => openHouse(houseSec === "gardenSec" ? "alchSec" : "gardenSec"));
 
 function secretWin() {
   done = true;
@@ -1357,7 +1364,7 @@ function renderWiki() {
   <section class="wk-sec" id="wk-start"><h2>Grundlagen</h2>
     <ul class="wk-tip">
       <li>Du bist die <b>Heilerin</b> mit der Laterne. Nur du kannst verzauberte Tiere befreien.</li>
-      <li>Tippe auf ein Feld direkt neben dir, um zu laufen.</li>
+      <li>Tippe auf ein Feld neben dir, dann läufst du in diese Richtung weiter bis zum nächsten Hindernis oder zur nächsten Abzweigung. Du kannst auch direkt auf ein entferntes Feld tippen, dann findet die Heilerin den Weg selbst. Tippst du auf ein Hindernis weiter weg, läufst du bis direkt davor.</li>
       <li>Vor einem Hindernis wählst du unten den passenden Begleiter und tippst dann auf das Hindernis.</li>
       <li>Du hast <b>3 Versuche</b> 💛💛💛. Jeder falsche Begleiter kostet einen. Sind alle weg, bringt dich der Nebel an den Anfang zurück.</li>
       <li>Gegen Bäume, Wasser oder Fels zu laufen kostet nichts.</li>
@@ -1690,6 +1697,7 @@ function buildRoles() {
 function paintRoles() { ROLES.forEach(r => $("role-" + r.id).setAttribute("aria-pressed", String(r.id === role))); }
 
 function startLevel(l) {
+  try { stopWalk(); } catch (e) {}
   level = l; theme = THEMES[l.theme];
   buildRoles();
   // Mondtal beim ersten Mal wie gebaut, danach (und überall sonst) jedes Mal neu
@@ -1836,9 +1844,76 @@ function sparkle(x, y) {
   for (let i = 0; i < 26; i++) burst.push({ x: x + .5, y: y + .5, vx: (Math.random() - .5) * .08, vy: (Math.random() - .5) * .08 - .02, life: 1 });
 }
 
+/* ---------- Weiter laufen: bis zum nächsten Hindernis oder zur nächsten Abzweigung ---------- */
+const FREE = ".BSP";
+const isFree = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS && FREE.includes(grid[y][x]);
+const isObst = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS && !FREE.includes(grid[y][x]) && !"#~".includes(grid[y][x]);
+const NB = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+// Weg durch einen Gang: läuft geradeaus, folgt Kurven und hält an Abzweigungen oder vor Hindernissen
+function runSteps(sx, sy, dx, dy) {
+  const steps = []; let x = sx, y = sy, px0 = null, py0 = null;
+  for (let n = 0; n < 40; n++) {
+    let nx = x + dx, ny = y + dy;
+    if (!isFree(nx, ny)) {
+      if (!steps.length) return steps;
+      const opts = NB.filter(([ax, ay]) => isFree(x + ax, y + ay) && !(x + ax === px0 && y + ay === py0));
+      if (opts.length !== 1) break;
+      [dx, dy] = opts[0]; nx = x + dx; ny = y + dy;
+    }
+    px0 = x; py0 = y; x = nx; y = ny; steps.push([x, y]);
+    if (NB.some(([ax, ay]) => isObst(x + ax, y + ay))) break;
+    const ways = NB.filter(([ax, ay]) => isFree(x + ax, y + ay) && !(x + ax === px0 && y + ay === py0));
+    if (ways.length !== 1) break;
+  }
+  return steps;
+}
+// Kürzester Weg über freie Felder zu einem Ziel (bei einem Hindernis: bis direkt davor)
+function pathTo(tx, ty) {
+  const goalFree = isFree(tx, ty), goal = (x, y) => goalFree ? x === tx && y === ty : Math.abs(x - tx) + Math.abs(y - ty) === 1;
+  if (goal(px, py)) return [];
+  const prev = { [px + "," + py]: null }, q = [[px, py]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [ax, ay] of NB) {
+      const nx = x + ax, ny = y + ay, k = nx + "," + ny;
+      if (k in prev || !isFree(nx, ny)) continue;
+      prev[k] = x + "," + y;
+      if (goal(nx, ny)) { const out = []; let c = k; while (c && c !== px + "," + py) { out.unshift(c.split(",").map(Number)); c = prev[c]; } return out; }
+      q.push([nx, ny]);
+    }
+  }
+  return null;
+}
+let walkTimer = null;
+function stopWalk() { if (walkTimer) { clearTimeout(walkTimer); walkTimer = null; } }
+function walkSteps(steps, after) {
+  stopWalk();
+  const next = () => {
+    walkTimer = null;
+    if (!steps.length || done) { if (after) after(); return; }
+    const [x, y] = steps.shift(), ox = px, oy = py;
+    tryStep(x, y);
+    if (px === ox && py === oy) { if (after) after(); return; }
+    walkTimer = setTimeout(next, reduce ? 0 : 95);
+  };
+  next();
+}
+// Ein Tipp oder eine Taste: neben dir ein Hindernis → Begleiter einsetzen, sonst losgehen
+function go(tx, ty) {
+  if (!level || done) return;
+  if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) return;
+  if (level.coop && guestMode) { guestAct(tx, ty); return; }
+  const dist = Math.abs(tx - px) + Math.abs(ty - py);
+  if (dist === 0) return;
+  if (dist === 1 && !isFree(tx, ty)) { stopWalk(); tryStep(tx, ty); return; }
+  const steps = dist === 1 ? runSteps(px, py, tx - px, ty - py) : pathTo(tx, ty);
+  if (steps === null) { say(isObst(tx, ty) ? "Zu diesem Hindernis führt gerade kein freier Weg. Räum zuerst die Hindernisse vor dir weg." : "Dahin führt gerade kein freier Weg."); return; }
+  if (!steps.length) { if (dist === 1) tryStep(tx, ty); return; }
+  walkSteps(steps);
+}
 cv.addEventListener("click", e => {
   const r = cv.getBoundingClientRect();
-  tryStep(Math.floor((e.clientX - r.left) / r.width * COLS), Math.floor((e.clientY - r.top) / r.height * ROWS));
+  go(Math.floor((e.clientX - r.left) / r.width * COLS), Math.floor((e.clientY - r.top) / r.height * ROWS));
 });
 /* ---------- Musik und Geräusche ----------
    Alles wird live im Browser erzeugt (Web Audio). Es gibt keine fremden Musikdateien,
@@ -2003,7 +2078,7 @@ addEventListener("keydown", e => {
   const arrows = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
   const act = Object.keys(KEYS).find(a => KEYS[a] && KEYS[a] === k);
   const mv = arrows[e.key] || { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[act];
-  if (mv) { e.preventDefault(); tryStep(px + mv[0], py + mv[1]); return; }
+  if (mv) { e.preventDefault(); if (e.repeat && walkTimer) return; go(px + mv[0], py + mv[1]); return; }
   if (!act) return;
   if (act[0] === "r" && /^r\d$/.test(act)) {
     const r = ROLES[+act.slice(1) - 1]; if (!r) return;
@@ -2677,6 +2752,12 @@ function applyClaude(c, seat = "claude") {
   const dirs = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0], hoch: [0, -1], runter: [0, 1], links: [-1, 0], rechts: [1, 0] };
   const d = dirs[c.dir], setRes = t => { if (seat === "claude") { coopApplied = c.id; coopResult = t; } else { coopApplied2 = c.id; coopResult2 = t; } };
   setRes("");
+  if (c.type === "move" && (c.run || Array.isArray(c.to)) && !done) {
+    const steps = Array.isArray(c.to) ? pathTo(+c.to[0], +c.to[1]) : d ? runSteps(px, py, d[0], d[1]) : null;
+    if (!steps || !steps.length) { setRes(steps === null ? "Dahin führt gerade kein freier Weg." : "Da geht es nicht weiter."); coopSync(true); return; }
+    walkSteps(steps, () => { $("msg").innerHTML = `${seatIcon(seat)} <b>${seatName(seat)}</b>: ` + $("msg").innerHTML; setRes(`Gelaufen bis ${px},${py}. ` + $("msg").textContent); coopSync(true); });
+    return;
+  }
   if (!d) { setRes("Unbekannte Richtung"); coopSync(true); return; }
   if (done) { setRes("Das Abenteuer ist schon vorbei."); coopSync(true); return; }
   const prev = role, nm = seatName(seat);
@@ -2765,13 +2846,20 @@ function guestRender(d) {
 }
 function guestAct(tx, ty) {
   if (done) return;
-  if (Math.abs(tx - px) + Math.abs(ty - py) !== 1) { say("Tippe auf ein Feld <b>direkt neben</b> der Laterne."); return; }
+  const dist = Math.abs(tx - px) + Math.abs(ty - py);
+  if (dist === 0) return;
+  if (dist > 1) {
+    if (pathTo(tx, ty) === null) { say("Dahin führt gerade kein freier Weg."); return; }
+    myLastId = Date.now() + "-" + Math.floor(Math.random() * 1e6);
+    CB.update({ [mySeat || "claude"]: { id: myLastId, type: "move", role: null, to: [tx, ty] } }).catch(() => say("Der Zug konnte gerade nicht geschickt werden."));
+    say("👣 Ihr lauft los …"); return;
+  }
   const c = grid[ty][tx], dir = tx > px ? "right" : tx < px ? "left" : ty > py ? "down" : "up";
   if (c === "#" || c === "~") { say(WALL_MSG[c === "~" ? "lake" : level.wall] || "Hier geht es nicht weiter."); return; }
   const type = ".BS".includes(c) ? "move" : "use";
   if (type === "use" && !myRoles().includes(role)) { say(`Wähle zuerst einen deiner Begleiter: ${rolesTxt(myRoles())}.`); return; }
   myLastId = Date.now() + "-" + Math.floor(Math.random() * 1e6);
-  CB.update({ [mySeat || "claude"]: { id: myLastId, type, role: type === "use" ? role : null, dir } }).catch(() => say("Der Zug konnte gerade nicht geschickt werden."));
+  CB.update({ [mySeat || "claude"]: { id: myLastId, type, role: type === "use" ? role : null, dir, run: type === "move" } }).catch(() => say("Der Zug konnte gerade nicht geschickt werden."));
   say(type === "use" ? `✨ ${ROLE[role].nm} ist unterwegs …` : "👣 Ihr lauft weiter …");
 }
 

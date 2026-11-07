@@ -87,3 +87,13 @@ Zum Anmelden einmal: `PATCH {"partnerName": "Alex"}`.
 `PATCH {"claude2": {"id": "...", "type": "use", "role": "otter", "dir": "right"}}`.
 
 Wer dran ist: Steht neben der Laterne (`pos`) ein Hindernis, dessen nächster Schritt einen deiner Begleiter braucht, bist du dran.
+
+## Weiter laufen (neu)
+
+Ein Zug muss nicht mehr nur ein Feld weit gehen:
+
+- `{"type": "move", "dir": "up", "run": true}` läuft in diese Richtung weiter, folgt Kurven im Gang und hält an der nächsten Abzweigung oder direkt vor dem nächsten Hindernis.
+- `{"type": "move", "to": [x, y]}` läuft auf dem kürzesten freien Weg zu Feld x,y. Ist x,y ein Hindernis, hält die Gruppe direkt davor.
+- Ohne `run` und `to` geht ein `move` wie bisher genau ein Feld.
+
+Wo die Gruppe angekommen ist, steht danach in `pos` und in `result`.
