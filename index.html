@@ -383,6 +383,17 @@ select, .chatform input { font: inherit; background: #0c111b; color: var(--mist)
 .seatrow .seatbtns { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 .seatrow .chip { padding: 4px 8px; font-size: .78rem; }
 #coopName { text-transform: none; }
+/* Koop-Chat */
+#kcBtn { position: relative; }
+#kcBtn .badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; border-radius: 99px; background: #e0566b; color: #fff; font-size: .7rem; font-weight: 800; line-height: 18px; text-align: center; padding: 0 4px; }
+.chatPanel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.chatLog { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: .9rem; }
+.chatLog .cm { background: #0c111b; border-radius: 10px; padding: 5px 9px; align-self: flex-start; max-width: 85%; overflow-wrap: anywhere; }
+.chatLog .cm.me { align-self: flex-end; background: #2a2414; }
+.chatLog .cm b { color: var(--lantern); font-size: .78rem; display: block; }
+.chatLog .none { color: var(--muted); font-size: .85rem; }
+.chatForm { display: flex; gap: 6px; }
+.chatForm .tin { text-transform: none; flex: 1; }
 /* Emoji-Zurufe */
 .shouts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .shouts .chip { padding: 5px 9px; font-size: .85rem; }
@@ -510,7 +521,11 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
   <section class="view" id="dungeonView" hidden>
     <div class="topbar">
       <h1 id="dTitle">Der Dornenwald</h1>
-      <div class="btns"><button class="back sndBtn" type="button">🎵</button><button class="back" id="wikiFromDungeon" type="button" aria-label="Wiki öffnen">📖</button><button class="back" id="back" type="button">Zurück</button></div>
+      <div class="btns"><button class="back" id="kcBtn" type="button" aria-label="Chat mit deinen Mitspielern" aria-expanded="false" hidden>💬<span class="badge" id="kcBadge" hidden></span></button><button class="back sndBtn" type="button">🎵</button><button class="back" id="wikiFromDungeon" type="button" aria-label="Wiki öffnen">📖</button><button class="back" id="back" type="button">Zurück</button></div>
+    </div>
+    <div class="chatPanel" id="kcPanel" hidden>
+      <div class="chatLog" id="kcLog" aria-live="polite"></div>
+      <form class="chatForm" id="kcForm"><input class="tin" id="kcIn" maxlength="200" autocomplete="off" placeholder="Nachricht an deine Mitspieler …" aria-label="Nachricht"><button class="btn sm" type="submit">Senden</button></form>
     </div>
     <div class="board">
       <canvas id="c" width="420" height="600" aria-label="Spielfeld"></canvas>
@@ -1631,6 +1646,7 @@ function renderWiki() {
       <li>Du bist die <b>Heilerin</b> mit der Laterne. Nur du kannst verzauberte Tiere befreien.</li>
       <li>Tippe einfach auf das Feld, wo du hinmöchtest. Die Heilerin läuft auf dem kürzesten freien Weg genau dorthin und sammelt Samen unterwegs ein. Tippst du auf ein Hindernis weiter weg, läuft sie bis direkt davor. Mit den Pfeiltasten gehst du ein Feld weit.</li>
       <li>Vor einem Hindernis wählst du unten den passenden Begleiter und tippst dann auf das Hindernis.</li>
+      <li>Am Ende legst du die Hände auf das verzauberte Tier. <b>Nur mit 15 % Glück</b> löst sich der Zauber, sonst flieht das Tier zurück in den Nebel und du versuchst es noch einmal. Damit es nicht zu frustrierend wird, klappt es nach 6 Fehlversuchen beim selben Tier ganz sicher. Bereits gerettete Tiere kannst du jederzeit wieder besuchen.</li>
       <li>Du hast <b>3 Versuche</b> 💛💛💛. Jeder falsche Begleiter kostet einen. Sind alle weg, bringt dich der Nebel an den Anfang zurück.</li>
       <li>Gegen Bäume, Wasser oder Fels zu laufen kostet nichts.</li>
       <li>Schaffst du ein Abenteuer mit <b>allen Herzen</b>, gibt es eine Extra-Belohnung: zwei Bonus-Samen mit guter Chance auf seltene, und beim ersten Mal einen ⭐ für das Abenteuer. Ein Fehler, den der Glückstee abfängt, zählt nicht als verlorenes Herz.</li>
@@ -1757,6 +1773,7 @@ function renderWiki() {
     <p>Im Koop spielt ihr zu zweit oder zu dritt auf <b>einem</b> Spielfeld. Wer das Spiel erstellt, bekommt einen Spielcode und gibt ihn weiter.</p>
     <ul class="wk-tip">
       <li><b>Wer steuert wen?</b> Vor dem Start tippst du bei jedem Begleiter an, wer ihn steuert: du, Platz 1 oder Platz 2. Jeder Mitspieler braucht mindestens einen Begleiter. Deine Einteilung merkt sich das Spiel.</li>
+      <li><b>💬 Chat:</b> Oben neben dem Musik-Knopf öffnet 💬 ein kleines Chatfenster. Dort könnt ihr euch richtig schreiben. Neue Nachrichten zeigt ein roter Punkt und eine kurze Sprechblase.</li>
       <li><b>💬 Zurufe:</b> Unter dem Spielfeld gibt es Knöpfe wie 👍, ❤️, „❓ Was jetzt?“, „⏳ Warte kurz!“, „👉 Du bist dran!“ und „🎉 Super!“. Sie erscheinen bei allen als Sprechblase über dem Spielfeld.</li>
       <li><b>⏳ Gegen die Uhr:</b> Setz beim Erstellen den Haken. Zu zweit habt ihr 150 Sekunden, zu dritt 180. Schafft ihr es, landet eure Zeit in der <b>🏆 Koop-Bestenliste</b>. Mit Gold gibt es zusätzlich einen seltenen Samen.</li>
       <li>Spielt Claude mit, muss Claude im Chat Bescheid bekommen, wenn es dran ist. Gegen die Uhr wird das knapp, also lieber ohne Uhr spielen oder Claude Begleiter geben, die selten gebraucht werden.</li>
@@ -2046,6 +2063,7 @@ function startLevel(l) {
   }
   done = false; burst = []; role = "heil"; buildRoles(); paintRoles();
   $("win").hidden = true; $("fail").hidden = true; $("failText").textContent = FAIL_HEARTS;
+  try { chatSetup(l.coop); } catch (e) {}
   $("shouts").hidden = !l.coop || (!!DB && !guestMode); if (l.coop && !$("shouts").hidden) buildShouts();
   $("timer").hidden = !l.timed; if (l.timed) { if (timerId) { clearInterval(timerId); timerId = null; } timeLeft = l.limit + TF.time; }
   tries = MAX_TRIES + TF.heart; startTries = tries; actUsed = new Set(); paintLives();
@@ -2148,6 +2166,17 @@ function perfectBonus() {
   }
   return txt;
 }
+const RESCUE_CHANCE = 0.15, RESCUE_PITY = 6;
+function escapeWin(n) {
+  done = true;
+  const s = getSettlement(cur), g = rollDrop(0.1); add(H.seeds, g); saveH();
+  const left = RESCUE_PITY - n;
+  $("winIcon").textContent = "🌫️";
+  $("winTitle").textContent = "Fast geschafft …";
+  $("winText").innerHTML = `Du legst die Hände auf den Zauber. Er flackert und knistert, doch ${level.who.replace(/^D/, "d")} erschrickt und huscht zurück in den Nebel.<br><br>Der Zauber lässt sich nur mit Glück lösen (15 % Chance). ${left > 0 ? `Gib nicht auf! Spätestens nach ${left} weiteren ${left === 1 ? "Versuch" : "Versuchen"} klappt es ganz sicher.` : "Beim nächsten Mal klappt es ganz sicher!"}<br><br>🎁 Als Trost: ${HERBS[g].ic} ${HERBS[g].nm} als Samen.` + perfectBonus();
+  $("home").textContent = `Zurück nach ${s.name}`;
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+}
 function rescue() {
   if (level.coop) { coopWin(); return; }
   if (level.weaver) { weaverWin(); return; }
@@ -2158,6 +2187,11 @@ function rescue() {
   const wasOpen = secretOpen(getSettlement(cur));
   if (!lostHeart) { statsOf(cur).perfect = true; saveH(); }
   if (level.secret) { secretWin(); return; }
+  // Nur mit 15 % Glück lässt sich der Zauber beim ersten Mal lösen. Nach 6 Fehlversuchen klappt es sicher.
+  H.tryRescue = H.tryRescue || {};
+  const fails = H.tryRescue[level.id] || 0;
+  if (!rescued[level.id] && !(Math.random() < RESCUE_CHANCE || fails >= RESCUE_PITY)) { H.tryRescue[level.id] = fails + 1; saveH(); escapeWin(fails + 1); return; }
+  delete H.tryRescue[level.id];
   done = true; rescued[level.id] = true; save();
   const foodGot = addFood(2);
   const s = getSettlement(cur), pet = PET_ROLES.find(p => p.from === level.id);
@@ -2540,7 +2574,7 @@ function festFx(t) {
 
 /* ---------- Der Nebelweber und sein Tagebuch ---------- */
 const DIARY = [
-  ["Der Sturm", "Ich weiß noch, wie der große Sturm kam. Die Bäume bogen sich, und die Tiere zitterten in ihren Bauen. Ich hatte nur meinen Webstuhl und meine silbernen Fäden."],
+  ["Der Sturm", "Ich weiß noch, wie der große Sturm kam. Die Bäume bogen sich, und die Tiere zitterten in ihren Höhlen und Nestern. Ich hatte nur meinen Webstuhl und meine silbernen Fäden."],
   ["Die Decke", "Also webte ich. Tag und Nacht webte ich eine Decke aus Nebel, so groß wie das ganze Land. Darunter war es still und weich. Kein Wind kam hindurch."],
   ["Stille", "Der Sturm ist längst vorbei. Aber unter meiner Decke ist es so ruhig geworden. Manchmal höre ich tagelang nichts außer meinen eigenen Schritten."],
   ["Vergessen", "Heute wollte ich die Decke wieder aufziehen. Ich habe am Faden gezogen, aber er hat sich nur fester gewickelt. Ich habe vergessen, wie man aufhört."],
@@ -3700,10 +3734,46 @@ function guestAct(tx, ty) {
   say(type === "use" ? `✨ ${ROLE[role].nm} ist unterwegs …` : "👣 Ihr lauft weiter …");
 }
 
+
+/* Koop-Chat: eigene Liste neben dem Spielstand, damit sie beim Neustart nicht verloren geht */
+let kcUnsub = null, kcSeen = 0, kcMsgs = [];
+const chatRef = () => FB.ref("coop/" + coopCode + "-chat");
+const myChatName = () => guestMode ? (coopNames[mySeat] || "Mitspieler") : (coopNames.host || "Spielleitung");
+function chatListen() {
+  if (kcUnsub || DB || !FB || !coopCode) return;
+  const r = chatRef(), h = r.on("value", sn => {
+    const v = sn.val() || {}; kcMsgs = Object.values(v).filter(m => m && m.m).sort((a, b) => (a.t || 0) - (b.t || 0)).slice(-40);
+    renderKChat();
+  });
+  kcUnsub = () => r.off("value", h);
+}
+function renderKChat() {
+  const open = !$("kcPanel").hidden, me = myChatName();
+  $("kcLog").innerHTML = kcMsgs.length ? kcMsgs.map(m => `<div class="cm${m.n === me ? " me" : ""}"><b>${String(m.n || "?").replace(/</g, "&lt;")}</b>${String(m.m).replace(/</g, "&lt;")}</div>`).join("") : `<span class="none">Noch keine Nachrichten. Schreib deinen Mitspielern etwas!</span>`;
+  if (open) { kcSeen = kcMsgs.length; $("kcLog").scrollTop = 1e6; }
+  const unread = kcMsgs.slice(kcSeen).filter(m => m.n !== me);
+  $("kcBadge").hidden = !unread.length; $("kcBadge").textContent = unread.length;
+  if (!open && unread.length && level && level.coop) { const m = unread[unread.length - 1]; if (m.t && Date.now() - m.t < 15000 && m._shown !== true) { m._shown = true; const b = el("div", "bubble"); b.textContent = `💬 ${m.n}: ${String(m.m).slice(0, 40)}`; b.style.left = "50%"; $("shoutFx").appendChild(b); setTimeout(() => b.remove(), 2900); SND.fx.click(); } }
+}
+$("kcBtn").addEventListener("click", () => {
+  const p = $("kcPanel"); p.hidden = !p.hidden; $("kcBtn").setAttribute("aria-expanded", String(!p.hidden));
+  renderKChat(); if (!p.hidden) $("kcIn").focus();
+});
+$("kcForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const m = $("kcIn").value.trim().slice(0, 200); if (!m || !FB || !coopCode) return;
+  $("kcIn").value = "";
+  chatRef().push({ n: myChatName(), m, t: Date.now() }).catch(() => say("Die Nachricht konnte gerade nicht geschickt werden."));
+});
+function chatSetup(on) {
+  const show = !!(on && FB && !DB && coopCode);
+  $("kcBtn").hidden = !show; if (!show) $("kcPanel").hidden = true;
+  if (show) chatListen();
+}
 /* Koop-Menü auf der Webseite */
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const newCode = () => Array.from({ length: 5 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join("");
-function useCode(c) { if (coopUnsub) { coopUnsub(); coopUnsub = null; } coopCode = c; }
+function useCode(c) { if (coopUnsub) { coopUnsub(); coopUnsub = null; } if (kcUnsub) { kcUnsub(); kcUnsub = null; } kcMsgs = []; kcSeen = 0; coopCode = c; }
 async function openCoop() {
   if (DB) {
     coopSize = 2; coopSeats = null; coopTimedOn = false; coopListen();

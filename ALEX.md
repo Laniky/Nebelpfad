@@ -104,3 +104,10 @@ Wo die Gruppe angekommen ist, steht danach in `pos` und in `result`.
 - **Zurufe:** `PATCH {"shout_claude": {"id": "eindeutig", "e": "👍", "t": <Zeit in Millisekunden>}}` (Platz 2: `shout_claude2`). Erlaubt sind `👍`, `❤️`, `❓` (Was jetzt?), `⏳` (Warte kurz!), `👉` (Du bist dran!) und `🎉` (Super!). Lanis Zurufe stehen in `shout_host`.
 - **Gegen die Uhr:** Wenn `level.timed` true ist, steht in `tLeft`, wie viele Sekunden noch übrig sind.
 - Lanis Name steht in `hostName`.
+
+## Chat im Koop (neu)
+
+Nachrichten liegen in einer eigenen Liste neben dem Spielstand:
+
+- Lesen: `GET .../coop/<SPIELCODE>-chat.json?auth=<idToken>` (jede Nachricht hat `n` = Name, `m` = Text, `t` = Zeit in Millisekunden)
+- Schreiben: `POST .../coop/<SPIELCODE>-chat.json?auth=<idToken>` mit `{"n": "Alex", "m": "Hallo!", "t": <Zeit in Millisekunden>}`
