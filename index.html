@@ -1463,7 +1463,7 @@ function renderWiki() {
   <section class="wk-sec" id="wk-start"><h2>Grundlagen</h2>
     <ul class="wk-tip">
       <li>Du bist die <b>Heilerin</b> mit der Laterne. Nur du kannst verzauberte Tiere befreien.</li>
-      <li>Tippe auf ein Feld neben dir, dann läufst du in diese Richtung weiter bis zum nächsten Hindernis oder zur nächsten Abzweigung. Du kannst auch direkt auf ein entferntes Feld tippen, dann findet die Heilerin den Weg selbst. Tippst du auf ein Hindernis weiter weg, läufst du bis direkt davor.</li>
+      <li>Tippe einfach auf das Feld, wo du hinmöchtest. Die Heilerin läuft auf dem kürzesten freien Weg genau dorthin und sammelt Samen unterwegs ein. Tippst du auf ein Hindernis weiter weg, läuft sie bis direkt davor. Mit den Pfeiltasten gehst du ein Feld weit.</li>
       <li>Vor einem Hindernis wählst du unten den passenden Begleiter und tippst dann auf das Hindernis.</li>
       <li>Du hast <b>3 Versuche</b> 💛💛💛. Jeder falsche Begleiter kostet einen. Sind alle weg, bringt dich der Nebel an den Anfang zurück.</li>
       <li>Gegen Bäume, Wasser oder Fels zu laufen kostet nichts.</li>
@@ -2003,7 +2003,7 @@ function walkSteps(steps, after) {
     const [x, y] = steps.shift(), ox = px, oy = py;
     tryStep(x, y);
     if (px === ox && py === oy) { if (after) after(); return; }
-    walkTimer = setTimeout(next, reduce ? 0 : 95);
+    walkTimer = setTimeout(next, reduce ? 0 : 75);
   };
   next();
 }
@@ -2014,8 +2014,8 @@ function go(tx, ty) {
   if (level.coop && guestMode) { guestAct(tx, ty); return; }
   const dist = Math.abs(tx - px) + Math.abs(ty - py);
   if (dist === 0) return;
-  if (dist === 1 && !isFree(tx, ty)) { stopWalk(); tryStep(tx, ty); return; }
-  const steps = dist === 1 ? runSteps(px, py, tx - px, ty - py) : pathTo(tx, ty);
+  if (dist === 1) { stopWalk(); tryStep(tx, ty); return; }
+  const steps = pathTo(tx, ty);
   if (steps === null) { say(isObst(tx, ty) ? "Zu diesem Hindernis führt gerade kein freier Weg. Räum zuerst die Hindernisse vor dir weg." : "Dahin führt gerade kein freier Weg."); return; }
   if (!steps.length) { if (dist === 1) tryStep(tx, ty); return; }
   walkSteps(steps);
@@ -2971,7 +2971,7 @@ function guestAct(tx, ty) {
   const type = ".BS".includes(c) ? "move" : "use";
   if (type === "use" && !myRoles().includes(role)) { say(`Wähle zuerst einen deiner Begleiter: ${rolesTxt(myRoles())}.`); return; }
   myLastId = Date.now() + "-" + Math.floor(Math.random() * 1e6);
-  CB.update({ [mySeat || "claude"]: { id: myLastId, type, role: type === "use" ? role : null, dir, run: type === "move" } }).catch(() => say("Der Zug konnte gerade nicht geschickt werden."));
+  CB.update({ [mySeat || "claude"]: { id: myLastId, type, role: type === "use" ? role : null, dir } }).catch(() => say("Der Zug konnte gerade nicht geschickt werden."));
   say(type === "use" ? `✨ ${ROLE[role].nm} ist unterwegs …` : "👣 Ihr lauft weiter …");
 }
 
