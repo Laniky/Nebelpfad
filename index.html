@@ -1525,7 +1525,7 @@ function renderWiki() {
   </section>
 
   <section class="wk-sec" id="wk-ton"><h2>🎵 Musik und Geräusche</h2>
-    <p>Nebelpfad spielt leise Spieluhr-Musik. Im Ort klingt sie warm und fröhlich, im Haus ruhig und in den Abenteuern geheimnisvoll. Jede Landschaft hat ihre eigene Tonart. Die Musik wird jedes Mal neu gespielt, darum klingt sie nie ganz gleich.</p>
+    <p>Nebelpfad spielt ruhige, weiche Hintergrundklänge. Nur ab und zu erklingt eine kurze, sanfte Flötenmelodie, danach ist es wieder lange still. Im Ort klingt sie warm und fröhlich, im Haus ruhig und in den Abenteuern geheimnisvoll. Jede Landschaft hat ihre eigene Tonart. Die Musik wird jedes Mal neu gespielt, darum klingt sie nie ganz gleich.</p>
     <ul class="wk-tip">
       <li>Der Knopf 🎵 schaltet weiter: <b>Musik an</b> → <b>nur Geräusche</b> 🔔 → <b>Ton aus</b> 🔇. Am Computer geht das auch mit der Taste <b>M</b>.</li>
       <li>Jeder Begleiter hat seinen eigenen Klang, wenn er ein Hindernis löst. Auch Samen, Gießen, Ernten und das Blubbern im Kessel hörst du.</li>
@@ -2032,9 +2032,9 @@ const SND = (() => {
   let mode = 0; try { mode = +(localStorage.getItem("nebelpfad-sound") || 0); } catch (e) {}
   // 0 = Musik + Geräusche, 1 = nur Geräusche, 2 = aus
   const MOODS = {
-    dorf:    { scale: [0, 2, 4, 7, 9],  chords: [0, 9, 5, 7],   beat: 0.42, p: 0.55, pad: [0, 4, 7] },
-    dungeon: { scale: [0, 3, 5, 7, 10], chords: [0, 8, 10, 0],  beat: 0.62, p: 0.42, pad: [0, 3, 7] },
-    haus:    { scale: [0, 2, 4, 7, 9],  chords: [0, 5, 9, 7],   beat: 0.5,  p: 0.5,  pad: [0, 4, 9] }
+    dorf:    { scale: [0, 2, 4, 7, 9],  chords: [0, 9, 5, 7],   beat: 0.8,  pad: [0, 4, 7] },
+    dungeon: { scale: [0, 3, 5, 7, 10], chords: [0, 8, 10, 0],  beat: 0.95, pad: [0, 3, 7] },
+    haus:    { scale: [0, 2, 4, 7, 9],  chords: [0, 5, 9, 7],   beat: 0.85, pad: [0, 4, 9] }
   };
   const ROOTS = { wald: 62, see: 60, hoehle: 57, wiese: 64, moor: 59, gipfel: 61 };
   const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
@@ -2043,7 +2043,7 @@ const SND = (() => {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
     ctx = new AC();
     master = ctx.createGain(); master.gain.value = 0.8; master.connect(ctx.destination);
-    musicBus = ctx.createGain(); musicBus.gain.value = mode === 0 ? 0.32 : 0; musicBus.connect(master);
+    musicBus = ctx.createGain(); musicBus.gain.value = mode === 0 ? 0.22 : 0; musicBus.connect(master);
     sfxBus = ctx.createGain(); sfxBus.gain.value = mode < 2 ? 0.5 : 0; sfxBus.connect(master);
     // weicher Hall aus selbst erzeugtem Rauschen
     verb = ctx.createConvolver(); const len = ctx.sampleRate * 2.4, buf = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -2067,13 +2067,21 @@ const SND = (() => {
     const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     n.connect(f); f.connect(g); g.connect(bus); n.start(t);
   }
-  // Spieluhr-Ton: Grundton plus leiser Oberton
-  const box = (m, t, v = 0.16) => { tone(mtof(m), t, 1.6, { vol: v, bus: musicBus, wet: 0.5 }); tone(mtof(m + 12), t, 0.6, { type: "triangle", vol: v * 0.25, bus: musicBus, wet: 0.5 }); };
+  // Weicher Flötenton: langsam ein- und ausblenden, kein harter Anschlag
+  const box = (m, t, v = 0.1) => {
+    const o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+    o.type = "sine"; o.frequency.value = mtof(m); lfo.frequency.value = 4.5; lg.gain.value = 2.5; lfo.connect(lg); lg.connect(o.frequency);
+    f.type = "lowpass"; f.frequency.value = 1400;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + 0.35); g.gain.exponentialRampToValueAtTime(0.0001, t + 3);
+    o.connect(f); f.connect(g); g.connect(musicBus); const w = ctx.createGain(); w.gain.value = 0.6; g.connect(w); w.connect(verb);
+    o.start(t); lfo.start(t); o.stop(t + 3.1); lfo.stop(t + 3.1);
+  };
+  let rest = 6, phrase = 0;
   function pad(chordRoot, t, len, M) {
     M.pad.forEach((iv, i) => {
       const o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
       o.type = "triangle"; o.frequency.value = mtof(chordRoot - 12 + iv); o.detune.value = (i - 1) * 6;
-      f.type = "lowpass"; f.frequency.value = 900;
+      f.type = "lowpass"; f.frequency.value = 700;
       g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + len * 0.4); g.gain.linearRampToValueAtTime(0.0001, t + len);
       o.connect(f); f.connect(g); g.connect(musicBus); const w = ctx.createGain(); w.gain.value = 0.4; g.connect(w); w.connect(verb);
       o.start(t); o.stop(t + len + 0.1);
@@ -2085,20 +2093,23 @@ const SND = (() => {
     if (nextT < ctx.currentTime) nextT = ctx.currentTime + 0.05;
     while (nextT < ctx.currentTime + 0.35) {
       const bar = Math.floor(beat / 8), cr = root + M.chords[bar % M.chords.length];
-      if (beat % 8 === 0) { pad(cr, nextT, M.beat * 8.4, M); tone(mtof(cr - 24), nextT, M.beat * 6, { type: "sine", vol: 0.09, bus: musicBus, att: 0.3, wet: 0.2 }); chordI = bar; }
-      if (Math.random() < M.p || beat % 8 === 0) {
-        last = Math.max(0, Math.min(9, last + [-2, -1, -1, 0, 1, 1, 2][Math.floor(Math.random() * 7)]));
-        const deg = M.scale[last % 5] + 12 * Math.floor(last / 5);
-        box(root + deg, nextT + (Math.random() - 0.5) * 0.02, beat % 4 === 0 ? 0.15 : 0.1);
+      if (beat % 8 === 0) { pad(cr, nextT, M.beat * 8.6, M); tone(mtof(cr - 24), nextT, M.beat * 7, { type: "sine", vol: 0.06, bus: musicBus, att: 1.2, wet: 0.2 }); chordI = bar; }
+      // Melodie nur ab und zu: kurze Phrase aus 2 bis 4 Tönen, dann lange Pause
+      if (rest > 0) rest--;
+      else {
+        if (!phrase) phrase = 2 + Math.floor(Math.random() * 3);
+        last = Math.max(0, Math.min(7, last + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
+        box(root + M.scale[last % 5] + 12 * Math.floor(last / 5), nextT, 0.08);
+        if (--phrase === 0) rest = 10 + Math.floor(Math.random() * 14);
       }
-      nextT += M.beat * (Math.random() < 0.12 ? 1.5 : 1); beat++;
+      nextT += M.beat * (Math.random() < 0.2 ? 1.5 : 1); beat++;
     }
   }
   function setMood(m, theme) {
     const nr = (m === "dungeon" && ROOTS[theme]) || (m === "haus" ? 62 : 60);
     if (m === mood && nr === root) return;
-    mood = m; root = nr; beat = 0; last = 4;
-    if (ctx && mode === 0) { const g = musicBus.gain, t = ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(0.0001, t); g.linearRampToValueAtTime(0.32, t + 2.5); }
+    mood = m; root = nr; beat = 0; last = 4; rest = 6; phrase = 0;
+    if (ctx && mode === 0) { const g = musicBus.gain, t = ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(0.0001, t); g.linearRampToValueAtTime(0.22, t + 3); }
   }
   function applyMode() {
     try { localStorage.setItem("nebelpfad-sound", mode); } catch (e) {}
@@ -2109,7 +2120,7 @@ const SND = (() => {
     });
     if (!ctx) return;
     const t = ctx.currentTime;
-    musicBus.gain.cancelScheduledValues(t); musicBus.gain.setTargetAtTime(mode === 0 ? 0.32 : 0, t, 0.3);
+    musicBus.gain.cancelScheduledValues(t); musicBus.gain.setTargetAtTime(mode === 0 ? 0.22 : 0, t, 0.3);
     sfxBus.gain.setTargetAtTime(mode < 2 ? 0.5 : 0, t, 0.05);
   }
   const play = fn => { if (mode < 2 && init() && ctx.state === "running") fn(ctx.currentTime + 0.01); };
