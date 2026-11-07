@@ -2481,7 +2481,7 @@ function paintLives() {
 $("retry").addEventListener("click", () => { if (level.coop) level.resume = false; startLevel(level); if (level.coop) coopSync(true, true); });
 $("failHome").addEventListener("click", () => leaveDungeon());
 const cv = $("c"), ctx = cv.getContext("2d");
-const say = h => { $("msg").innerHTML = h; $("msg").scrollTop = 0; if (level && level.coop) { coopLog.push(String(h).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); coopLog = coopLog.slice(-8); } };
+const say = h => { $("msg").innerHTML = riddleBox() + h; $("msg").scrollTop = 0; if (level && level.coop) { coopLog.push(String(h).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); coopLog = coopLog.slice(-8); } };
 
 const rolesEl = $("roles");
 function buildRoles() {
@@ -3362,16 +3362,18 @@ function hardSetup(l) {
 }
 function altOk(t, role) { return !!(HP && HP.mech.has("alt") && ALT[t] && ALT[t].includes(role)); }
 // Rätsel verraten, wenn man neben einem verhüllten Feld steht. Es kommt ganz oben ins Textfeld, damit man es sofort sieht.
-function tellRiddle() {
-  if (!HP) return;
+// Rätsel-Hinweis: bleibt sichtbar, solange du neben einem verhüllten Feld stehst
+function riddleBox() {
+  if (!HP || done || !grid) return "";
   for (const [a, b] of NB) {
     const k = (px + a) + "," + (py + b), c = grid[py + b] && grid[py + b][px + a];
-    if (HP.veil.has(k) && !HP.told.has(k) && RIDDLE[c]) {
-      HP.told.add(k);
-      $("msg").innerHTML = `<div class="riddle">❔ <b>Das verhüllte Feld ${a === 0 ? (b < 0 ? "über" : "unter") : (a < 0 ? "links neben" : "rechts neben")} dir flüstert:</b><br><i>${RIDDLE[c]}</i><br><small>Welcher Begleiter ist gemeint? Wähle ihn und tippe auf das Feld.</small></div>` + $("msg").innerHTML;
-      $("msg").scrollTop = 0; break;
-    }
+    if (HP.veil.has(k) && RIDDLE[c]) return `<div class="riddle">❔ <b>Das verhüllte Feld ${a === 0 ? (b < 0 ? "über" : "unter") : (a < 0 ? "links neben" : "rechts neben")} dir flüstert:</b><br><i>${RIDDLE[c]}</i><br><small>Welcher Begleiter ist gemeint? Wähle ihn und tippe auf das Feld.</small></div>`;
   }
+  return "";
+}
+function tellRiddle() {
+  const r = riddleBox(); if (!r || $("msg").querySelector(".riddle")) return;
+  $("msg").innerHTML = r + $("msg").innerHTML; $("msg").scrollTop = 0;
 }
 function afterMove() {
   if (HP) {
