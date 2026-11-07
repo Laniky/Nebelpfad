@@ -1392,23 +1392,27 @@ function resetDialog(step) {
   const m = $("resetModal");
   if (step === 1) {
     $("rmIcon").textContent = "⚠️"; $("rmTitle").textContent = "Spielstand zurücksetzen?";
-    $("rmText").innerHTML = "Damit fängst du ganz von vorne an, im Mondtal. Möchtest du das wirklich?";
+    $("rmText").innerHTML = "Damit wird <b>das gesamte Spiel</b> gelöscht und du fängst ganz von vorne an. Möchtest du das wirklich?";
     $("rmOk").textContent = "Ja, weiter";
   } else {
     $("rmIcon").textContent = "🛑"; $("rmTitle").textContent = "Bist du dir ganz sicher?";
-    $("rmText").innerHTML = "<b>Das kann man nicht rückgängig machen!</b><br>Alle geretteten Tiere, Sterne, Samen, Kräuter, Tränke, Rezepte, die Tierlichtung, Tagebuchseiten, Kostüme und deine Bestzeiten sind dann weg.";
+    $("rmText").innerHTML = "<b>Das kann man nicht rückgängig machen!</b><br>Alle Orte und Städte, gerettete Tiere, Sterne, Samen, Kräuter, Tränke, Rezepte, die Tierlichtung mit Ruf und Schmuck, Tagebuchseiten, Kostüme, Feste, Serien, Bestzeiten, dein Name und deine Einstellungen sind dann weg.";
     $("rmOk").textContent = "Ja, alles löschen";
   }
   m.hidden = false; $("rmCancel").focus();
 }
 $("resetAll").addEventListener("click", () => resetDialog(1));
+try { if (sessionStorage.getItem("nebelpfad-was-reset")) { sessionStorage.removeItem("nebelpfad-was-reset"); setTimeout(() => { $("vSub").textContent = "🌱 Das gesamte Spiel wurde zurückgesetzt. Willkommen zu einem ganz neuen Abenteuer!"; }, 300); } } catch (e) {}
 $("rmCancel").addEventListener("click", () => { $("resetModal").hidden = true; resetStep = 0; });
 $("resetModal").addEventListener("keydown", e => { if (e.key === "Escape") { $("resetModal").hidden = true; resetStep = 0; } });
 $("rmOk").addEventListener("click", () => {
   if (resetStep === 1) { resetDialog(2); return; }
   $("resetModal").hidden = true; resetStep = 0;
-  rescued = {}; cur = 1; save(); H = defaultH(); saveH(); renderVillage();
-  $("vSub").textContent = "🌱 Dein Spielstand wurde zurückgesetzt. Willkommen zurück im Mondtal!";
+  // Wirklich alles löschen, was das Spiel gespeichert hat, und neu starten
+  try { Object.keys(localStorage).filter(k => k.startsWith("nebelpfad")).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  rescued = {}; cur = 1; H = defaultH();
+  try { sessionStorage.setItem("nebelpfad-was-reset", "1"); } catch (e) {}
+  location.reload();
 });
 
 function show(id) {
