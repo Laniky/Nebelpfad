@@ -101,6 +101,9 @@ canvas { display: block; width: 100%; height: auto; touch-action: manipulation; 
 .cosrow .bx { display: flex; flex-wrap: wrap; gap: 4px; flex-basis: 100%; }
 .cosrow .chip { padding: 4px 7px; font-size: .9rem; }
 .cosrow .chip.lk { opacity: .45; }
+.role .stam { position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); font-size: .66rem; font-weight: 800; line-height: 1; background: #1d2a1a; color: #b9f0a8; border: 1px solid #4f8a46; border-radius: 99px; padding: 2px 5px; white-space: nowrap; }
+.role .stam.out { background: #2a1a1a; color: #f0a8a8; border-color: #8a4646; }
+.role.tired { opacity: .55; }
 .role .rn { position: absolute; top: -7px; right: -4px; font-size: .95rem; line-height: 1; background: #0b0f18; border: 1.5px solid var(--lantern); border-radius: 99px; padding: 3px 4px; }
 .runes { font-size: 1.5em; letter-spacing: .05em; white-space: nowrap; }
 .role .rl { font-size: .64rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -574,7 +577,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
-      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-weber">Nebelweber</a><a href="#wk-kostuem">Kostüme</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-weber">Nebelweber</a><a href="#wk-kostuem">Kostüme</a><a href="#wk-denk">Denk-Rätsel</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
     </nav>
     <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
   </section>
@@ -894,6 +897,18 @@ const OBST = {
        solve: ["Deine Hände werden warm. Das Zaubereis schmilzt Tropfen für Tropfen …"] }
 };
 const BASIC = ["T", "H", "W", "D", "R", "G", "U"];
+// Schalter in schweren Dungeons: ein Begleiter löst damit alle Hindernisse einer Sorte auf einmal
+const SWITCHES = {
+  k: { needs: ["licht"], target: "D", ic: "🕯️", nm: "alte Fackel", after: ".", hint: "Eine alte, erloschene Fackel auf einem Steinsockel. Wer könnte sie zum Leuchten bringen? Vielleicht vertreibt ihr Licht alle Schatten hier …",
+       solve: ["<b>Luna</b> entzündet die Fackel. Ein warmer Lichtschein flutet den ganzen Dungeon, und <b>alle Schattenwände</b> lösen sich auf!"] },
+  l: { needs: ["schutz"], target: "R", ic: "🪵", nm: "schwerer Hebel", after: ".", hint: "Ein riesiger, verrosteter Hebel. Dafür braucht es viel Kraft. Irgendwo grollt es, als hingen Felsen daran …",
+       solve: ["<b>Bruno</b> legt sich mit aller Kraft gegen den Hebel. Es rumpelt laut, und <b>alle Felsbrocken</b> rollen davon!"] },
+  m: { needs: ["bau"], target: "W", ic: "⚙️", nm: "Schleusenrad", after: ".", hint: "Ein klemmendes Schleusenrad aus Holz. Wer geschickt ist, könnte es reparieren und das Wasser umleiten …",
+       solve: ["<b>Holm</b> repariert das Schleusenrad und dreht es. Das Wasser fließt ab, und über <b>alle Bäche</b> führen jetzt Stege!"] },
+  n: { needs: ["spur"], target: "H", ic: "🗿", nm: "Spurenstein", after: ".", hint: "Ein Stein voller eingeritzter Pfotenabdrücke. Wer Spuren lesen kann, versteht vielleicht, was er bedeutet …",
+       solve: ["<b>Pip</b> liest die Spuren auf dem Stein und folgt ihnen. Plötzlich sind <b>alle Spurenfelder</b> klar und sicher!"] }
+};
+Object.assign(OBST, SWITCHES);
 
 /* ---------- Welt ---------- */
 const THEMES = {
@@ -1290,6 +1305,11 @@ function renderVillage() {
     tr.appendChild(b);
   });
 
+  // Kräuterpfad: einfacher Weg nur zum Farmen, ohne Tier und ohne Haustier-Begleiter
+  const fb2 = document.createElement("button"); fb2.type = "button"; fb2.className = "trip"; fb2.id = "trip-farm";
+  fb2.innerHTML = `<span class="ic" aria-hidden="true">🌿</span><span class="t"><strong>Kräuterpfad</strong><span>Einfach · zum Sammeln von Kräutern und Samen, ohne Tier. Jederzeit wiederholbar.</span></span><span class="st">offen</span>`;
+  fb2.addEventListener("click", () => startLevel(farmLevel(s)));
+  tr.appendChild(fb2);
   // Superschwerer Irrgarten: öffnet sich, wenn alle drei Tiere hier gerettet sind
   const sup = getSuper(s.n), supOpen = isDone(s), sb2 = document.createElement("button");
   sb2.type = "button"; sb2.className = "trip" + (supOpen ? " secret" : " is-locked"); sb2.id = "trip-super";
@@ -1749,6 +1769,23 @@ function renderWiki() {
     <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
   </section>
 
+  <section class="wk-sec" id="wk-denk"><h2>🧠 Denk-Rätsel</h2>
+    <p>In vielen Dungeons musst du gut überlegen, welchen Begleiter du wo einsetzt. Wie viele Denk-Rätsel es gibt, hängt vom Dungeon ab:</p>
+    <div class="wk-list">
+      ${row("🌿", "Kräuterpfad", "Keine Rätsel. Ein einfacher Weg nur zum Farmen von Kräutern und Samen, ohne Tier und ohne Haustier-Begleiter.", "0")}
+      ${row("🏡", "Normale Abenteuer", "Ein zufälliges Denk-Rätsel.", "1")}
+      ${row("🗝️", "Geheimstädte (zu fünft)", "Drei zufällige Denk-Rätsel.", "3")}
+      ${row("🌀", "Irrgarten und 🕸️ Nebelnetz", "Alle fünf Denk-Rätsel auf einmal.", "5")}
+    </div>
+    <ul class="wk-tip">
+      <li><b>❔ Rätselfelder:</b> Das Hindernis ist verhüllt. Wenn du daneben stehst, flüstert es dir einen kleinen Reim zu. Errate, welcher Begleiter gemeint ist.</li>
+      <li><b>💪 Müde Begleiter:</b> Jeder Begleiter kann nur so oft helfen, wie die Zahl auf seinem Knopf zeigt. Ist er erschöpft (😴), musst du einen anderen Weg oder Begleiter finden. Tipp: Spar die Kraft der Begleiter auf, die nur sie selbst einsetzen können.</li>
+      <li><b>🕯️ Schalter:</b> In einer Sackgasse steht manchmal eine Fackel (Luna), ein Hebel (Bruno), ein Schleusenrad (Holm) oder ein Spurenstein (Pip). Damit löst du <b>alle</b> Hindernisse einer Sorte auf einmal. Lohnt sich der Umweg?</li>
+      <li><b>🔄 Wandelnde Felder:</b> Ein gestrichelt umrandetes Feld verwandelt sich alle 3 Schritte. Unten links siehst du, was als Nächstes kommt, die Punkte zeigen die übrigen Schritte.</li>
+      <li><b>🔀 Andere Begleiter:</b> Manche Hindernisse schaffen auch andere: Dornen auch Funke, Felsen auch Holm, Spurennebel auch Funke, Wasser auch Ole, Hecken auch Pip und Teiche auch Holm. Nur Schatten braucht immer Luna.</li>
+    </ul>
+  </section>
+
   <section class="wk-sec" id="wk-kostuem"><h2>🧣 Kostüme</h2>
     <p>Im <b>🐾 Tierbuch</b> ziehst du deinen Begleitern Kostüme an. Sie tragen sie auf den Knöpfen unter dem Spielfeld und auch, wenn sie im Abenteuer ein Hindernis lösen.</p>
     <p>Kostüme schaltest du mit Sternen frei. Jedes Abenteuer, das du ohne verlorenes Herz schaffst, gibt einen ⭐, und jede Sternentruhe zählt doppelt.</p>
@@ -2058,6 +2095,7 @@ function buildRoles() {
     const b = document.createElement("button");
     b.type = "button"; b.className = "role"; b.id = "role-" + r.id;
     b.innerHTML = `<span class="ic" aria-hidden="true">${r.ic}</span>${cosOf(r.id) ? `<span class="cos" aria-hidden="true">${cosOf(r.id).ic}</span>` : ""}<span class="nm">${r.nm}</span><span class="rl">${r.rl}</span>${RUNE[r.id] ? `<span class="rn" title="Runenzeichen">${RUNE[r.id]}</span>` : ""}`;
+    if (HP && HP.stam[r.id] != null) { b.insertAdjacentHTML("beforeend", `<span class="stam${HP.stam[r.id] ? "" : " out"}" title="So oft kann ${r.nm} hier noch helfen">${HP.stam[r.id] ? "💪" + HP.stam[r.id] : "😴"}</span>`); if (!HP.stam[r.id]) b.classList.add("tired"); }
     if (HOVER) { const idx = ROLES.indexOf(r) + 1; b.insertAdjacentHTML("beforeend", `<span class="kb">${keyLabel("r" + idx)}</span>`); }
     const theirs = level && level.coop && !myRoles().includes(r.id);
     if (theirs) { b.classList.add("theirs"); b.insertAdjacentHTML("beforeend", `<span class="who" title="Das steuert ${seatName(seatOfRole(r.id))}">${seatIcon(seatOfRole(r.id))}</span>`); }
@@ -2083,9 +2121,10 @@ function startLevel(l) {
   const free = [];
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "." && !(x === px && y === py)) free.push([x, y]);
   const TF = teamFx();
-  for (let n = l.resume || l.noSeeds ? 0 : 1 + Math.floor(Math.random() * 2) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
+  for (let n = l.resume || l.noSeeds ? 0 : (l.farm ? 3 : 0) + 1 + Math.floor(Math.random() * 2) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
     const [sx, sy] = free.splice(Math.floor(Math.random() * free.length), 1)[0]; grid[sy][sx] = "S";
   }
+  hardSetup(l);
   done = false; burst = []; role = "heil"; buildRoles(); paintRoles();
   $("win").hidden = true; $("fail").hidden = true; $("failText").textContent = FAIL_HEARTS;
   try { chatSetup(l.coop); } catch (e) {}
@@ -2102,7 +2141,7 @@ function startLevel(l) {
   $("dTitle").textContent = l.name;
   $("back").textContent = "Zurück";
   placeDiary(l);
-  say(l.intro);
+  say(l.intro + (HP && HP.note ? HP.note : ""));
   showDungeon();
 }
 
@@ -2110,6 +2149,7 @@ function startLevel(l) {
 const visOf = (r, i) => ({ schutz: i % 2 ? "R" : "T", spur: "H", bau: "W", licht: "D", fuchs: "G", otter: "U" })[r] || "T";
 const VIS_NAME = { T: "Dornenranken", R: "ein schwerer Felsbrocken", H: "ein Nebel voller Spuren", W: "fließendes Wasser", D: "eine Schattenwand", G: "eine Hecke mit einem winzigen Spalt", U: "ein tiefer Seerosenteich" };
 function getObst(t, k) {
+  if (t === "V") { const f = wForm(k) || "T", O = OBST[f]; return { ...O, wform: f, hint: O.hint + `<br><span style="color:var(--muted)">🔄 Dieses Feld verwandelt sich alle 3 Schritte.</span>` }; }
   if (t === "A") return { needs: ["heil"], animal: true, hint: level.animalHint, solve: ["Du legst die Hände auf den Zauber. Er zerfällt zu Glitzerstaub …"] };
   if (t === "Q") {
     // Verwunschenes Feld: mehrere echte Hindernisse liegen hintereinander
@@ -2135,9 +2175,9 @@ function tryStep(tx, ty) {
     px = tx; py = ty; grid[ty][tx] = "."; sparkle(tx, ty); SND.fx.seed();
     const k2 = rollDrop(level.secret ? 0.3 : teamFx().rareFind ? 0.25 : 0.1); add(H.seeds, k2, fx.seedx2 ? 2 : 1); saveH();
     say(`🌱 Du findest Samen: <b>${fx.seedx2 ? "2× " : ""}${HERBS[k2].ic} ${HERBS[k2].nm}</b>!${HERBS[k2].rare ? " Ein seltener Fund ✨" : ""}`);
-    return;
+    afterMove(); return;
   }
-  if (t === "." || t === "B") { px = tx; py = ty; SND.fx.step(); checkDiary(); return; }
+  if (t === "." || t === "B") { px = tx; py = ty; SND.fx.step(); checkDiary(); afterMove(); return; }
   if (t === "#") { say(WALL_MSG[level.wall]); return; }
   if (t === "~") { say(WALL_MSG.lake); return; }
   const k = tx + "," + ty, o = getObst(t, k); if (!o) return;
@@ -2145,16 +2185,30 @@ function tryStep(tx, ty) {
     fx.skip--; say("🌫️ Wie von Zauberhand öffnet sich der Weg."); sparkle(tx, ty); SND.fx.solve("licht"); tileAnim(tx, ty, "magic", t);
     grid[ty][tx] = o.after; delete stage[k]; return;
   }
-  const step = stage[k] || 0, need = o.needs[step];
-  if (role === need) {
-    say(o.solve[step]); sparkle(tx, ty); SND.fx.solve(need);
+  const step = stage[k] || 0, need = o.needs[step], vt = o.wform || t;
+  const alt = role !== need && BASIC.includes(vt) && altOk(vt, role);
+  if (role === need || alt) {
+    if (HP && role !== "heil" && HP.stam[role] != null && HP.stam[role] <= 0) {
+      const others = (BASIC.includes(vt) && HP.mech.has("alt") ? ALT[vt] : [need]).filter(r => r !== role && ROLES.some(q => q.id === r) && (HP.stam[r] == null || HP.stam[r] > 0));
+      say(`😴 <b>${ROLE[role].nm}</b> ist zu müde und kann in diesem Dungeon nicht mehr helfen. ` + (others.length ? `Vielleicht schafft ${others.map(r => ROLE[r].nm).join(" oder ")} dieses Hindernis?` : `Hier kommt leider keiner mehr weiter. Tippe auf <b>Zurück</b> und versuch es mit einem neuen Plan noch einmal. Tipp: Spar die Kraft der Begleiter auf, die nur sie selbst einsetzen können.`)); return;
+    }
+    if (HP && role !== "heil" && HP.stam[role] != null) { HP.stam[role]--; buildRoles(); paintRoles(); }
+    say(alt ? ALT_SOLVE[vt + ":" + role] : o.solve[step]); sparkle(tx, ty); SND.fx.solve(role);
     const last = step + 1 >= o.needs.length;
-    tileAnim(tx, ty, need, t === "Q" ? visOf(need, step) : (last && !o.animal ? t : null));
+    tileAnim(tx, ty, role, t === "Q" ? visOf(need, step) : t === "V" ? vt : (last && !o.animal ? t : null));
     if (!last) { stage[k] = step + 1; return; }
     if (o.animal) { rescue(); return; }
-    grid[ty][tx] = o.after; delete stage[k];
+    grid[ty][tx] = t === "V" ? OBST[vt].after : o.after; delete stage[k];
+    if (HP) { HP.veil.delete(k); delete HP.wander[k]; }
+    if (o.target) {
+      let n = 0;
+      for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === o.target && !stage[x + "," + y]) { grid[y][x] = OBST[o.target].after; tileAnim(x, y, need, o.target); if (HP) HP.veil.delete(x + "," + y); n++; }
+      $("msg").innerHTML += ` <span style="color:var(--muted)">(${n} Felder auf einmal!)</span>`;
+    }
+    if (HP && role !== "heil" && HP.stam[role] === 0) $("msg").innerHTML += `<br>😴 ${ROLE[role].nm} ist jetzt erschöpft.`;
   } else {
-    const base = step > 0 ? (o.midFn ? o.midFn(step) : o.mid || o.hint) : o.hint;
+    const veiled = HP && HP.veil.has(k);
+    const base = veiled ? `❔ Das verhüllte Feld flüstert: <i>${RIDDLE[t]}</i>` : step > 0 ? (o.midFn ? o.midFn(step) : o.mid || o.hint) : o.hint;
     const who = role === "heil" ? "Du kannst" : ROLE[role].nm + " kann";
     if (fx.shield > 0) {
       fx.shield--;
@@ -2192,6 +2246,23 @@ function perfectBonus() {
   return txt;
 }
 const RESCUE_CHANCE = 0.15, RESCUE_PITY = 6;
+function farmLevel(s) {
+  const keys = Object.keys(THEMES), tk = keys[Math.floor(Math.random() * keys.length)], th = THEMES[tk];
+  return { id: "farm-" + s.n, farm: true, baseOnly: true, name: `🌿 Kräuterpfad: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: "🌿", theme: tk, wall: th.wall, mode: 0,
+    animal: "🧺", animalName: "Kräuterkorb", who: "Der Kräuterkorb", ring: "#8fe0ad", gen: { count: 4, tier: 0 },
+    intro: "🌿 <b>Kräuterpfad:</b> Ein gemütlicher, einfacher Weg. Hier wachsen überall Kräuter. Sammle die 🌱 Samenfunde ein und hol dir am Ende den Kräuterkorb.",
+    animalHint: "Ein Korb voller frischer Kräuter, mit einem kleinen Zauber verschlossen. Deine Hände öffnen ihn." };
+}
+function farmWin() {
+  done = true;
+  const pool = SEED_POOL, got = {};
+  for (let i = 0; i < 4 + Math.floor(Math.random() * 3); i++) { const h = pool[Math.floor(Math.random() * pool.length)]; got[h] = (got[h] || 0) + 1; add(H.herbs, h); }
+  const sd = rollDrop(0.1); add(H.seeds, sd); saveH();
+  $("winIcon").textContent = "🧺"; $("winTitle").textContent = "Kräuterkorb geöffnet!";
+  $("winText").innerHTML = `Der Korb ist voller frischer Kräuter:<br>${Object.entries(got).map(([h, n]) => `${n}× ${HERBS[h].ic} ${HERBS[h].nm}`).join(", ")}<br>Dazu ein Samen: ${HERBS[sd].ic} ${HERBS[sd].nm}.<br><br>Die Kräuter liegen schon in deiner Kräutertasche, bereit zum Brauen ⚗️`;
+  $("home").textContent = "Zurück";
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 900);
+}
 function escapeWin(n) {
   done = true;
   const s = getSettlement(cur), g = rollDrop(0.1); add(H.seeds, g); saveH();
@@ -2204,6 +2275,7 @@ function escapeWin(n) {
 }
 function rescue() {
   if (level.coop) { coopWin(); return; }
+  if (level.farm) { farmWin(); return; }
   if (level.weaver) { weaverWin(); return; }
   if (level.daily) { dailyWin(); return; }
   if (level.fest) { festWin(); return; }
@@ -2597,6 +2669,115 @@ function festFx(t) {
   ctx.restore();
 }
 
+
+/* ---------- Denk-Rätsel für schwere Dungeons ---------- */
+// Andere Begleiter, die ein Hindernis auch schaffen (nur in schweren Dungeons)
+const ALT = { T: ["schutz", "fuchs"], R: ["schutz", "bau"], H: ["spur", "fuchs"], W: ["bau", "otter"], D: ["licht"], G: ["fuchs", "spur"], U: ["otter", "bau"] };
+const ALT_SOLVE = {
+  "T:fuchs": "<b>Funke</b> schlüpft geschickt zwischen den Ranken hindurch und knabbert die dicksten Triebe durch. Der Weg ist frei.",
+  "R:bau": "<b>Holm</b> schiebt einen Ast unter den Felsbrocken und hebelt ihn zur Seite.",
+  "H:fuchs": "<b>Funke</b> hat eine feine Nase und erschnuppert die richtige Spur.",
+  "W:otter": "<b>Ole</b> schwimmt hinüber und spannt ein Seil, an dem du dich sicher entlanghangelst.",
+  "G:spur": "<b>Pip</b> findet unten an der Hecke einen alten Igeltunnel und führt dich hindurch.",
+  "U:bau": "<b>Holm</b> baut aus Schilf und Ästen ein kleines Floß."
+};
+const RIDDLE = {
+  T: "„Ich steche und ranke und halte dich fest. Wer stark ist oder flink, der kommt an mir vorbei.“",
+  R: "„Ich bin schwer und rund und schlafe im Weg. Wer schiebt oder hebelt mich zur Seite?“",
+  H: "„Hier laufen tausend Spuren kreuz und quer. Wer hat eine feine Nase?“",
+  W: "„Ich fließe und rausche und höre nie auf. Wer baut mir einen Steg oder schwimmt hinüber?“",
+  D: "„Ich bin dunkler als die dunkelste Nacht. Nur eines vertreibt mich.“",
+  G: "„Ich bin grün und dicht, nur ein winziger Spalt. Wer ist klein genug oder findet einen Tunnel?“",
+  U: "„Ich bin tief und still, mit Seerosen bedeckt. Wer taucht hinab oder baut ein Floß?“"
+};
+const STAM_MAX_NOTE = "Jeder Begleiter hat hier nur begrenzt Kraft.";
+let HP = null;
+const MECHS = ["riddle", "tired", "switch", "wander", "alt"];
+const MECH_NAME = { riddle: "❔ Rätselfelder", tired: "💪 Müde Begleiter", switch: "🕯️ Schalter", wander: "🔄 Wandelnde Felder", alt: "🔀 Andere Begleiter" };
+// Wie viele Denk-Rätsel ein Dungeon bekommt: normal 1, Geheimstadt (zu fünft) 3, Irrgarten und Nebelnetz alle 5
+function mechCount(l) {
+  if (!l || l.coop || l.daily || l.fest || l.timed || l.farm) return 0;
+  if (l.superD || l.weaver) return 5;
+  if (l.secret) return 3;
+  if (l.fixedFirst && !rescued[l.id]) return 0;
+  return 1;
+}
+const wForm = k => { const c = HP && HP.wander[k]; return c ? c[Math.floor(HP.steps / 3) % c.length] : null; };
+function hardSetup(l) {
+  HP = null;
+  const nMech = mechCount(l);
+  if (!nMech || l.resume) return;
+  const mech = new Set(MECHS.slice().sort(() => Math.random() - .5).slice(0, nMech));
+  const avail = new Set(ROLES.map(r => r.id)), cells = [];
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) cells.push([x, y]);
+  const plain = cells.filter(([x, y]) => BASIC.includes(grid[y][x]));
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  HP = { veil: new Set(), wander: {}, sw: {}, stam: {}, steps: 0, told: new Set(), mech };
+  // Wandelnde Hindernisse: 1 bis 2 Felder verwandeln sich alle 3 Schritte
+  const forms = BASIC.filter(t => OBST[t].needs.every(r => avail.has(r)));
+  if (mech.has("wander")) shuffle(plain).slice(0, Math.max(1, Math.min(2, Math.floor(plain.length / 5)))).forEach(([x, y]) => {
+    const cyc = shuffle(forms.slice()).slice(0, 3); if (cyc.length < 2) return;
+    grid[y][x] = "V"; HP.wander[x + "," + y] = cyc;
+  });
+  // Rätselfelder: etwa ein Drittel der übrigen einfachen Hindernisse ist verhüllt
+  if (mech.has("riddle")) { const pl = cells.filter(([x, y]) => BASIC.includes(grid[y][x])); pl.forEach(([x, y]) => { if (Math.random() < 0.35) HP.veil.add(x + "," + y); }); if (!HP.veil.size && pl.length) HP.veil.add(pl[0][0] + "," + pl[0][1]); }
+  // Schalter: an einer Sackgasse, wenn es mindestens 2 Hindernisse der passenden Sorte gibt
+  const deadEnds = shuffle(cells.filter(([x, y]) => grid[y][x] === "." && Math.abs(x - px) + Math.abs(y - py) > 1 && NB.filter(([a, b]) => { const c = grid[y + b] && grid[y + b][x + a]; return c && c !== "#" && c !== "~"; }).length === 1));
+  if (mech.has("switch")) shuffle(Object.keys(SWITCHES)).forEach(ch => {
+    const S0 = SWITCHES[ch]; if (!S0.needs.every(r => avail.has(r))) return;
+    if (cells.filter(([x, y]) => grid[y][x] === S0.target).length < 2 || !deadEnds.length) return;
+    const [x, y] = deadEnds.shift(); grid[y][x] = ch; HP.sw[x + "," + y] = ch;
+  });
+  // Müde Begleiter: Kraft so verteilen, dass es mit klugem Einsatz genau reicht (plus etwas Luft)
+  const use = {}; ROLES.forEach(r => { if (r.id !== "heil") use[r.id] = 0; });
+  cells.forEach(([x, y]) => {
+    const c = grid[y][x], k = x + "," + y;
+    if (BASIC.includes(c)) { const opts = (mech.has("alt") ? ALT[c] : OBST[c].needs).filter(r => avail.has(r)); const r = opts[Math.floor(Math.random() * opts.length)]; use[r]++; }
+    else if (c === "V") HP.wander[k].forEach(f => OBST[f].needs.forEach(r => { if (r in use) use[r]++; }));
+    else if (c === "Q") runCustom[k].forEach(r => use[r]++);
+    else if (OBST[c] && !OBST[c].animal && c !== "S") OBST[c].needs.forEach(r => { if (r in use) use[r]++; });
+  });
+  const used = Object.keys(use).filter(r => use[r] > 0);
+  shuffle(used).slice(0, 2).forEach(r => use[r]++);
+  if (mech.has("tired")) HP.stam = use;
+  const parts = [];
+  if (mech.has("tired")) parts.push("💪 Jeder Begleiter hat hier nur begrenzt Kraft. Die Zahl auf seinem Knopf zeigt, wie oft er noch helfen kann.");
+  if (mech.has("alt")) parts.push("🔀 Manche Hindernisse schaffen hier auch <b>andere Begleiter</b>.");
+  if (HP.veil.size) parts.push("❔ Verhüllte Felder verraten sich nur durch ein Rätsel.");
+  if (Object.keys(HP.wander).length) parts.push("🔄 Manche Felder verwandeln sich alle 3 Schritte.");
+  if (Object.keys(HP.sw).length) parts.push("🕯️ Irgendwo gibt es einen Schalter, der viele Hindernisse auf einmal löst.");
+  if (!parts.length) { HP = null; return; }
+  HP.note = `<br><br>🧠 <b>${parts.length === 1 ? "Denk-Rätsel" : parts.length + " Denk-Rätsel"}!</b> ` + parts.join(" ");
+}
+function altOk(t, role) { return !!(HP && HP.mech.has("alt") && ALT[t] && ALT[t].includes(role)); }
+function afterMove() {
+  if (HP) {
+    HP.steps++;
+    // Rätsel verraten, wenn man neben einem verhüllten Feld steht
+    for (const [a, b] of NB) {
+      const k = (px + a) + "," + (py + b);
+      if (HP.veil.has(k) && !HP.told.has(k)) { HP.told.add(k); $("msg").innerHTML += `<br>❔ <b>Ein verhülltes Feld flüstert:</b> <i>${RIDDLE[grid[py + b][px + a]]}</i>`; break; }
+    }
+    if (Object.keys(HP.wander).length && HP.steps % 3 === 0) SND.fx.click();
+  }
+}
+function drawVeil(cx, cy, t) {
+  const g = ctx.createRadialGradient(cx, cy, 3, cx, cy, 28);
+  g.addColorStop(0, "#9a7ad8"); g.addColorStop(.6, "#4a3a78"); g.addColorStop(1, "#2a2244");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 25, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#c9b4ff"; ctx.lineWidth = 2;
+  for (let i = 0; i < 2; i++) { const a0 = (reduce ? 0 : t / (900 + i * 300)) + i * 3; ctx.beginPath(); ctx.arc(cx, cy, 14 + i * 6, a0, a0 + 2.2); ctx.stroke(); }
+  ctx.font = "24px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("❔", cx, cy + 1);
+}
+function drawWander(x, y, t) {
+  const k = x + "," + y, c = HP && HP.wander[k]; if (!c) return;
+  const cx = x * S + S / 2, cy = y * S + S / 2, i = Math.floor(HP.steps / 3) % c.length, nx = c[(i + 1) % c.length], left = 3 - HP.steps % 3;
+  ctx.strokeStyle = "#c9b4ff"; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.lineDashOffset = reduce ? 0 : -t / 60;
+  ctx.strokeRect(x * S + 3, y * S + 3, S - 6, S - 6); ctx.setLineDash([]);
+  ctx.fillStyle = "#0b0f18dd"; ctx.beginPath(); ctx.arc(x * S + 12, y * S + S - 12, 10, 0, 7); ctx.fill();
+  ctx.font = "12px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText({ T: "🌿", R: "🪨", H: "🐾", W: "💧", D: "🌑", G: "🌳", U: "🪷" }[nx] || "🔄", x * S + 12, y * S + S - 11);
+  ctx.fillStyle = "#c9b4ff"; for (let d = 0; d < left; d++) { ctx.beginPath(); ctx.arc(x * S + 26 + d * 6, y * S + S - 8, 2, 0, 7); ctx.fill(); }
+}
 /* ---------- Der Nebelweber und sein Tagebuch ---------- */
 const DIARY = [
   ["Der Sturm", "Ich weiß noch, wie der große Sturm kam. Die Bäume bogen sich, und die Tiere zitterten in ihren Höhlen und Nestern. Ich hatte nur meinen Webstuhl und meine silbernen Fäden."],
@@ -3106,6 +3287,16 @@ function draw(t) {
   const wallFn = level.wall === "lake" ? lake : level.wall === "rock" ? rock : tree;
   const cell = (c, x, y, noReveal) => {
     const seed = x * 7 + y * 13, cx = x * S + S / 2, cy = y * S + S / 2, k = x + "," + y;
+    if (c === "V") { cell(wForm(k) || "T", x, y, noReveal); if (!noReveal) drawWander(x, y, t); return; }
+    if (!noReveal && HP && HP.veil.has(k) && BASIC.includes(c)) { path(x, y, seed); drawVeil(cx, cy, t); return; }
+    if (SWITCHES[c]) {
+      path(x, y, seed);
+      const g = ctx.createRadialGradient(cx, cy, 3, cx, cy, 26); g.addColorStop(0, `rgba(242,199,107,${reduce ? .35 : .25 + .15 * Math.sin(t / 500)})`); g.addColorStop(1, "rgba(242,199,107,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 26, 0, 7); ctx.fill();
+      ctx.fillStyle = "#4a4f5e"; ctx.fillRect(cx - 14, cy + 8, 28, 10);
+      ctx.font = "26px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(SWITCHES[c].ic, cx, cy - 4);
+      return;
+    }
     if (c === "#") wallFn(x, y, t, seed);
     else if (c === "~" || c === "O" || c === "U") lake(x, y, t, seed);
     else if (c === "W" || c === "B") stream(x, y, t, c === "B");
