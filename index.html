@@ -393,6 +393,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hx-flower { animation: hxSway 3s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
 @media (prefers-reduced-motion: reduce) { .hx-svg * { animation: none !important; } }
 
+/* Uhr im Hexenhaus */
+.hx-clock { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; margin-bottom: 10px; }
+.hx-clock svg { width: 54px; height: 54px; flex-shrink: 0; }
+.hx-clock b { display: block; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.hx-clock span { color: var(--muted); font-size: .85rem; }
+#hxHour, #hxMin { transition: transform .6s; }
 /* Tagebuch */
 .diary { display: flex; flex-direction: column; gap: 10px; }
 .page { background: linear-gradient(180deg, #f3e6c8, #e6d3a8); color: #3a2a18; border-radius: 6px 14px 14px 6px; padding: 14px 16px 14px 22px; box-shadow: 0 6px 16px #0008, inset 6px 0 0 #c9b083; font-family: Georgia, "Times New Roman", serif; line-height: 1.55; position: relative; }
@@ -820,6 +826,14 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       </div>
       <button class="back" id="hexBack" type="button">Zurück</button>
     </header>
+    <div class="hx-clock" id="hxClock" aria-live="off">
+      <svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="#f3e6c8" stroke="#8e5528" stroke-width="4"/>
+        <g stroke="#6b3c19" stroke-width="2" stroke-linecap="round"><line x1="30" y1="7" x2="30" y2="13" transform="rotate(0 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(30 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(60 30 30)"/><line x1="30" y1="7" x2="30" y2="13" transform="rotate(90 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(120 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(150 30 30)"/><line x1="30" y1="7" x2="30" y2="13" transform="rotate(180 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(210 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(240 30 30)"/><line x1="30" y1="7" x2="30" y2="13" transform="rotate(270 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(300 30 30)"/><line x1="30" y1="7" x2="30" y2="11" transform="rotate(330 30 30)"/></g>
+        <line id="hxHour" x1="30" y1="30" x2="30" y2="17" stroke="#3a2a18" stroke-width="3.5" stroke-linecap="round"/>
+        <line id="hxMin" x1="30" y1="30" x2="30" y2="11" stroke="#3a2a18" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="30" cy="30" r="2.6" fill="#e0566b"/></svg>
+      <div><b id="hxTime">12:00</b><span id="hxPhase"></span></div>
+    </div>
     <div class="hx-scene" id="hxScene">
       <svg class="hx-svg" viewBox="0 0 360 250" role="img" aria-label="Ein Hexenhaus aus Lebkuchen">
   <defs>
@@ -1670,7 +1684,7 @@ const openNote = (s, was) => !was && secretOpen(s) ? `<br>🗝️ Alle Geheimauf
 function renderHouse() {
   const s = getSettlement(cur);
   if (selSeed && !H.seeds[selSeed]) selSeed = null;
-  $("hSub").textContent = `Dein Hexenhaus in ${s.name}. ${isNight() ? "🌙 Gerade ist Nacht: Nachtkräuter wachsen." : "☀️ Gerade ist Tag: Tagkräuter wachsen."}`;
+  { const d = new Date(); $("hSub").textContent = `Dein Hexenhaus in ${s.name}. 🕰️ ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")} Uhr · ${phaseText()}`; }
   const pl = $("plots"); pl.innerHTML = "";
   H.plots.forEach((p, i) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "plot"; b.id = "plot-" + i;
@@ -2103,6 +2117,7 @@ function renderWiki() {
       <li>🌱 <b>Pflanzen:</b> Wähle unten einen Samen und tippe auf die lockere Erde.</li>
       <li>💧 <b>Gießen:</b> Dreimal gießen. Aus dem Keimling wird ein Pflänzchen, dann eine Knospe, dann blüht das Kraut.</li>
       <li>✋ <b>Unkraut</b> und 👋 <b>Schnecken:</b> Nach dem Gießen kann Unkraut wachsen oder eine Schnecke auftauchen. Dann musst du sie zuerst wegschaffen, bevor du wieder gießen kannst. Manchmal hängt im Unkraut sogar ein Samen.</li>
+      <li>🕰️ <b>Uhr:</b> Im Hexenhaus zeigt eine Uhr die Spielzeit und wie lange es noch bis zur Nacht oder zum Morgen dauert. Die Spielzeit ist die echte Uhrzeit.</li>
       <li>🌙☀️ <b>Tag und Nacht:</b> Manche Kräuter wachsen nur nachts (🌙 Mondkraut, Mondtulpe, Glühpilz, Sternmoos), andere nur am Tag (☀️ Sonnenkraut, Feuerblüte, Kirschblüte). Es zählt die echte Uhrzeit: Nacht ist von 19 bis 7 Uhr. Pflanzen kannst du jederzeit, aber gießen nur, wenn das Kraut wach ist. Alle anderen Kräuter wachsen immer.</li>
       <li>🧺 <b>Ernten:</b> Du bekommst zwei Kräuter. Nur ab und zu (20 %) schenkt dir die Pflanze auch einen neuen Samen.</li>
     </ul>
@@ -3322,6 +3337,28 @@ $("farmToGarden").addEventListener("click", () => openHouse("gardenSec"));
 $("farmToAlch").addEventListener("click", () => openHouse("alchSec"));
 
 /* ---------- Hexenhaus-Übersicht ---------- */
+// Uhr: Spielzeit ist die echte Uhrzeit. Nacht von 19 bis 7 Uhr.
+function untilSwitch(d = new Date()) {
+  const t = new Date(d); t.setSeconds(0, 0);
+  const night = isNight(d);
+  if (night) { if (d.getHours() >= 19) t.setDate(t.getDate() + 1); t.setHours(7, 0); }
+  else t.setHours(19, 0);
+  const m = Math.max(0, Math.round((t - d) / 60000)), h = Math.floor(m / 60), mm = m % 60;
+  return h && !mm ? `${h} Std.` : (h ? `${h} Std. ` : "") + `${mm} Min.`;
+}
+const phaseText = () => isNight() ? `🌙 Nacht · der Tag beginnt in ${untilSwitch()}` : `☀️ Tag · die Nacht beginnt in ${untilSwitch()}`;
+function tickClock() {
+  const d = new Date(), h = d.getHours(), m = d.getMinutes();
+  if ($("hxTime")) {
+    $("hxTime").textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} Uhr`;
+    $("hxPhase").textContent = phaseText();
+    $("hxHour").setAttribute("transform", `rotate(${(h % 12) * 30 + m * .5} 30 30)`);
+    $("hxMin").setAttribute("transform", `rotate(${m * 6} 30 30)`);
+  }
+  if (!$("hexView").hidden && $("hxScene").classList.contains("night") !== isNight()) openHex();
+  if (!$("houseView").hidden) { const s = getSettlement(cur); $("hSub").textContent = `Dein Hexenhaus in ${s.name}. 🕰️ ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} Uhr · ${phaseText()}`; }
+}
+setInterval(tickClock, 20000);
 function openHex() {
   const night = isNight();
   $("hxScene").classList.toggle("night", night);
@@ -3336,6 +3373,7 @@ function openHex() {
     else { if (p.pest) { c.className = "hx-pest"; pest++; } c.textContent = p.pest === "snail" ? "🐌" : p.pest === "weed" ? "🌾" : p.w === 0 ? "🌱" : "☘️"; }
     g.appendChild(c);
   });
+  tickClock();
   $("hxBedInfo").textContent = ripe ? `✨ ${ripe} ${ripe === 1 ? "Beet ist" : "Beete sind"} reif!` : pest ? `🐌 ${pest} ${pest === 1 ? "Beet braucht" : "Beete brauchen"} Hilfe` : free === 9 ? "Alles frei, pflanze etwas!" : "Pflanzen, gießen, ernten";
   show("hexView");
 }
