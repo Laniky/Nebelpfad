@@ -2849,8 +2849,9 @@ function afterMove() {
 }
 // Deutlicher Hinweis auf Wasserfeldern: bauen (Holm) oder tauchen (Ole)
 function waterTag(x, y, c) {
-  const alt = HP && HP.mech && HP.mech.has("alt");
-  const txt = c === "W" ? (alt ? "🔨 bauen / 🤿" : "🔨 bauen") : (alt ? "🤿 tauchen / 🔨" : "🤿 tauchen");
+  // In Dungeons mit Denk-Rätseln kein Schild, dort soll man selbst überlegen
+  if (HP) return;
+  const txt = c === "W" ? "🔨 bauen" : "🤿 tauchen";
   ctx.save(); ctx.font = "bold 10px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   const w = Math.min(S - 4, ctx.measureText(txt).width + 10), cx = x * S + S / 2, ty = y * S + 9;
   ctx.fillStyle = c === "W" ? "#3a2a12e6" : "#10304ae6"; ctx.strokeStyle = c === "W" ? "#f2c76b" : "#9fd8ff"; ctx.lineWidth = 1;
