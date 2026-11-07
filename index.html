@@ -1617,7 +1617,7 @@ function plotClick(i) {
     const s = getSettlement(cur), was = secretOpen(s);
     const TFg = teamFx(), hv2 = 2 + TFg.garden;
     add(H.herbs, p.h, hv2); statsOf(cur).harvest += hv2; H.plots[i] = null; lastAct = { i, t: "harvest" }; SND.fx.harvest();
-    const back = TFg.gardenSeed > 0 || Math.random() < 0.6; if (back) add(H.seeds, p.h);
+    const back = Math.random() < (TFg.gardenSeed > 0 ? 0.5 : 0.2); if (back) add(H.seeds, p.h);
     const hb = $("herbBag") && !$("herbBag").closest("[hidden]") ? rectOf($("herbBag")) : null;
     for (let k = 0; k < hv2; k++) fly(HERBS[p.h].ic, r, hb, { dx: (k - (hv2 - 1) / 2) * 34, dy: -80, delay: k * 120, ms: 1100 });
     fly(`+${hv2}`, r, null, { cls: "txt", dy: -50, delay: 150 });
@@ -1939,12 +1939,12 @@ function renderWiki() {
       <li>🌱 <b>Pflanzen:</b> Wähle unten einen Samen und tippe auf die lockere Erde.</li>
       <li>💧 <b>Gießen:</b> Dreimal gießen. Aus dem Keimling wird ein Pflänzchen, dann eine Knospe, dann blüht das Kraut.</li>
       <li>✋ <b>Unkraut</b> und 👋 <b>Schnecken:</b> Nach dem Gießen kann Unkraut wachsen oder eine Schnecke auftauchen. Dann musst du sie zuerst wegschaffen, bevor du wieder gießen kannst. Manchmal hängt im Unkraut sogar ein Samen.</li>
-      <li>🧺 <b>Ernten:</b> Du bekommst zwei Kräuter, oft schenkt dir die Pflanze auch einen neuen Samen.</li>
+      <li>🧺 <b>Ernten:</b> Du bekommst zwei Kräuter. Nur ab und zu (20 %) schenkt dir die Pflanze auch einen neuen Samen.</li>
     </ul>
     <p>Es gibt keine Wartezeit, alles geht sofort.</p>
     <p><b>So erkennst du deine Beete:</b> Helle, rissige Erde ist fest und muss umgegraben werden. Dunkle, gefurchte Erde ist locker und bereit zum Pflanzen. Nach dem Gießen glänzt sie nass. Ein <b>goldener Rand</b> heißt „reif, bitte ernten“, ein <b>oranger Rand</b> heißt „Unkraut oder Schnecke, bitte kümmern“.</p>
     <p>Garten und Alchemietisch sind zwei eigene Seiten. Oben rechts kommst du mit einem Knopf direkt vom einen zum anderen.</p>
-    <p><b>Samen bekommen:</b> Nach jedem Abschluss gibt es zwei zufällige Samen, manchmal sogar seltene. Zum Farmen leuchten in jedem Abenteuer 🌱 Samenfunde auf dem Weg. Lauf einfach drüber. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
+    <p><b>Samen bekommen:</b> Nach jedem Abschluss gibt es zwei zufällige Samen, manchmal sogar seltene. In manchen Abenteuern leuchtet ein seltener 🌱 Samenfund auf dem Weg. Lauf einfach drüber. Zum Farmen ist der <b>🌿 Kräuterpfad</b> da, dort gibt es immer zwei bis drei. Sie werden bei jedem Besuch neu verteilt, auch in Abenteuern, die du schon geschafft hast.</p>
     <div class="wk-list">${Object.values(HERBS).map(hb => row(hb.ic, hb.nm + (hb.rare ? ' <small class="rare">selten</small>' : ""), hb.from)).join("")}</div>
   </section>
 
@@ -1974,7 +1974,7 @@ const ABIL = {
   "Waschbär":      ["Glücksfinder", "Samenfunde sind öfter selten.", { rareFind: 1 }],
   "Katze":         ["Nachtaugen", "Deine Laterne leuchtet viel weiter.", { bright: 1 }],
   "Schaf":         ["Kuschelwolle", "Ein Extra-Herz zu Beginn.", { heart: 1 }],
-  "Schmetterling": ["Blütenzauber", "Beim Ernten bekommst du immer einen Samen zurück.", { gardenSeed: 1 }],
+  "Schmetterling": ["Blütenzauber", "Beim Ernten bekommst du viel öfter einen Samen zurück (50 % statt 20 %).", { gardenSeed: 1 }],
   "Wolf":          ["Rudelspur", "Zeigt über jedem Hindernis, wer helfen kann.", { reveal: 1 }],
   "Adler":         ["Adlerflug", "+15 Sekunden in Zeitdungeons.", { time: 15 }],
   "Pfau":          ["Pracht", "Ein Belohnungs-Samen mehr nach jedem Abschluss.", { loot: 1 }],
@@ -2028,7 +2028,7 @@ function fxParts(F) {
   if (F.bright) p.push("🔦 weiter sehen");
   if (F.reveal) p.push("💡 Hinweise");
   if (F.garden) p.push(`🧺 +${F.garden} Ernte`);
-  if (F.gardenSeed) p.push("🌸 Samen zurück");
+  if (F.gardenSeed) p.push("🌸 öfter Samen zurück");
   if (F.freeze) p.push(`🧊 ${F.freeze}× Eis`);
   if (F.burn) p.push("🔥 keine Dornen");
   return p;
@@ -2110,7 +2110,7 @@ function renderBeasts(keepMsg) {
   if (F.bright) parts.push("🔦 weiter sehen");
   if (F.reveal) parts.push("💡 Hinweise über Hindernissen");
   if (F.garden) parts.push(`🧺 +${F.garden} Kraut beim Ernten`);
-  if (F.gardenSeed) parts.push("🌸 immer Samen zurück");
+  if (F.gardenSeed) parts.push("🌸 öfter Samen zurück");
   if (F.freeze) parts.push(`🧊 ${F.freeze}× Wasser gefroren`);
   if (F.burn) parts.push("🔥 keine Dornen");
   $("teamHead").textContent = "Alle Fähigkeiten zusammen";
@@ -2207,7 +2207,8 @@ function startLevel(l) {
   const free = [];
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "." && !(x === px && y === py)) free.push([x, y]);
   const TF = l.fair ? { time: 0, seedSpots: 0, shield: 0, bright: 0, heart: 0, loot: 0, garden: 0, gardenSeed: 0, rareFind: 0, reveal: 0, freeze: 0, burn: 0 } : teamFx();
-  for (let n = l.resume || l.noSeeds ? 0 : (l.farm ? 3 : 0) + 1 + Math.floor(Math.random() * 2) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
+  // Samenfunde sind selten: in normalen Abenteuern nur manchmal einer, im Kräuterpfad zwei bis drei
+  for (let n = l.resume || l.noSeeds ? 0 : (l.farm ? 2 + Math.floor(Math.random() * 2) : (Math.random() < 0.35 ? 1 : 0)) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
     const [sx, sy] = free.splice(Math.floor(Math.random() * free.length), 1)[0]; grid[sy][sx] = "S";
   }
   hardSetup(l);
