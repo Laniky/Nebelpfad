@@ -384,8 +384,8 @@ select, .chatform input { font: inherit; background: #0c111b; color: var(--mist)
 .seatrow .chip { padding: 4px 8px; font-size: .78rem; }
 #coopName { text-transform: none; }
 /* Koop-Chat */
-#kcBtn { position: relative; }
-#kcBtn .badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; border-radius: 99px; background: #e0566b; color: #fff; font-size: .7rem; font-weight: 800; line-height: 18px; text-align: center; padding: 0 4px; }
+#kcBtn, #toWChat { position: relative; }
+#kcBtn .badge, #toWChat .badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; border-radius: 99px; background: #e0566b; color: #fff; font-size: .7rem; font-weight: 800; line-height: 18px; text-align: center; padding: 0 4px; }
 .chatPanel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
 .chatLog { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: .9rem; }
 .chatLog .cm { background: #0c111b; border-radius: 10px; padding: 5px 9px; align-self: flex-start; max-width: 85%; overflow-wrap: anywhere; }
@@ -494,7 +494,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
         <h1 id="vName">Mondtal</h1>
         <p class="sub" id="vSub"></p>
       </div>
-      <div class="btns"><button class="back" id="toGlade" type="button">🌳 Lichtung</button><button class="back" id="toDiary" type="button">📜 Tagebuch</button><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button><button class="back sndBtn" data-full="1" type="button">🎵 Musik an</button></div>
+      <div class="btns"><button class="back" id="toWChat" type="button">💬 Chat<span class="badge" id="wcBadge" hidden></span></button><button class="back" id="toGlade" type="button">🌳 Lichtung</button><button class="back" id="toDiary" type="button">📜 Tagebuch</button><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button><button class="back sndBtn" data-full="1" type="button">🎵 Musik an</button></div>
     </header>
     <div class="places" id="places" aria-label="Deine Orte"></div>
     <div class="village" id="village" aria-label="Dein Ort bei Nacht"></div>
@@ -613,6 +613,28 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <p class="sub" style="margin:0">Die schnellsten Teams gegen die Uhr.</p>
       <div class="wk-list" id="coopBest"><span class="none">Wird geladen …</span></div>
     </div>
+  </section>
+
+  <!-- CHAT -->
+  <section class="view" id="wchatView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>💬 Chat</h1>
+        <p class="sub">Schreib mit allen, die gerade Nebelpfad spielen.</p>
+      </div>
+      <button class="back" id="wchatBack" type="button">Zurück</button>
+    </header>
+    <p class="note" id="wcNote" hidden></p>
+    <div class="card">
+      <label for="wcName">Dein Name</label>
+      <input class="tin" id="wcName" maxlength="20" autocomplete="off" placeholder="z. B. Lani" style="text-transform:none">
+    </div>
+    <div class="chatPanel">
+      <div class="chatLog" id="wcLog" aria-live="polite" style="max-height:52vh"></div>
+      <form class="chatForm" id="wcForm"><input class="tin" id="wcIn" maxlength="200" autocomplete="off" placeholder="Nachricht schreiben …" aria-label="Nachricht"><button class="btn sm" type="submit">Senden</button></form>
+    </div>
+    <p class="help">Im Koop gibt es zusätzlich oben im Spiel einen eigenen 💬-Knopf nur für eure Gruppe.</p>
   </section>
 
   <!-- TAGEBUCH -->
@@ -1298,7 +1320,7 @@ function show(id) {
   $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView");
   $("mtab-daily").setAttribute("aria-selected", String(id === "dailyView"));
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
-  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
 function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
@@ -1773,7 +1795,7 @@ function renderWiki() {
     <p>Im Koop spielt ihr zu zweit oder zu dritt auf <b>einem</b> Spielfeld. Wer das Spiel erstellt, bekommt einen Spielcode und gibt ihn weiter.</p>
     <ul class="wk-tip">
       <li><b>Wer steuert wen?</b> Vor dem Start tippst du bei jedem Begleiter an, wer ihn steuert: du, Platz 1 oder Platz 2. Jeder Mitspieler braucht mindestens einen Begleiter. Deine Einteilung merkt sich das Spiel.</li>
-      <li><b>💬 Chat:</b> Oben neben dem Musik-Knopf öffnet 💬 ein kleines Chatfenster. Dort könnt ihr euch richtig schreiben. Neue Nachrichten zeigt ein roter Punkt und eine kurze Sprechblase.</li>
+      <li><b>💬 Chat:</b> Im Ort gibt es den Knopf <b>💬 Chat</b> für alle Spieler. Im Koop öffnet zusätzlich oben neben dem Musik-Knopf öffnet 💬 ein kleines Chatfenster. Dort könnt ihr euch richtig schreiben. Neue Nachrichten zeigt ein roter Punkt und eine kurze Sprechblase.</li>
       <li><b>💬 Zurufe:</b> Unter dem Spielfeld gibt es Knöpfe wie 👍, ❤️, „❓ Was jetzt?“, „⏳ Warte kurz!“, „👉 Du bist dran!“ und „🎉 Super!“. Sie erscheinen bei allen als Sprechblase über dem Spielfeld.</li>
       <li><b>⏳ Gegen die Uhr:</b> Setz beim Erstellen den Haken. Zu zweit habt ihr 150 Sekunden, zu dritt 180. Schafft ihr es, landet eure Zeit in der <b>🏆 Koop-Bestenliste</b>. Mit Gold gibt es zusätzlich einen seltenen Samen.</li>
       <li>Spielt Claude mit, muss Claude im Chat Bescheid bekommen, wenn es dran ist. Gegen die Uhr wird das knapp, also lieber ohne Uhr spielen oder Claude Begleiter geben, die selten gebraucht werden.</li>
@@ -2697,6 +2719,46 @@ function renderCostumes() {
     row.appendChild(bx); box.appendChild(row);
   });
 }
+
+/* ---------- Allgemeiner Chat im Ort ---------- */
+let wcUnsub = null, wcMsgs = [], wcSeen = 0;
+try { wcSeen = +(localStorage.getItem("nebelpfad-wcseen") || 0); } catch (e) {}
+const wcName = () => { let n = ""; try { n = localStorage.getItem("nebelpfad-coopname") || ""; } catch (e) {} return n || "Gast"; };
+function wcListen() {
+  if (wcUnsub || !FB) return;
+  const r = FB.ref("coop/WELTCHAT"), h = r.on("value", sn => {
+    wcMsgs = Object.values(sn.val() || {}).filter(m => m && m.m).sort((a, b) => (a.t || 0) - (b.t || 0)).slice(-60);
+    renderWChat();
+  });
+  wcUnsub = () => r.off("value", h);
+}
+function renderWChat() {
+  const open = !$("wchatView").hidden, me = wcName();
+  $("wcLog").innerHTML = wcMsgs.length ? wcMsgs.map(m => `<div class="cm${m.n === me ? " me" : ""}"><b>${String(m.n || "?").replace(/</g, "&lt;")} <small style="color:var(--muted);font-weight:400">${m.t ? new Date(m.t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : ""}</small></b>${String(m.m).replace(/</g, "&lt;")}</div>`).join("") : `<span class="none">Noch ist es still hier. Sag doch Hallo! 👋</span>`;
+  const last = wcMsgs.length ? wcMsgs[wcMsgs.length - 1].t || 0 : 0;
+  if (open) { wcSeen = last; try { localStorage.setItem("nebelpfad-wcseen", wcSeen); } catch (e) {} $("wcLog").scrollTop = 1e6; }
+  const unread = wcMsgs.filter(m => (m.t || 0) > wcSeen && m.n !== me).length;
+  $("wcBadge").hidden = !unread; $("wcBadge").textContent = unread;
+}
+function openWChat() {
+  if (DB && !FB) { show("socialView"); switchTab("chat"); return; }
+  show("wchatView"); $("wcName").value = wcName() === "Gast" ? "" : wcName();
+  $("wcNote").hidden = !!FB; $("wcNote").textContent = "Die Verbindung zum Online-Dienst wird gerade aufgebaut … Gleich geht es los.";
+  wcListen(); renderWChat();
+}
+$("toWChat").addEventListener("click", openWChat);
+$("wchatBack").addEventListener("click", showVillage);
+$("wcName").addEventListener("change", () => { try { localStorage.setItem("nebelpfad-coopname", $("wcName").value.trim().slice(0, 20)); } catch (e) {} renderWChat(); });
+$("wcForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const m = $("wcIn").value.trim().slice(0, 200); if (!m) return;
+  if (!FB) { $("wcNote").hidden = false; return; }
+  if ($("wcName").value.trim()) try { localStorage.setItem("nebelpfad-coopname", $("wcName").value.trim().slice(0, 20)); } catch (x) {}
+  $("wcIn").value = "";
+  FB.ref("coop/WELTCHAT").push({ n: wcName(), m, t: Date.now() }).catch(() => { $("wcNote").hidden = false; $("wcNote").textContent = "Die Nachricht konnte gerade nicht geschickt werden."; });
+});
+// Ungelesene Nachrichten auch im Ort anzeigen, sobald die Verbindung steht
+setInterval(() => { if (FB && !wcUnsub) wcListen(); }, 3000);
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },

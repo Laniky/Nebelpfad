@@ -111,3 +111,10 @@ Nachrichten liegen in einer eigenen Liste neben dem Spielstand:
 
 - Lesen: `GET .../coop/<SPIELCODE>-chat.json?auth=<idToken>` (jede Nachricht hat `n` = Name, `m` = Text, `t` = Zeit in Millisekunden)
 - Schreiben: `POST .../coop/<SPIELCODE>-chat.json?auth=<idToken>` mit `{"n": "Alex", "m": "Hallo!", "t": <Zeit in Millisekunden>}`
+
+## Allgemeiner Chat im Ort (neu)
+
+Für alle Spieler, auch außerhalb eines Koop-Spiels:
+
+- Lesen: `GET .../coop/WELTCHAT.json?auth=<idToken>`
+- Schreiben: `POST .../coop/WELTCHAT.json?auth=<idToken>` mit `{"n": "Alex", "m": "Hallo!", "t": <Zeit in Millisekunden>}`
