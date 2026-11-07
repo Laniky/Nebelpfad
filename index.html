@@ -1775,7 +1775,7 @@ function renderWiki() {
       <li>Du bist die <b>Heilerin</b> mit der Laterne. Nur du kannst verzauberte Tiere befreien.</li>
       <li>Tippe einfach auf das Feld, wo du hinmöchtest. Die Heilerin läuft auf dem kürzesten freien Weg genau dorthin und sammelt Samen unterwegs ein. Tippst du auf ein Hindernis weiter weg, läuft sie bis direkt davor. Mit den Pfeiltasten gehst du ein Feld weit.</li>
       <li>Vor einem Hindernis wählst du unten den passenden Begleiter und tippst dann auf das Hindernis.</li>
-      <li>Am Ende legst du die Hände auf das verzauberte Tier. <b>Nur mit 15 % Glück</b> löst sich der Zauber, sonst flieht das Tier zurück in den Nebel und du versuchst es noch einmal. Damit es nicht zu frustrierend wird, klappt es nach 6 Fehlversuchen beim selben Tier ganz sicher. Bereits gerettete Tiere kannst du jederzeit wieder besuchen.</li>
+      <li>Am Ende legst du die Hände auf das verzauberte Tier. <b>Nur mit 20 % Glück</b> löst sich der Zauber, sonst flieht das Tier zurück in den Nebel und du versuchst es noch einmal. Damit es nicht zu frustrierend wird, klappt es nach 6 Fehlversuchen beim selben Tier ganz sicher. Bereits gerettete Tiere kannst du jederzeit wieder besuchen.</li>
       <li>Du hast <b>3 Versuche</b> 💛💛💛. Jeder falsche Begleiter kostet einen. Sind alle weg, bringt dich der Nebel an den Anfang zurück.</li>
       <li>Gegen Bäume, Wasser oder Fels zu laufen kostet nichts.</li>
       <li>Schaffst du ein Abenteuer mit <b>allen Herzen</b>, gibt es eine Extra-Belohnung: zwei Bonus-Samen mit guter Chance auf seltene, und beim ersten Mal einen ⭐ für das Abenteuer. Ein Fehler, den der Glückstee abfängt, zählt nicht als verlorenes Herz.</li>
@@ -2331,7 +2331,7 @@ function perfectBonus() {
   }
   return txt;
 }
-const RESCUE_CHANCE = 0.15, RESCUE_PITY = 6;
+const RESCUE_CHANCE = 0.20, RESCUE_PITY = 6;
 function farmLevel(s) {
   const keys = Object.keys(THEMES), tk = keys[Math.floor(Math.random() * keys.length)], th = THEMES[tk];
   return { id: "farm-" + s.n, farm: true, baseOnly: true, name: `🌿 Kräuterpfad: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: "🌿", theme: tk, wall: th.wall, mode: 0,
@@ -2355,7 +2355,7 @@ function escapeWin(n) {
   const left = RESCUE_PITY - n;
   $("winIcon").textContent = "🌫️";
   $("winTitle").textContent = "Fast geschafft …";
-  $("winText").innerHTML = `Du legst die Hände auf den Zauber. Er flackert und knistert, doch ${level.who.replace(/^D/, "d")} erschrickt und huscht zurück in den Nebel.<br><br>Der Zauber lässt sich nur mit Glück lösen (15 % Chance). ${left > 0 ? `Gib nicht auf! Spätestens nach ${left} weiteren ${left === 1 ? "Versuch" : "Versuchen"} klappt es ganz sicher.` : "Beim nächsten Mal klappt es ganz sicher!"}<br><br>🎁 Als Trost: ${HERBS[g].ic} ${HERBS[g].nm} als Samen.` + perfectBonus();
+  $("winText").innerHTML = `Du legst die Hände auf den Zauber. Er flackert und knistert, doch ${level.who.replace(/^D/, "d")} erschrickt und huscht zurück in den Nebel.<br><br>Der Zauber lässt sich nur mit Glück lösen (20 % Chance). ${left > 0 ? `Gib nicht auf! Spätestens nach ${left} weiteren ${left === 1 ? "Versuch" : "Versuchen"} klappt es ganz sicher.` : "Beim nächsten Mal klappt es ganz sicher!"}<br><br>🎁 Als Trost: ${HERBS[g].ic} ${HERBS[g].nm} als Samen.` + perfectBonus();
   $("home").textContent = `Zurück nach ${s.name}`;
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
@@ -2370,7 +2370,7 @@ function rescue() {
   const wasOpen = secretOpen(getSettlement(cur));
   if (!lostHeart) { statsOf(cur).perfect = true; saveH(); }
   if (level.secret) { secretWin(); return; }
-  // Nur mit 15 % Glück lässt sich der Zauber beim ersten Mal lösen. Nach 6 Fehlversuchen klappt es sicher.
+  // Nur mit 20 % Glück lässt sich der Zauber beim ersten Mal lösen. Nach 6 Fehlversuchen klappt es sicher.
   H.tryRescue = H.tryRescue || {};
   const fails = H.tryRescue[level.id] || 0;
   if (!rescued[level.id] && !(Math.random() < RESCUE_CHANCE || fails >= RESCUE_PITY)) { H.tryRescue[level.id] = fails + 1; saveH(); escapeWin(fails + 1); return; }
