@@ -409,6 +409,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .shop { display: flex; flex-direction: column; gap: 6px; border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 4px; } .shop h3 { margin: 0; }
 .shop .note:empty { display: none; }
 .coins { color: var(--lantern); }
+.cic { display: inline-block; }
+/* Eiskristalle funkeln und drehen sich wie Schneeflocken */
+.cic-winter { color: #dff4ff; animation: flake 6s linear infinite, flakeGlow 2.4s ease-in-out infinite; filter: drop-shadow(0 0 3px #bfe6ff); }
+@keyframes flake { to { transform: rotate(360deg); } }
+@keyframes flakeGlow { 50% { filter: drop-shadow(0 0 7px #e6f6ff) brightness(1.25); } }
+@media (prefers-reduced-motion: reduce) { .cic-winter { animation: none; } }
 .fest h2 .span { font-size: .62em; color: var(--muted); font-weight: 400; white-space: nowrap; }
 .pieces { display: flex; gap: 6px; } .pieces span { font-size: 1.5rem; filter: grayscale(1) opacity(.3); transition: filter .3s; } .pieces span.on { filter: none; }
 .pieces.bump { animation: shake .4s; }
@@ -2939,7 +2945,7 @@ $("dailyName").addEventListener("change", () => { try { localStorage.setItem("ne
 /* ---------- Feste im Jahr ---------- */
 const FESTS = {
   winter: { nm: "Schneedorf", ic: "❄️", months: [0], theme: "gipfel", seed: "eisbl", fx: "snow", col: "#ffffff",
-    txt: "Leise fällt Schnee auf die Berge, und im Dorf glitzern die Eiszapfen.", animals: [["🐧", "Schneepinguin", "Der Schneepinguin"], ["🐻‍❄️", "Eisbär", "Der Eisbär"], ["🦭", "Eisrobbe", "Die Eisrobbe"]], deco: ["⛄", "Schneemann"], deco2: ["🛷", "Schlitten"], piece: ["❄️", "Schneekristalle", "Schneekristall"], coin: ["🧊", "Eiskristalle"], cos: ["🧤", "Fäustlinge"], span: "1. bis 31. Januar", mon: "Januar" },
+    txt: "Leise fällt Schnee auf die Berge, und im Dorf glitzern die Eiszapfen.", animals: [["🐧", "Schneepinguin", "Der Schneepinguin"], ["🐻‍❄️", "Eisbär", "Der Eisbär"], ["🦭", "Eisrobbe", "Die Eisrobbe"]], deco: ["⛄", "Schneemann"], deco2: ["🛷", "Schlitten"], piece: ["⛄", "Schneebälle", "Schneeball"], coin: ["❄️", "Eiskristalle"], cos: ["🧤", "Fäustlinge"], span: "1. bis 31. Januar", mon: "Januar" },
   masken: { nm: "Maskenfest", ic: "🎭", months: [1], theme: "ruine", seed: "eisbl", fx: "confetti", col: "#f5a3c7",
     txt: "In der alten Ruine wird getanzt, und überall fliegt buntes Konfetti.", animals: [["🦝", "Maskenwaschbär", "Der Maskenwaschbär"], ["🦜", "Konfettipapagei", "Der Konfettipapagei"], ["🐼", "Maskenpanda", "Der Maskenpanda"]], deco: ["🎪", "Festzelt"], deco2: ["🎈", "Luftballons"], piece: ["🎭", "Maskenteile", "Maskenteil"], coin: ["🎊", "Konfetti"], cos: ["🎭", "Ballmaske"], span: "1. bis 28. Februar", mon: "Februar" },
   fruehling: { nm: "Blütenfest", ic: "🌷", months: [2], theme: "wiese", seed: "kirsch", fx: "petal", col: "#f5b8d0",
@@ -3009,7 +3015,8 @@ function shopItems(F) {
     { id: "gem", ic: "💎", nm: "Diamant", txt: "Zum Verhexen der Zeit", cost: 10, buy: () => { H.gems = (H.gems || 0) + 1; } }
   ];
 }
-function coinGain(n) { const { F, st } = festState(); st.coins = coinsOf(st) + n; saveH(); return `${FEST_COIN[F.k][0]} +${n} ${FEST_COIN[F.k][1]}`; }
+const cic = k => `<span class="cic cic-${k}" aria-hidden="true">${FEST_COIN[k][0]}</span>`;
+function coinGain(n) { const { F, st } = festState(); st.coins = coinsOf(st) + n; saveH(); return `${cic(F.k)} +${n} ${FEST_COIN[F.k][1]}`; }
 function renderFest() {
   const { F, st } = festState(), box = $("festBox"); if (!box) return;
   const P = FEST_PIECE[F.k], have = st.pieces || 0, allDone = st.done.length >= 3, next = F.animals.find(a => !st.done.includes(a[1]));
@@ -3019,7 +3026,7 @@ function renderFest() {
     ${allDone ? "" : `<p style="margin:0">Um <b>${next[1]}</b> zu finden, brauchst du <b>${FEST_NEED} ${P[1]}</b>. Die bekommst du in den Fest-Minispielen.</p>
     <div class="pieces" aria-label="${have} von ${FEST_NEED} ${P[1]}">${Array.from({ length: FEST_NEED }, (_, i) => `<span class="${i < have ? "on" : ""}">${P[0]}</span>`).join("")}</div>`}
     <p class="sub" style="margin:0">Nur jetzt: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.</p>
-    <p style="margin:0">Festwährung: <b class="coins">${FEST_COIN[F.k][0]} ${coinsOf(st)} ${FEST_COIN[F.k][1]}</b></p>`;
+    <p style="margin:0">Festwährung: <b class="coins">${cic(F.k)} ${coinsOf(st)} ${FEST_COIN[F.k][1]}</b></p>`;
   const games = el("div", "mg-list");
   MINIGAMES.forEach(g => games.appendChild(btnEl(`${g.ic} ${g.nm}`, () => openMinigame(g.id), "chip")));
   box.appendChild(games);
@@ -3033,7 +3040,7 @@ function renderFest() {
   box.appendChild(go2);
   // Festmarkt
   const C = FEST_COIN[F.k], shop = el("div", "shop");
-  shop.innerHTML = `<h3>🛍️ Festmarkt</h3><p class="sub" style="margin:0">Hier bezahlst du mit ${C[0]} ${C[1]}. Die bekommst du in den Minispielen und im Festabenteuer.</p>`;
+  shop.innerHTML = `<h3>🛍️ Festmarkt</h3><p class="sub" style="margin:0">Hier bezahlst du mit ${cic(F.k)} ${C[1]}. Die bekommst du in den Minispielen und im Festabenteuer.</p>`;
   shopItems(F).forEach(it => {
     const sold = it.once && it.once(), row = el("div", "wk-row");
     row.innerHTML = `<span class="ic" aria-hidden="true">${it.ic}</span><span class="t"><strong>${it.nm}</strong><span>${it.txt}</span></span>`;
@@ -3043,6 +3050,7 @@ function renderFest() {
       st.coins = coinsOf(st) - it.cost; it.buy(); saveH(); SND.fx.brewed();
       renderFest(); $("festMsg").textContent = `🛍️ Gekauft: ${it.ic} ${it.nm}!` + (it.id === "cos" ? " Zieh es im Tierbuch einem Begleiter an." : it.id === "deco" ? " Du findest es jetzt beim Schmücken auf der Tierlichtung." : "");
     }, "btn sm");
+    if (!sold) b.innerHTML = `${it.cost} ${cic(F.k)}`;
     b.disabled = !!sold; if (!sold && coinsOf(st) < it.cost) b.classList.add("locked");
     row.appendChild(b); shop.appendChild(row);
   });
