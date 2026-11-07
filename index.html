@@ -378,8 +378,8 @@ select, .chatform input { font: inherit; background: #0c111b; color: var(--mist)
 .note:empty { display: none; }
 .note { background: #241f12; border: 1px solid #6b5530; border-radius: 12px; padding: 10px 14px; font-size: .9rem; }
 select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
-.maintabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 4px; }
-.mtab { font: inherit; font-weight: 700; background: transparent; color: var(--muted); border: 0; border-radius: 99px; padding: 9px 8px; cursor: pointer; }
+.maintabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 4px; }
+.mtab { font: inherit; font-weight: 700; font-size: .88rem; white-space: nowrap; background: transparent; color: var(--muted); border: 0; border-radius: 99px; padding: 9px 4px; cursor: pointer; }
 .mtab[aria-selected="true"] { background: var(--lantern); color: #1a1408; }
 .mtab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
 /* Spielfeld und Begleiter passen auf einen Bildschirm */
@@ -452,7 +452,8 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
 <div class="wrap">
   <nav class="maintabs" id="mainTabs" role="tablist" aria-label="Spielbereiche">
     <button class="mtab" id="mtab-ort" type="button" role="tab" aria-selected="true">🏡 Abenteuer</button>
-    <button class="mtab" id="mtab-time" type="button" role="tab" aria-selected="false">⏳ Zeitdungeons</button>
+    <button class="mtab" id="mtab-time" type="button" role="tab" aria-selected="false">⏳ Zeit</button>
+    <button class="mtab" id="mtab-daily" type="button" role="tab" aria-selected="false">🗓️ Täglich</button>
   </nav>
 
   <!-- ORT -->
@@ -537,7 +538,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
-      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
     </nav>
     <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
   </section>
@@ -598,7 +599,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </div>
     <div class="card">
       <h3>🥕 Füttern</h3>
-      <p class="sub" style="margin:0">Wähle ein Kraut und tippe dann auf ein Tier. Jedes Tier mag bis zu drei Leckerbissen am Tag.</p>
+      <p class="sub" style="margin:0">Wähle Futter aus dem Futterkorb (oder ein Kraut) und tippe dann auf ein Tier. Jeden Tag füllt sich der Futterkorb neu, und nach jeder Rettung kommt etwas dazu. Jedes Tier mag bis zu drei Leckerbissen am Tag.</p>
       <div class="bag" id="gFood"></div>
     </div>
     <div class="card">
@@ -633,6 +634,27 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
   </section>
 
   <!-- ZEITDUNGEONS -->
+  <section class="view" id="dailyView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Täglich</h1>
+        <p class="sub">Jeden Tag etwas Neues.</p>
+      </div>
+    </header>
+    <div id="festBox"></div>
+    <div class="card" id="dailyCard"></div>
+    <div class="card">
+      <label for="dailyName">Dein Name für die Bestenliste</label>
+      <input class="tin" id="dailyName" maxlength="20" autocomplete="off" placeholder="z. B. Lani" style="text-transform:none">
+    </div>
+    <div class="card">
+      <h2>🏆 Heute am besten</h2>
+      <p class="sub" style="margin:0">Wer hat das heutige Rätsel mit den meisten Herzen und am schnellsten geschafft?</p>
+      <div class="wk-list" id="dailyBest"><span class="none">Wird geladen …</span></div>
+    </div>
+  </section>
+
   <section class="view" id="timeView" hidden>
     <header class="vhead">
       <div>
@@ -976,8 +998,8 @@ function genMaze(rng) {
 
 // Bei jedem Betreten ein neuer Weg mit neuen Hindernissen, nur mit Begleitern, die man schon hat
 function randomMap(l) {
-  const rng = rngFor(Math.floor(Math.random() * 2147483647));
-  const avail = new Set(ROLES.map(r => r.id)), p = l.gen, tier = p.tier;
+  const rng = rngFor(l.seed != null ? l.seed : Math.floor(Math.random() * 2147483647));
+  const avail = new Set((l.baseOnly ? BASE_ROLES : ROLES).map(r => r.id)), p = l.gen, tier = p.tier;
   const basic = BASIC.filter(t => OBST[t].needs.every(r => avail.has(r)));
   const runeRoles = RUNE_ROLES.filter(r => avail.has(r));
   const { g, path } = p.maze ? genMaze(rng) : genMap(rng);
@@ -1207,9 +1229,10 @@ $("resetAll").addEventListener("click", () => { rescued = {}; cur = 1; save(); H
 
 function show(id) {
   if (id !== "dungeonView") stopTimer();
-  $("mainTabs").hidden = !(id === "villageView" || id === "timeView");
+  $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView");
+  $("mtab-daily").setAttribute("aria-selected", String(id === "dailyView"));
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
-  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
 function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
@@ -1632,11 +1655,20 @@ function renderWiki() {
     <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
   </section>
 
+  <section class="wk-sec" id="wk-tag"><h2>🧩 Tagesrätsel</h2>
+    <p>Im Reiter <b>🗓️ Täglich</b> wartet jeden Tag ein neues Rätsel-Dungeon. Es ist an diesem Tag für <b>alle Spieler gleich</b>, so könnt ihr vergleichen, wer es am besten geschafft hat. Es helfen nur die fünf Grund-Begleiter, damit alle die gleichen Chancen haben.</p>
+    <ul class="wk-tip">
+      <li>In der <b>🏆 Tages-Bestenliste</b> zählt dein erster Sieg des Tages: zuerst die meisten Herzen, dann die wenigsten Anläufe, dann die schnellste Zeit.</li>
+      <li>Belohnung beim ersten Sieg: zwei Samen, und mit allen Herzen einen seltenen Samen extra.</li>
+      <li>🔥 <b>Serie:</b> Schaffst du das Rätsel mehrere Tage hintereinander, wächst deine Serie.</li>
+    </ul>
+  </section>
+
   <section class="wk-sec" id="wk-lichtung"><h2>🌳 Tierlichtung</h2>
     <p>Über <b>🌳 Lichtung</b> im Ort besuchst du alle Tiere, die du gerettet hast. Sie laufen über die Wiese und freuen sich, wenn du vorbeikommst.</p>
     <ul class="wk-tip">
       <li><b>Streicheln:</b> Tippe auf ein Tier, dann hüpft es und erzählt dir etwas. Jedes Tier hat seine eigene Stimme.</li>
-      <li><b>Füttern:</b> Wähle unten ein Kraut und tippe auf ein Tier. Das gibt ❤️ Freundschaft. Jedes Tier hat ein Lieblingskraut, das gibt doppelt. Pro Tag mag jedes Tier bis zu drei Leckerbissen.</li>
+      <li><b>Füttern:</b> Im <b>🧺 Futterkorb</b> liegen Karotten 🥕, Äpfel 🍎, Nüsse 🌰, Beeren 🍓, Fisch 🐟, Honig 🍯, Klee 🍀 und Körner 🌾. Er füllt sich jeden Tag neu, und nach jeder Rettung kommen zwei Leckerbissen dazu. Auch Kräuter kannst du verfüttern. Wähle das Futter und tippe auf ein Tier. Das gibt ❤️ Freundschaft. Lieblingsfutter (zum Beispiel 🥕 für den Hasen oder 🐟 für die Katze) zählt doppelt. Pro Tag mag jedes Tier bis zu drei Leckerbissen.</li>
       <li><b>Geschenke:</b> Bei 3 Herzen schenkt dir das Tier zwei Samen, bei 6 Herzen einen seltenen Samen, und bei 10 Herzen seid ihr beste Freunde 🌟 und du bekommst einen Herztrank.</li>
       <li><b>Schmücken:</b> Blumen, Pilze, Laternen, ein Brunnen, ein Tierhäuschen und sogar ein Regenbogen. Du bezahlst mit Kräutern, egal welchen. Mit 🧹 räumst du wieder weg und bekommst die Kräuter zurück.</li>
     </ul>
@@ -1874,7 +1906,7 @@ $("wikiView").addEventListener("click", e => {
   const a = e.target.closest(".wk-nav a"); if (!a) return;
   e.preventDefault(); const t = document.querySelector(a.getAttribute("href")); if (t) t.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
 });
-const leaveDungeon = () => { if (level && level.timed && !level.coop) showTime(); else showVillage(); };
+const leaveDungeon = () => { if (level && level.daily) showDaily(); else if (level && level.timed && !level.coop) showTime(); else showVillage(); };
 $("back").addEventListener("click", leaveDungeon);
 $("home").addEventListener("click", leaveDungeon);
 
@@ -1929,7 +1961,7 @@ function startLevel(l) {
   const free = [];
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "." && !(x === px && y === py)) free.push([x, y]);
   const TF = teamFx();
-  for (let n = l.resume ? 0 : 1 + Math.floor(Math.random() * 2) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
+  for (let n = l.resume || l.noSeeds ? 0 : 1 + Math.floor(Math.random() * 2) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
     const [sx, sy] = free.splice(Math.floor(Math.random() * free.length), 1)[0]; grid[sy][sx] = "S";
   }
   done = false; burst = []; role = "heil"; buildRoles(); paintRoles();
@@ -2037,18 +2069,21 @@ function perfectBonus() {
 }
 function rescue() {
   if (level.coop) { coopWin(); return; }
+  if (level.daily) { dailyWin(); return; }
   if (level.timed) { timeWin(); return; }
   if (level.superD) { superWin(); return; }
   const wasOpen = secretOpen(getSettlement(cur));
   if (!lostHeart) { statsOf(cur).perfect = true; saveH(); }
   if (level.secret) { secretWin(); return; }
   done = true; rescued[level.id] = true; save();
+  const foodGot = addFood(2);
   const s = getSettlement(cur), pet = PET_ROLES.find(p => p.from === level.id);
   let text = `${level.who} folgt dir zurück nach ${s.name} und zieht ${level.home} ein.`;
   const gift = Array.from({ length: (fx.loot ? 4 : 2) + teamFx().loot }, () => rollDrop()); gift.forEach(k => add(H.seeds, k)); saveH();
   text += `<br><br>🎁 Zufällige Belohnung: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm + (HERBS[k].rare ? " (selten!)" : "")).join(", ")} als Samen.`;
   text += perfectBonus();
   if (!wasOpen && secretOpen(s)) text += `<br><br>🗝️ Alle Geheimaufgaben erfüllt! <b>${getSecret(s.n).name}</b> ist jetzt offen.`;
+  text += `<br>🧺 Für die Tierlichtung: ${foodGot.map(k => FOODS[k].ic + " " + FOODS[k].nm).join(", ")}.`;
   if (pet) text += `<br><br>Ab jetzt hilft dir <b>${pet.nm}</b> als ${pet.rl}!`;
   if (isDone(s)) {
     const nx = getSettlement(s.n + 1), first = nx.tier !== s.tier && TIERS[nx.tier].first;
@@ -2277,6 +2312,85 @@ new MutationObserver(() => { if (!$("win").hidden) SND.fx.win(); }).observe($("w
 new MutationObserver(() => { if (!$("fail").hidden) SND.fx.fail(); }).observe($("fail"), { attributes: true, attributeFilter: ["hidden"] });
 
 
+
+/* ---------- Tagesrätsel: jeden Tag ein festes Dungeon, für alle gleich ---------- */
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const daySeed = k => Number(k.replace(/-/g, "")) * 7919 % 2147483647;
+let dailyT0 = 0;
+function dailyLevel() {
+  const k = dayKey(), rng = rngFor(daySeed(k));
+  const keys = Object.keys(THEMES), tk = keys[Math.floor(rng() * keys.length)], th = THEMES[tk];
+  const a = ANIMALS[Math.floor(rng() * ANIMALS.length)], [ench, ring] = ENCH[Math.floor(rng() * ENCH.length)];
+  const name = `Tagesrätsel: ${th.art} ${PREFIX[Math.floor(rng() * PREFIX.length)]}${th.noun}`;
+  return { id: "tag-" + k, daily: k, seed: daySeed(k) + 17, baseOnly: true, noSeeds: true, name, ic: "🧩", theme: tk, wall: th.wall, mode: 0,
+    animal: a[0], animalName: a[1], who: a[2], ring, gen: { count: 10, tier: 1, maze: true },
+    intro: `🧩 <b>Tagesrätsel vom ${k.split("-").reverse().join(".")}:</b> Heute sieht dieses Dungeon für alle Spieler gleich aus. Schaffst du es mit allen Herzen? Hier helfen nur die fünf Grund-Begleiter.`,
+    animalHint: `${a[2]} ist gefangen in ${ench}. Nur die Heilerin kann den Zauber lösen.` };
+}
+function dailyStreak() {
+  const D = H.daily || {}; let n = 0, d = new Date();
+  if (!(D[dayKey(d)] && D[dayKey(d)].won)) d.setDate(d.getDate() - 1);
+  while (D[dayKey(d)] && D[dayKey(d)].won) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+const dRef = k => FB ? FB.ref("coop/TAG" + k.replace(/-/g, "")) : null;
+async function dailyList(k) {
+  try {
+    if (DB) { const d = await DB.doc("coop/tag" + k.replace(/-/g, "")).get(); return d.exists ? (d.data().list || []) : []; }
+    if (FB) return Object.values((await dRef(k).get()).val() || {});
+  } catch (e) {}
+  return [];
+}
+async function addDaily(k, e) {
+  try {
+    if (DB) { const l = await dailyList(k); l.push(e); await DB.doc("coop/tag" + k.replace(/-/g, "")).set({ list: l.slice(-50) }); }
+    else if (FB) await dRef(k).push(e);
+  } catch (e2) {}
+}
+function showDaily() {
+  const k = dayKey(), D = (H.daily || {})[k], st = dailyStreak();
+  try { $("dailyName").value = localStorage.getItem("nebelpfad-coopname") || ""; } catch (e) {}
+  const L = dailyLevel();
+  $("dailyCard").innerHTML = `<h2>🧩 Tagesrätsel</h2>
+    <p class="sub" style="margin:0">${L.animal} Heute wartet <b>${L.who.replace(/^Der |^Die |^Das /, m => m.toLowerCase())}</b> in diesem Dungeon: ${L.name.replace("Tagesrätsel: ", "")}. Das Dungeon ist für alle gleich und gibt es nur heute. Morgen kommt ein neues.</p>
+    <p style="margin:0">${D && D.won ? `✅ Heute geschafft mit ${"💛".repeat(D.hearts)}${"🖤".repeat(Math.max(0, 3 - D.hearts))} in ${D.t.toFixed(1).replace(".", ",")} Sekunden${D.tries > 1 ? ` (im ${D.tries}. Anlauf)` : ""}.` : D && D.tries ? `Heute schon ${D.tries} ${D.tries === 1 ? "Anlauf" : "Anläufe"}. Versuch es noch einmal!` : "Heute noch nicht gespielt."}</p>
+    <p style="margin:0">🔥 Serie: <b>${st} ${st === 1 ? "Tag" : "Tage"}</b> in Folge geschafft</p>`;
+  const b = btnEl(D && D.won ? "Noch einmal spielen" : "Tagesrätsel starten", () => {
+    H.daily = H.daily || {}; const e = H.daily[k] = H.daily[k] || { tries: 0 }; if (!e.won) e.tries++; saveH();
+    dailyT0 = Date.now(); startLevel(dailyLevel());
+  }, "btn");
+  $("dailyCard").appendChild(b);
+  show("dailyView"); renderDailyBest(k); renderFest();
+}
+async function renderDailyBest(k) {
+  const l = (await dailyList(k)).filter(e => e && e.t).sort((a, b) => (b.hearts - a.hearts) || (a.tries - b.tries) || (a.t - b.t)).slice(0, 10);
+  $("dailyBest").innerHTML = l.length ? l.map((e, i) => `<div class="wk-row"><span class="ic" aria-hidden="true">${["🥇", "🥈", "🥉"][i] || "⭐"}</span><span class="t"><strong>${String(e.name || "Jemand").replace(/</g, "")}</strong><span>${"💛".repeat(e.hearts || 0)} · ${(+e.t).toFixed(1).replace(".", ",")} Sekunden${e.tries > 1 ? ` · ${e.tries}. Anlauf` : ""}</span></span></div>`).join("")
+    : `<span class="none">Heute hat es noch niemand geschafft. Sei die Erste!</span>`;
+}
+function dailyWin() {
+  done = true;
+  const k = level.daily, used = (Date.now() - dailyT0) / 1000; H.daily = H.daily || {};
+  const e = H.daily[k] = H.daily[k] || { tries: 1 }, first = !e.won;
+  let gift = [];
+  if (first) {
+    e.won = true; e.hearts = tries; e.t = Math.round(used * 10) / 10;
+    gift = [rollDrop(0.2), rollDrop(0.2)]; if (tries >= 3) gift.push(RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]);
+    gift.forEach(g => add(H.seeds, g));
+    let nm = ""; try { nm = ($("dailyName").value || localStorage.getItem("nebelpfad-coopname") || "").trim().slice(0, 20); } catch (x) {}
+    addDaily(k, { name: nm || "Ohne Namen", hearts: tries, t: e.t, tries: e.tries || 1 });
+  }
+  saveH();
+  const st = dailyStreak();
+  $("winIcon").textContent = level.animal; $("winTitle").textContent = "Tagesrätsel gelöst! 🧩";
+  $("winText").innerHTML = first
+    ? `Geschafft mit ${"💛".repeat(tries)}${"🖤".repeat(Math.max(0, 3 - tries))} in <b>${e.t.toFixed(1).replace(".", ",")} Sekunden</b>. Dein Ergebnis steht jetzt in der Tages-Bestenliste.<br>🔥 Serie: ${st} ${st === 1 ? "Tag" : "Tage"} in Folge.<br><br>🎁 Belohnung: ${gift.map(g => HERBS[g].ic + " " + HERBS[g].nm + (HERBS[g].rare ? " (selten!)" : "")).join(", ")} als Samen.${tries >= 3 ? " Für alle Herzen gab es einen seltenen Samen extra." : ""}`
+    : `Noch einmal geschafft! Für die Bestenliste zählt dein erster Sieg von heute. Morgen wartet ein neues Rätsel.`;
+  $("home").textContent = "Zurück";
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+}
+$("mtab-daily").addEventListener("click", showDaily);
+$("dailyName").addEventListener("change", () => { try { localStorage.setItem("nebelpfad-coopname", $("dailyName").value.trim().slice(0, 20)); } catch (e) {} });
+function renderFest() {}
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
@@ -2286,6 +2400,19 @@ const GL_DECO = {
 };
 const GL_LINES = ["Danke, dass du mich gerettet hast!", "Hier ist es so schön ruhig.", "Spielst du ein bisschen mit mir?", "Ich hab heute schon drei Schmetterlinge gesehen!", "Erzählst du mir, was du im Nebel erlebt hast?", "Ich fühl mich hier richtig zu Hause.", "Hast du etwas Leckeres dabei?", "Die anderen Tiere sind sehr nett zu mir."];
 const GL_FAV = ["mond", "tau", "stern", "pilz", "sonne", "tulpe", "kleeb"];
+const FOODS = { karotte: { ic: "🥕", nm: "Karotte" }, apfel: { ic: "🍎", nm: "Apfel" }, nuss: { ic: "🌰", nm: "Nuss" }, beere: { ic: "🍓", nm: "Beeren" }, fisch: { ic: "🐟", nm: "Fisch" }, honig: { ic: "🍯", nm: "Honig" }, klee: { ic: "🍀", nm: "Klee" }, korn: { ic: "🌾", nm: "Körner" } };
+const FAV_FOOD = { Hase: "karotte", Eichhörnchen: "nuss", Dachs: "beere", Schildkröte: "klee", Schwan: "korn", Frosch: "beere", Waschbär: "fisch", Katze: "fisch", Schaf: "klee", Schmetterling: "honig", Wolf: "fisch", Adler: "fisch", Fuchs: "apfel", Otter: "fisch", Hirsch: "apfel", Pfau: "korn", Igel: "apfel", Eule: "nuss", Bär: "honig", Panda: "klee", Biber: "apfel", Maus: "korn", Pferd: "karotte", Einhorn: "apfel", Sterndrache: "honig", Löwe: "fisch", Wolkenwal: "fisch" };
+const foodFav = nm => FAV_FOOD[nm] || Object.keys(FOODS)[[...nm].reduce((a, c) => a + c.charCodeAt(0), 3) % Object.keys(FOODS).length];
+function addFood(n) { const G = glState(); G.food = G.food || {}; const ks = Object.keys(FOODS), got = []; for (let i = 0; i < n; i++) { const k = ks[Math.floor(Math.random() * ks.length)]; G.food[k] = Math.min(20, (G.food[k] || 0) + 1); got.push(k); } return got; }
+function refillBasket() {
+  const G = glState(); G.food = G.food || {};
+  if (G.foodDay === today()) return null;
+  const first = !G.foodDay; G.foodDay = today();
+  // Lieblingsfutter der Bewohner kommt bevorzugt in den Korb
+  const favs = rescuedAnimals().map(a => foodFav(a.nm)); const got = [];
+  for (let i = 0; i < (first ? 10 : 8); i++) { const k = favs.length && Math.random() < 0.6 ? favs[Math.floor(Math.random() * favs.length)] : Object.keys(FOODS)[Math.floor(Math.random() * 8)]; G.food[k] = Math.min(20, (G.food[k] || 0) + 1); got.push(k); }
+  saveH(); return got;
+}
 let glSel = null, glTimer = null, glPos = {};
 const gsay = h => { $("gMsg").innerHTML = h; };
 function glState() { H.glade = H.glade || { friend: {}, deco: [], fed: {} }; return H.glade; }
@@ -2306,7 +2433,9 @@ function payHerbs(n) {
   return true;
 }
 function openGlade() {
+  const got = refillBasket();
   show("gladeView"); renderGlade(true);
+  if (got) setTimeout(() => gsay(`🧺 Der Futterkorb ist frisch gefüllt: ${got.map(k => FOODS[k].ic).join(" ")}`), 2200);
 }
 function renderGlade(greet) {
   const G = glState(), an = rescuedAnimals(), box = $("glItems");
@@ -2329,8 +2458,10 @@ function renderGlade(greet) {
   $("gSub").textContent = an.length ? `${an.length} ${an.length === 1 ? "Tier wohnt" : "Tiere wohnen"} hier.` : "Noch wohnt hier niemand.";
   // Futter
   const fb = $("gFood"); fb.innerHTML = "";
+  const fk = Object.keys(FOODS).filter(k => (G.food || {})[k]);
+  fk.forEach(k => { const c = btnEl(`${FOODS[k].ic} ${FOODS[k].nm} ×${G.food[k]}`, () => { glSel = glSel === "o:" + k ? null : "o:" + k; renderGlade(); gsay(glSel ? `${FOODS[k].ic} ${FOODS[k].nm} ausgewählt. Tippe auf ein Tier, um es zu füttern.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "o:" + k)); fb.appendChild(c); });
   const hk = Object.keys(HERBS).filter(k => H.herbs[k]);
-  if (!hk.length) fb.innerHTML = `<span class="none">Keine Kräuter. Ernte welche im Garten.</span>`;
+  if (!hk.length && !fk.length) fb.innerHTML = `<span class="none">Der Futterkorb ist leer. Morgen füllt er sich wieder, und nach jeder Rettung kommt Futter dazu.</span>`;
   hk.forEach(k => { const c = btnEl(`${HERBS[k].ic} ${HERBS[k].nm} ×${H.herbs[k]}`, () => { glSel = glSel === "f:" + k ? null : "f:" + k; renderGlade(); gsay(glSel ? `${HERBS[k].ic} ausgewählt. Tippe auf ein Tier, um es zu füttern.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "f:" + k)); fb.appendChild(c); });
   // Schmuck
   const db = $("gDeco"); db.innerHTML = "";
@@ -2339,7 +2470,7 @@ function renderGlade(greet) {
   // Freundschaft
   const fl = $("gFriends");
   fl.innerHTML = an.length ? an.map(a => { const f = G.friend[a.nm] || 0, fav = HERBS[favOf(a.nm)];
-    return `<div class="wk-row"><span class="ic" aria-hidden="true">${a.ic}</span><span class="t"><strong>${a.nm}</strong><span>${"❤️".repeat(Math.min(f, 10))}${"🤍".repeat(Math.max(0, 10 - f))}<br>Mag am liebsten: ${fav.ic} ${fav.nm}${f >= 10 ? " · Beste Freunde 🌟" : ""}</span></span></div>`; }).join("")
+    return `<div class="wk-row"><span class="ic" aria-hidden="true">${a.ic}</span><span class="t"><strong>${a.nm}</strong><span>${"❤️".repeat(Math.min(f, 10))}${"🤍".repeat(Math.max(0, 10 - f))}<br>Mag am liebsten: ${FOODS[foodFav(a.nm)].ic} ${FOODS[foodFav(a.nm)].nm} und ${fav.ic} ${fav.nm}${f >= 10 ? " · Beste Freunde 🌟" : ""}</span></span></div>`; }).join("")
     : `<span class="none">Rette Tiere in den Abenteuern, dann ziehen sie hier ein.</span>`;
   if (greet) {
     if (!an.length) gsay("🌳 Die Lichtung ist noch leer. Jedes Tier, das du rettest, zieht hier ein.");
@@ -2356,13 +2487,14 @@ function glBubble(b, txt) {
 function petAnimal(a, b) {
   const G = glState();
   SND.fx.voice(a.nm);
-  if (glSel && glSel.startsWith("f:")) {
-    const k = glSel.slice(2); if (!H.herbs[k]) { glSel = null; renderGlade(); return; }
+  if (glSel && (glSel.startsWith("f:") || glSel.startsWith("o:"))) {
+    const isFood = glSel.startsWith("o:"), k = glSel.slice(2), bag = isFood ? (G.food = G.food || {}) : H.herbs, DEF = isFood ? FOODS : HERBS;
+    if (!bag[k]) { glSel = null; renderGlade(); return; }
     const fd = G.fed[a.nm] && G.fed[a.nm].d === today() ? G.fed[a.nm] : (G.fed[a.nm] = { d: today(), n: 0 });
     if (fd.n >= 3) { hopFx(b); glBubble(b, "Ich bin pappsatt! Morgen wieder? 😊"); gsay(`${a.ic} ${a.nm} ist für heute satt.`); return; }
-    add(H.herbs, k, -1); fd.n++;
-    const fav = favOf(a.nm) === k, plus = fav ? 2 : 1, before = G.friend[a.nm] || 0, now = Math.min(10, before + plus); G.friend[a.nm] = now;
-    fly(HERBS[k].ic, rectOf(b), null, { dy: -10, ms: 600 });
+    add(bag, k, -1); fd.n++;
+    const fav = isFood ? foodFav(a.nm) === k : favOf(a.nm) === k, plus = fav ? 2 : 1, before = G.friend[a.nm] || 0, now = Math.min(10, before + plus); G.friend[a.nm] = now;
+    fly(DEF[k].ic, rectOf(b), null, { dy: -10, ms: 600 });
     setTimeout(() => { hopFx(b, fav ? "💖" : "❤️"); if (fav) fly("❤️", rectOf(b), null, { dx: 24, dy: -40, delay: 150 }); }, 450);
     SND.fx.plop();
     let gift = "";
@@ -2370,8 +2502,8 @@ function petAnimal(a, b) {
     if (before < 6 && now >= 6) { const r = RARE_SEEDS[Math.floor(Math.random() * RARE_SEEDS.length)]; add(H.seeds, r); gift += ` 🎁 ${a.nm} bringt dir einen seltenen Samen: ${HERBS[r].ic} ${HERBS[r].nm}!`; }
     if (before < 10 && now >= 10) { add(H.potions, "herz"); gift += ` 🌟 Ihr seid jetzt beste Freunde! ${a.nm} schenkt dir einen ${POTIONS.herz.ic} ${POTIONS.herz.nm}.`; SND.fx.win(); }
     glBubble(b, fav ? "Mmh, mein Lieblingsessen! 💖" : "Lecker, danke!");
-    gsay(`${a.ic} ${a.nm} knabbert ${HERBS[k].ic} ${HERBS[k].nm}.${fav ? " Das ist sein Lieblingskraut, doppelte Freundschaft!" : ""}${gift}`);
-    saveH(); const keep = glSel; renderGlade(); glSel = keep; return;
+    gsay(`${a.ic} ${a.nm} futtert ${DEF[k].ic} ${DEF[k].nm}.${fav ? " Das mag es am allerliebsten, doppelte Freundschaft!" : ""}${gift}`);
+    if (!bag[k]) glSel = null; saveH(); renderGlade(); return;
   }
   hopFx(b, "❤️");
   glBubble(b, GL_LINES[Math.floor(Math.random() * GL_LINES.length)]);
