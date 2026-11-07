@@ -317,6 +317,26 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .modal-box p { color: var(--mist); line-height: 1.5; }
 .modal-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
 .modal-btns .btn { flex: 1; min-width: 120px; }
+
+/* Aufräum-Spiel */
+.cl-layer { position: absolute; inset: 0; z-index: 60; }
+.cl-it { position: absolute; transform: translate(-50%, -50%); font-size: 1.9rem; line-height: 1; background: none; border: 0; padding: 4px; cursor: pointer; filter: drop-shadow(0 3px 2px #0008); animation: clPop .35s cubic-bezier(.3,1.6,.5,1); }
+.cl-it.sel { filter: drop-shadow(0 0 8px #f2c76b) drop-shadow(0 0 3px #fff); transform: translate(-50%, -50%) scale(1.25); }
+.cl-it.old { animation: clWiggle .4s ease-in-out infinite; }
+@keyframes clPop { from { transform: translate(-50%, -50%) scale(0); } }
+@keyframes clWiggle { 50% { transform: translate(-50%, -50%) rotate(12deg); } }
+.cl-hud { position: absolute; left: 8px; right: 8px; top: 8px; z-index: 61; display: flex; gap: 8px; justify-content: space-between; font-weight: 800; }
+.cl-hud span { background: #0b0f18cc; border-radius: 99px; padding: 4px 10px; font-size: .85rem; }
+.cl-hud #clTime.low { color: #ff9aa8; }
+.cl-bins { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.cl-bin { font: inherit; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; color: var(--mist); padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+.cl-bin .ic { font-size: 1.8rem; }
+.cl-bin small { color: var(--muted); font-size: .7rem; text-align: center; }
+.cl-bin.ready { border-color: var(--lantern); box-shadow: 0 0 12px #f2c76b55; }
+.cl-bin.ok { animation: bump .5s; border-color: #5fd18c; }
+.cl-bin.bad { animation: shake .4s; border-color: #e0566b; }
+.glade.messy .gl-flowers { filter: saturate(.5) brightness(.8); }
+.gl-mess { position: absolute; transform: translate(-50%, -50%); font-size: 1.2rem; pointer-events: none; opacity: .9; }
 /* Tagebuch */
 .diary { display: flex; flex-direction: column; gap: 10px; }
 .page { background: linear-gradient(180deg, #f3e6c8, #e6d3a8); color: #3a2a18; border-radius: 6px 14px 14px 6px; padding: 14px 16px 14px 22px; box-shadow: 0 6px 16px #0008, inset 6px 0 0 #c9b083; font-family: Georgia, "Times New Roman", serif; line-height: 1.55; position: relative; }
@@ -685,6 +705,14 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <div class="gl-back" aria-hidden="true"><i style="left:4%">🌳</i><i style="left:20%;font-size:2.6rem">🌲</i><i style="left:62%">🌳</i><i style="left:82%;font-size:2.4rem">🌲</i></div>
       <div class="gl-flowers" aria-hidden="true"></div><div class="gl-pond" aria-hidden="true"></div>
       <div class="gl-items" id="glItems"></div>
+      <div class="cl-layer" id="clLayer" hidden></div>
+      <div class="cl-hud" id="clHud" hidden><span id="clTime">⏳ 40</span><span id="clScore">⭐ 0</span><span id="clCombo"></span></div>
+    </div>
+    <div class="cl-bins" id="clBins" hidden></div>
+    <div class="card" id="clCard">
+      <h3>🧹 Aufräum-Spiel</h3>
+      <p class="sub" style="margin:0" id="clInfo"></p>
+      <button class="btn" id="clStart" type="button">Aufräumen starten</button>
     </div>
     <div class="card">
       <h3>🥕 Füttern</h3>
@@ -693,7 +721,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </div>
     <div class="card">
       <h3>🌸 Schmücken</h3>
-      <p class="sub" style="margin:0">Wähle etwas aus und tippe auf die Wiese. Bezahlt wird mit Kräutern, egal welchen. Mit 🧹 räumst du etwas wieder weg und bekommst die Kräuter zurück.</p>
+      <p class="sub" style="margin:0">Wähle etwas aus und tippe auf die Wiese. Bezahlt wird mit Kräutern, egal welchen. Mit ↩️ nimmst du etwas wieder weg und bekommst die Kräuter zurück.</p>
       <div class="bag" id="gDeco"></div>
     </div>
     <div class="card">
@@ -1873,7 +1901,8 @@ function renderWiki() {
       <li><b>Füttern:</b> Im <b>🧺 Futterkorb</b> liegen Karotten 🥕, Äpfel 🍎, Nüsse 🌰, Beeren 🍓, Fisch 🐟, Honig 🍯, Klee 🍀 und Körner 🌾. Er füllt sich jeden Tag neu, und nach jeder Rettung kommen zwei Leckerbissen dazu. Auch Kräuter kannst du verfüttern. Wähle das Futter und tippe auf ein Tier. Das bringt dir ❤️ <b>Ruf</b> bei diesem Tier. Lieblingsfutter (zum Beispiel 🥕 für den Hasen oder 🐟 für die Katze) und das Lieblingskraut zählen doppelt. Pro Tag mag jedes Tier bis zu drei Leckerbissen.</li>
       <li><b>Ruf-Stufen:</b> 🙈 Scheu → 👀 Neugierig (1 Herz) → 😊 Freundlich (3) → 💛 Vertraut (6) → 🌟 Beste Freunde (10). Deinen Ruf bei jedem Tier siehst du unten auf der Lichtung.</li>
       <li><b>Geschenke:</b> Bei 3 Herzen schenkt dir das Tier zwei Samen, bei 6 Herzen einen seltenen Samen, und bei 10 Herzen seid ihr beste Freunde 🌟 und du bekommst einen Herztrank.</li>
-      <li><b>Schmücken:</b> Blumen, Pilze, Laternen, ein Brunnen, ein Tierhäuschen und sogar ein Regenbogen. Du bezahlst mit Kräutern, egal welchen. Mit 🧹 räumst du wieder weg und bekommst die Kräuter zurück.</li>
+      <li><b>🧹 Aufräum-Spiel:</b> Jeden Tag weht der Wind Laub, Steine und Federn auf die Lichtung. Tippe auf ein Ding und dann auf den richtigen Korb: 🪣 Kompost (Laub, Blätter, Apfelreste), 🪨 Steinhaufen (Steine, Zapfen, Stöcke) oder 🪺 Nestkiste (Federn, Wolle, Fäden). Du hast 40 Sekunden. Drei richtige hintereinander geben Bonuspunkte, falsch sortieren kostet 3 Sekunden. Einmal am Tag gibt es Futter und Samen, und ab 12 Punkten +1 Ruf bei allen Tieren.</li>
+      <li><b>Schmücken:</b> Blumen, Pilze, Laternen, ein Brunnen, ein Tierhäuschen und sogar ein Regenbogen. Du bezahlst mit Kräutern, egal welchen. Mit ↩️ nimmst du Schmuck wieder weg und bekommst die Kräuter zurück.</li>
     </ul>
   </section>
 
@@ -2999,6 +3028,97 @@ $("wcForm").addEventListener("submit", e => {
 });
 // Ungelesene Nachrichten auch im Ort anzeigen, sobald die Verbindung steht
 setInterval(() => { if (FB && !wcUnsub) wcListen(); }, 3000);
+
+/* ---------- Aufräum-Spiel auf der Tierlichtung ---------- */
+const CL_BINS = [
+  { id: "kompost", ic: "🪣", nm: "Kompost", hint: "Laub, Blätter, Apfelreste", items: ["🍂", "🍁", "🍃", "🍏"] },
+  { id: "stein", ic: "🪨", nm: "Steinhaufen", hint: "Steine, Kastanien, Stöcke, Muscheln", items: ["🪨", "🌰", "🪵", "🐚"] },
+  { id: "nest", ic: "🪺", nm: "Nestkiste", hint: "Federn, Wolle, Fäden", items: ["🪶", "🧶", "🧵", "🎀"] }
+];
+const CL_TIME = 40;
+let CL = null;
+const binOf = ic => CL_BINS.find(b => b.items.includes(ic));
+function clDay() { const G = glState(); return G.cleanDay === today(); }
+function clInfo() {
+  const G = glState(), best = G.cleanBest || 0;
+  $("clInfo").innerHTML = (clDay() ? "✨ Heute ist die Lichtung schon blitzblank. Du kannst trotzdem noch einmal spielen, für deinen Rekord." : "🍂 Über Nacht hat der Wind Laub, Steine und Federn auf die Lichtung geweht. Räum auf, bevor die Zeit abläuft!")
+    + `<br>So geht's: Tippe auf ein Ding und dann auf den richtigen Korb darunter. Richtig sortiert gibt es Punkte, und mehrere hintereinander geben Bonus. Falsch sortiert kostet 3 Sekunden.${best ? `<br>🏆 Dein Rekord: ${best} Punkte` : ""}`;
+  $("glade").classList.toggle("messy", !clDay());
+  const box = $("glItems"); box.querySelectorAll(".gl-mess").forEach(e => e.remove());
+  if (!clDay()) for (let i = 0; i < 9; i++) { const b = CL_BINS[i % 3], e = el("span", "gl-mess", b.items[i % 4]); e.style.left = (8 + (i * 37) % 84) + "%"; e.style.top = (40 + (i * 23) % 52) + "%"; box.appendChild(e); }
+}
+function clStart() {
+  if (CL) return;
+  glSel = null;
+  CL = { t0: Date.now(), end: Date.now() + CL_TIME * 1000, score: 0, combo: 0, sel: null, items: [], timer: null, spawn: 0, sorted: 0, wrong: 0 };
+  $("clLayer").hidden = false; $("clHud").hidden = false; $("clBins").hidden = false; $("clCard").hidden = true;
+  $("glItems").querySelectorAll(".gl-mess").forEach(e => e.remove());
+  const bins = $("clBins"); bins.innerHTML = "";
+  CL_BINS.forEach(b => { const btn = el("button", "cl-bin"); btn.type = "button"; btn.id = "clb-" + b.id; btn.innerHTML = `<span class="ic" aria-hidden="true">${b.ic}</span><b>${b.nm}</b><small>${b.items.join(" ")}</small>`; btn.addEventListener("click", () => clDrop(b)); bins.appendChild(btn); });
+  for (let i = 0; i < 6; i++) clSpawn();
+  gsay("🧹 Los geht's! Tippe auf ein Ding und dann auf den passenden Korb.");
+  $("glade").scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+  CL.timer = setInterval(clTick, 100);
+}
+function clSpawn() {
+  if (!CL || CL.items.length >= 9) return;
+  const b = CL_BINS[Math.floor(Math.random() * 3)], ic = b.items[Math.floor(Math.random() * b.items.length)];
+  const it = el("button", "cl-it", ic); it.type = "button"; it.setAttribute("aria-label", "Ding zum Aufräumen");
+  it.style.left = (8 + Math.random() * 84) + "%"; it.style.top = (38 + Math.random() * 54) + "%";
+  it.addEventListener("click", ev => { ev.stopPropagation(); if (!CL) return; CL.sel && CL.sel.classList.remove("sel"); CL.sel = it; it.classList.add("sel"); SND.fx.click(); document.querySelectorAll(".cl-bin").forEach(x => x.classList.add("ready")); });
+  it.dataset.born = Date.now();
+  $("clLayer").appendChild(it); CL.items.push(it);
+}
+function clDrop(b) {
+  if (!CL || !CL.sel) { gsay("Tippe zuerst auf ein Ding auf der Wiese."); return; }
+  const it = CL.sel, ok = binOf(it.textContent) === b, btn = $("clb-" + b.id);
+  document.querySelectorAll(".cl-bin").forEach(x => x.classList.remove("ready"));
+  btn.classList.remove("ok", "bad"); void btn.offsetWidth;
+  if (ok) {
+    CL.combo++; CL.sorted++; const pts = 1 + Math.floor(CL.combo / 3); CL.score += pts;
+    btn.classList.add("ok"); fly(it.textContent, rectOf(it), rectOf(btn), { ms: 500 }); if (CL.combo % 3 === 0) fly(`+${pts}`, rectOf(btn), null, { cls: "txt", dy: -40 });
+    SND.fx.plop();
+    it.remove(); CL.items = CL.items.filter(x => x !== it); CL.sel = null;
+    if (Math.random() < 0.85) clSpawn(); if (CL.items.length < 4) clSpawn();
+  } else {
+    CL.combo = 0; CL.wrong++; CL.end -= 3000; btn.classList.add("bad"); SND.fx.wrong();
+    gsay(`Hoppla, ${it.textContent} gehört nicht in ${b.nm === "Kompost" ? "den Kompost" : b.nm === "Steinhaufen" ? "den Steinhaufen" : "die Nestkiste"}. −3 Sekunden!`);
+    it.classList.remove("sel"); CL.sel = null;
+  }
+  clHud();
+}
+function clHud() {
+  const left = Math.max(0, (CL.end - Date.now()) / 1000);
+  $("clTime").textContent = `⏳ ${Math.ceil(left)}`; $("clTime").classList.toggle("low", left <= 10);
+  $("clScore").textContent = `⭐ ${CL.score}`; $("clCombo").textContent = CL.combo >= 3 ? `🔥 ${CL.combo}er-Serie` : "";
+}
+function clTick() {
+  if (!CL) return;
+  if ($("gladeView").hidden) { clStop(false); return; }
+  // ab und zu weht der Wind etwas Neues herein, und ein Tier läuft durch und lässt etwas fallen
+  if (Math.random() < 0.035) clSpawn();
+  const now = Date.now(); CL.items.forEach(i => i.classList.toggle("old", now - (+i.dataset.born) > 6000));
+  clHud();
+  if (now >= CL.end) clStop(true);
+}
+function clStop(finished) {
+  clearInterval(CL.timer);
+  const res = CL; CL = null;
+  $("clLayer").innerHTML = ""; $("clLayer").hidden = true; $("clHud").hidden = true; $("clBins").hidden = true; $("clCard").hidden = false;
+  if (!finished) { clInfo(); return; }
+  const G = glState(), first = !clDay(), rec = res.score > (G.cleanBest || 0);
+  if (rec) G.cleanBest = res.score;
+  let txt = `🧹 <b>Fertig!</b> Du hast ${res.sorted} Dinge richtig einsortiert und <b>${res.score} Punkte</b> geholt.${rec ? " 🏆 Neuer Rekord!" : ""}`;
+  if (first) {
+    G.cleanDay = today();
+    const food = addFood(res.score >= 25 ? 4 : res.score >= 12 ? 3 : 2), seed = rollDrop(res.score >= 25 ? 0.3 : 0.1); add(H.seeds, seed);
+    txt += `<br>🎁 Die Tiere bedanken sich: ${food.map(k => FOODS[k].ic).join(" ")} für den Futterkorb und ${HERBS[seed].ic} ${HERBS[seed].nm} als Samen.`;
+    if (res.score >= 12) { rescuedAnimals().forEach(a => { G.friend[a.nm] = Math.min(10, (G.friend[a.nm] || 0) + 1); }); txt += " ⭐ Alle Tiere freuen sich über die saubere Lichtung: +1 Ruf bei allen!"; }
+    SND.fx.win();
+  } else txt += " Heute gab es die Belohnung schon, morgen wieder.";
+  saveH(); renderGlade(); clInfo(); gsay(txt);
+}
+$("clStart").addEventListener("click", clStart);
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
@@ -3044,7 +3164,7 @@ function payHerbs(n) {
 }
 function openGlade() {
   const got = refillBasket();
-  show("gladeView"); renderGlade(true);
+  show("gladeView"); renderGlade(true); clInfo();
   if (got) setTimeout(() => gsay(`🧺 Der Futterkorb ist frisch gefüllt: ${got.map(k => FOODS[k].ic).join(" ")}`), 2200);
 }
 function renderGlade(greet) {
@@ -3054,7 +3174,7 @@ function renderGlade(greet) {
   G.deco.forEach((d, i) => {
     const D = GL_DECO[d.k]; if (!D) return;
     const e = el("span", "gl-deco" + (D.cls ? " " + D.cls : ""), D.ic); e.style.left = d.x + "%"; e.style.top = d.y + "%"; e.style.zIndex = Math.round(d.y);
-    e.addEventListener("click", ev => { if (glSel !== "sweep") return; ev.stopPropagation(); G.deco.splice(i, 1); add(H.herbs, GL_FAV[i % GL_FAV.length], D.cost); saveH(); gsay(`🧹 ${D.ic} ${D.nm} weggeräumt. Du bekommst ${D.cost} Kräuter zurück.`); renderGlade(); });
+    e.addEventListener("click", ev => { if (glSel !== "sweep") return; ev.stopPropagation(); G.deco.splice(i, 1); add(H.herbs, GL_FAV[i % GL_FAV.length], D.cost); saveH(); gsay(`↩️ ${D.ic} ${D.nm} weggenommen. Du bekommst ${D.cost} Kräuter zurück.`); renderGlade(); });
     box.appendChild(e);
   });
   an.forEach((a, i) => {
@@ -3078,7 +3198,7 @@ function renderGlade(greet) {
   const db = $("gDeco"); db.innerHTML = "";
   (H.festDeco || []).forEach(fk => { const F = FESTS[fk]; if (F && !GL_DECO["fest_" + fk]) GL_DECO["fest_" + fk] = { ic: F.deco[0], nm: F.deco[1], cost: 3 }; });
   Object.entries(GL_DECO).forEach(([k, D]) => { const c = btnEl(`${D.ic} ${D.nm} · ${D.cost} 🌿`, () => { glSel = glSel === "d:" + k ? null : "d:" + k; renderGlade(); gsay(glSel ? `${D.ic} ${D.nm} ausgewählt. Tippe auf die Wiese, wo es stehen soll.` : "Nichts ausgewählt."); }); c.setAttribute("aria-pressed", String(glSel === "d:" + k)); db.appendChild(c); });
-  const sw = btnEl("🧹 Wegräumen", () => { glSel = glSel === "sweep" ? null : "sweep"; renderGlade(); gsay(glSel ? "🧹 Tippe auf einen Schmuck, um ihn wegzuräumen." : "Nichts ausgewählt."); }); sw.setAttribute("aria-pressed", String(glSel === "sweep")); db.appendChild(sw);
+  const sw = btnEl("↩️ Wegnehmen", () => { glSel = glSel === "sweep" ? null : "sweep"; renderGlade(); gsay(glSel ? "↩️ Tippe auf einen Schmuck, um ihn wegzunehmen." : "Nichts ausgewählt."); }); sw.setAttribute("aria-pressed", String(glSel === "sweep")); db.appendChild(sw);
   // Freundschaft
   const fl = $("gFriends");
   fl.innerHTML = an.length ? an.map(a => { const f = G.friend[a.nm] || 0, fav = HERBS[favOf(a.nm)];
@@ -3090,6 +3210,7 @@ function renderGlade(greet) {
       setTimeout(() => document.querySelectorAll(".gl-an").forEach((b, i) => setTimeout(() => hopFx(b, "❤️"), i * 120)), 300); }
   }
   startWander();
+  if (!CL) try { clInfo(); } catch (e) {}
 }
 function hopFx(b, ic) { b.classList.remove("hop"); void b.offsetWidth; b.classList.add("hop"); if (ic) fly(ic, rectOf(b), null, { dy: -50, ms: 900 }); }
 function glBubble(b, txt) {
@@ -3138,11 +3259,12 @@ function startWander() {
   }, 2600);
 }
 $("glade").addEventListener("click", e => {
+  if (CL) return;
   if (!glSel || !glSel.startsWith("d:")) { if (!glSel) gsay("Tippe auf ein Tier, um es zu streicheln, oder wähle unten Futter oder Schmuck."); return; }
   const G = glState(), k = glSel.slice(2), D = GL_DECO[k], r = $("glade").getBoundingClientRect();
   const x = (e.clientX - r.left) / r.width * 100, y = (e.clientY - r.top) / r.height * 100;
   if (y < 30) { gsay("Da oben stehen die großen Bäume. Stell es lieber auf die Wiese."); return; }
-  if (G.deco.length >= 24) { gsay("Die Lichtung ist schon ganz voll. Räum mit 🧹 etwas weg."); return; }
+  if (G.deco.length >= 24) { gsay("Die Lichtung ist schon ganz voll. Nimm mit ↩️ etwas weg."); return; }
   if (!payHerbs(D.cost)) { gsay(`Dafür brauchst du ${D.cost} Kräuter. Ernte welche im Garten.`); return; }
   G.deco.push({ k, x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 }); saveH();
   SND.fx.plant(); gsay(`${D.ic} ${D.nm} steht jetzt auf der Lichtung!`);
