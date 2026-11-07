@@ -256,6 +256,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .plot .e.bud { filter: saturate(.35) brightness(.85); transform: scale(.75); }
 @keyframes breeze { 0%, 100% { rotate: -3deg; } 50% { rotate: 3deg; } }
 .plot.pesty { border-color: #c98a5b; }
+.plot.sleep .e { filter: grayscale(.6) brightness(.7) drop-shadow(0 4px 3px #0009); animation: none; }
 .pest { position: absolute !important; font-size: 1.15rem; line-height: 1; z-index: 2 !important; }
 .pest.weed { left: 14%; top: 22%; animation: weed 1.6s ease-in-out infinite; transform-origin: 50% 100%; }
 .pest.snail { left: 8%; top: 16%; animation: crawl 7s ease-in-out infinite alternate; }
@@ -341,6 +342,34 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .cl-bin.bad { animation: shake .4s; border-color: #e0566b; }
 .glade.messy .gl-flowers { filter: saturate(.5) brightness(.8); }
 .gl-mess { position: absolute; transform: translate(-50%, -50%); font-size: 1.2rem; pointer-events: none; opacity: .9; }
+
+/* Hexenhaus aus Lebkuchen */
+.hx-scene { border-radius: 18px; overflow: hidden; border: 1px solid #3a2a18; background: #3d6b3f; }
+.hx-svg { display: block; width: 100%; height: auto; }
+.hx-scene.night .hx-sky { fill: url(#hxNight); }
+.hx-scene .hx-nightonly { display: none; }
+.hx-scene.night .hx-nightonly { display: inline; }
+.hx-scene.night .hx-dayonly { display: none; }
+.hx-scene.night .hx-win rect { filter: drop-shadow(0 0 8px #ffd36b); }
+.hx-smoke circle { animation: hxSmoke 4s ease-in infinite; transform-box: fill-box; transform-origin: center; }
+.hx-smoke circle:nth-child(2) { animation-delay: 1.3s; } .hx-smoke circle:nth-child(3) { animation-delay: 2.6s; }
+@keyframes hxSmoke { 0% { opacity: 0; transform: translate(0, 18px) scale(.4); } 30% { opacity: .9; } 100% { opacity: 0; transform: translate(8px, -14px) scale(1.4); } }
+.hx-yard { display: grid; grid-template-columns: 1fr 1.25fr; gap: 10px; padding: 10px; background: linear-gradient(180deg, #477f40, #3a6a35); }
+.hx-pot { justify-content: center; }
+.hx-pot, .hx-beds { font: inherit; color: #fff; background: #1d2a1acc; border: 1.5px solid #6a8f4a; border-radius: 14px; padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; position: relative; transition: transform .15s; }
+.hx-pot:hover, .hx-beds:hover { transform: translateY(-2px); } .hx-pot:active, .hx-beds:active { transform: scale(.97); }
+.hx-pot svg { width: 86px; height: 70px; }
+.hx-pot small, .hx-beds small { color: #cfe7c3; font-size: .72rem; text-align: center; }
+.hx-steam { position: absolute; top: calc(50% - 88px); left: 50%; width: 40px; height: 30px; transform: translateX(-50%); pointer-events: none; }
+.hx-steam i { position: absolute; bottom: 0; left: 40%; width: 10px; height: 10px; border-radius: 50%; background: var(--hxbrew, #6fd8a8); opacity: 0; animation: steam 2.6s ease-out infinite; }
+.hx-steam i:nth-child(2) { left: 20%; animation-delay: .9s; } .hx-steam i:nth-child(3) { left: 60%; animation-delay: 1.7s; }
+.hx-fire path { animation: flick .4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom; }
+.hx-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 100%; max-width: 150px; }
+.hx-grid span { aspect-ratio: 1; border-radius: 6px; background: #2e1c10; box-shadow: inset 0 0 0 2px #7a4d28; display: grid; place-items: center; font-size: 1rem; }
+.hx-grid span.hx-hard { background: #7a5d40; }
+.hx-grid span.hx-ready { box-shadow: inset 0 0 0 2px var(--lantern); }
+.hx-grid span.hx-pest { box-shadow: inset 0 0 0 2px #e08a4f; }
+@media (prefers-reduced-motion: reduce) { .hx-smoke circle, .hx-steam i, .hx-fire path { animation: none; } }
 /* Tagebuch */
 .diary { display: flex; flex-direction: column; gap: 10px; }
 .page { background: linear-gradient(180deg, #f3e6c8, #e6d3a8); color: #3a2a18; border-radius: 6px 14px 14px 6px; padding: 14px 16px 14px 22px; box-shadow: 0 6px 16px #0008, inset 6px 0 0 #c9b083; font-family: Georgia, "Times New Roman", serif; line-height: 1.55; position: relative; }
@@ -538,7 +567,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
         <h1 id="vName">Mondtal</h1>
         <p class="sub" id="vSub"></p>
       </div>
-      <div class="btns"><button class="back" id="toWChat" type="button">💬 Chat<span class="badge" id="wcBadge" hidden></span></button><button class="back" id="toGlade" type="button">🌳 Lichtung</button><button class="back" id="toDiary" type="button">📜 Tagebuch</button><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button><button class="back sndBtn" data-full="1" type="button">🎵 Musik an</button></div>
+      <div class="btns"><button class="back" id="toHex" type="button">🍭 Hexenhaus</button><button class="back" id="toWChat" type="button">💬 Chat<span class="badge" id="wcBadge" hidden></span></button><button class="back" id="toGlade" type="button">🌳 Lichtung</button><button class="back" id="toDiary" type="button">📜 Tagebuch</button><button class="back" id="toBeasts" type="button">🐾 Tierbuch</button><button class="back" id="toCoop" type="button">🤝 Koop</button><button class="back" id="toSocial" type="button">👥 Mitspieler</button><button class="back" id="wikiFromVillage" type="button">📖 Wiki</button><button class="back sndBtn" data-full="1" type="button">🎵 Musik an</button></div>
     </header>
     <div class="places" id="places" aria-label="Deine Orte"></div>
     <div class="village" id="village" aria-label="Dein Ort bei Nacht"></div>
@@ -554,10 +583,8 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     <div class="tasks" id="tasks"></div>
     <button class="trip" id="secretBtn" type="button"></button>
     <h2>Hexenhaus</h2>
-    <div class="two">
-      <button class="trip col" id="toGarden" type="button"><span class="ic" aria-hidden="true">🌱</span><span class="t"><strong>Kräutergarten</strong><span>Pflanzen, gießen, ernten</span></span></button>
-      <button class="trip col" id="toAlchemy" type="button"><span class="ic" aria-hidden="true">⚗️</span><span class="t"><strong>Alchemietisch</strong><span>Tränke brauen</span></span></button>
-    </div>
+    <button class="trip" id="toHexCard" type="button"><span class="ic" aria-hidden="true">🍭</span><span class="t"><strong>Zum Hexenhaus</strong><span>Lebkuchenhaus mit Kräutergarten und Zauberkessel</span></span><span class="st">öffnen</span></button>
+    <div hidden><button id="toGarden" type="button"></button><button id="toAlchemy" type="button"></button></div>
     <button class="reset-all" id="resetAll" type="button">🗑️ Spielstand zurücksetzen</button>
   </section>
 
@@ -761,6 +788,70 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
   </section>
 
   <!-- ZEITDUNGEONS -->
+  <section class="view" id="hexView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Das Hexenhaus</h1>
+        <p class="sub" id="hxSub"></p>
+      </div>
+      <button class="back" id="hexBack" type="button">Zurück</button>
+    </header>
+    <div class="hx-scene" id="hxScene">
+      <svg class="hx-svg" viewBox="0 0 360 250" role="img" aria-label="Ein Hexenhaus aus Lebkuchen">
+  <defs>
+    <linearGradient id="hxDay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc4f5"/><stop offset="1" stop-color="#d9f1ff"/></linearGradient>
+    <linearGradient id="hxNight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141b36"/><stop offset="1" stop-color="#3b3463"/></linearGradient>
+    <linearGradient id="hxWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98a4e"/><stop offset="1" stop-color="#9c6131"/></linearGradient>
+    <linearGradient id="hxRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8e5528"/><stop offset="1" stop-color="#6b3c19"/></linearGradient>
+    <radialGradient id="hxWin"><stop offset="0" stop-color="#fff1b8"/><stop offset="1" stop-color="#f2a93b"/></radialGradient>
+  </defs>
+  <rect class="hx-sky" width="360" height="250" fill="url(#hxDay)"/>
+  <g class="hx-dayonly"><circle cx="300" cy="42" r="20" fill="#ffe27a"/><circle cx="300" cy="42" r="30" fill="#ffe27a" opacity=".25"/>
+    <g fill="#fff" opacity=".9"><ellipse cx="70" cy="45" rx="26" ry="10"/><ellipse cx="88" cy="38" rx="18" ry="10"/><ellipse cx="210" cy="30" rx="22" ry="8"/></g></g>
+  <g class="hx-nightonly"><circle cx="300" cy="42" r="16" fill="#fff6d0"/><circle cx="307" cy="37" r="14" fill="#2a2f55"/>
+    <g fill="#fff"><circle cx="40" cy="30" r="1.6"/><circle cx="90" cy="60" r="1.2"/><circle cx="150" cy="22" r="1.5"/><circle cx="230" cy="55" r="1.2"/><circle cx="260" cy="18" r="1.4"/><circle cx="20" cy="80" r="1"/><circle cx="340" cy="90" r="1.2"/></g></g>
+  <path d="M0 205 Q90 190 180 200 T360 198 V250 H0Z" fill="#5a9650"/>
+  <path d="M0 220 Q120 210 200 222 T360 216 V250 H0Z" fill="#477f40"/>
+  <!-- Schornstein mit Rauch -->
+  <rect x="222" y="62" width="24" height="44" fill="#7a4a24" rx="3"/><rect x="218" y="58" width="32" height="9" fill="#fff" rx="4"/>
+  <g class="hx-smoke" fill="#e8e8f0"><circle cx="234" cy="50" r="7"/><circle cx="240" cy="38" r="9"/><circle cx="232" cy="24" r="11"/></g>
+  <!-- Dach -->
+  <polygon points="80,118 180,40 280,118" fill="url(#hxRoof)"/>
+  <path d="M74 121 L180 37 L286 121" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#fff"><circle cx="80.0" cy="118.0" r="5"/><circle cx="92.5" cy="108.25" r="5"/><circle cx="105.0" cy="98.5" r="5"/><circle cx="117.5" cy="88.75" r="5"/><circle cx="130.0" cy="79.0" r="5"/><circle cx="142.5" cy="69.25" r="5"/><circle cx="155.0" cy="59.5" r="5"/><circle cx="167.5" cy="49.75" r="5"/><circle cx="180.0" cy="40.0" r="5"/><circle cx="192.5" cy="49.75" r="5"/><circle cx="205.0" cy="59.5" r="5"/><circle cx="217.5" cy="69.25" r="5"/><circle cx="230.0" cy="79.0" r="5"/><circle cx="242.5" cy="88.75" r="5"/><circle cx="255.0" cy="98.5" r="5"/><circle cx="267.5" cy="108.25" r="5"/><circle cx="280.0" cy="118.0" r="5"/></g>
+  <g><circle cx="150" cy="86" r="6" fill="#e0566b"/><circle cx="180" cy="66" r="6" fill="#6fc3ff"/><circle cx="210" cy="86" r="6" fill="#7cd67c"/><circle cx="130" cy="104" r="5" fill="#ffd36b"/><circle cx="230" cy="104" r="5" fill="#f5a3c7"/><circle cx="180" cy="98" r="5" fill="#b48cf2"/></g>
+  <!-- Wände -->
+  <rect x="98" y="116" width="164" height="96" rx="6" fill="url(#hxWall)"/>
+  <path d="M98 128 Q106 136 114 128 T130 128 T146 128 T162 128 T178 128 T194 128 T210 128 T226 128 T242 128 T262 128" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <!-- Fenster -->
+  <g class="hx-win"><rect x="114" y="140" width="34" height="30" rx="4" fill="url(#hxWin)"/><rect x="212" y="140" width="34" height="30" rx="4" fill="url(#hxWin)"/></g>
+  <g stroke="#fff" stroke-width="3" fill="none"><rect x="114" y="140" width="34" height="30" rx="4"/><path d="M131 140 V170 M114 155 H148"/><rect x="212" y="140" width="34" height="30" rx="4"/><path d="M229 140 V170 M212 155 H246"/></g>
+  <!-- Tür -->
+  <path d="M164 212 V170 Q180 152 196 170 V212Z" fill="#6b3c19"/><path d="M164 212 V170 Q180 152 196 170 V212" fill="none" stroke="#fff" stroke-width="3"/>
+  <circle cx="190" cy="192" r="3" fill="#ffd36b"/>
+  <!-- Zuckerstangen und Gummibärchen -->
+  <g stroke-width="6" stroke-linecap="round" fill="none"><path d="M156 212 V178 Q156 170 150 170" stroke="#fff"/><path d="M156 212 V178 Q156 170 150 170" stroke="#e0566b" stroke-dasharray="5 5"/>
+    <path d="M204 212 V178 Q204 170 210 170" stroke="#fff"/><path d="M204 212 V178 Q204 170 210 170" stroke="#e0566b" stroke-dasharray="5 5"/></g>
+  <g><ellipse cx="106" cy="211" rx="6" ry="5" fill="#e0566b"/><ellipse cx="122" cy="211" rx="6" ry="5" fill="#ffd36b"/><ellipse cx="138" cy="211" rx="6" ry="5" fill="#7cd67c"/><ellipse cx="154" cy="211" rx="6" ry="5" fill="#6fc3ff"/><ellipse cx="170" cy="211" rx="6" ry="5" fill="#f5a3c7"/><ellipse cx="186" cy="211" rx="6" ry="5" fill="#b48cf2"/><ellipse cx="202" cy="211" rx="6" ry="5" fill="#e0566b"/><ellipse cx="218" cy="211" rx="6" ry="5" fill="#ffd36b"/><ellipse cx="234" cy="211" rx="6" ry="5" fill="#7cd67c"/><ellipse cx="250" cy="211" rx="6" ry="5" fill="#6fc3ff"/><ellipse cx="266" cy="211" rx="6" ry="5" fill="#f5a3c7"/></g>
+  <!-- Lollis -->
+  <g><rect x="52" y="160" width="4" height="52" fill="#fff"/><circle cx="54" cy="155" r="15" fill="#f5a3c7"/><path d="M54 155 m-10 0 a10 10 0 1 1 20 0 a7 7 0 1 1 -14 0 a4 4 0 1 1 8 0" fill="none" stroke="#fff" stroke-width="2.5"/>
+    <rect x="302" y="170" width="4" height="42" fill="#fff"/><circle cx="304" cy="166" r="12" fill="#7cd67c"/><path d="M304 166 m-8 0 a8 8 0 1 1 16 0 a5 5 0 1 1 -10 0" fill="none" stroke="#fff" stroke-width="2.5"/></g>
+</svg>
+      <div class="hx-yard">
+        <button class="hx-pot" id="hxPot" type="button" aria-label="Zum Zauberkessel">
+          <span class="hx-steam" aria-hidden="true"><i></i><i></i><i></i></span>
+          <svg viewBox="0 0 100 80" aria-hidden="true"><ellipse cx="50" cy="22" rx="40" ry="9" fill="#5a5f74"/><ellipse cx="50" cy="22" rx="34" ry="6" fill="var(--hxbrew, #6fd8a8)"/><path d="M12 24 Q10 62 50 66 Q90 62 88 24 Q70 30 50 30 Q30 30 12 24Z" fill="#2f3346"/><path d="M22 66 l-6 10 M78 66 l6 10" stroke="#2f3346" stroke-width="6" stroke-linecap="round"/><g class="hx-fire"><path d="M38 78 Q42 66 46 78Z" fill="#ff9a3a"/><path d="M48 78 Q52 62 56 78Z" fill="#ffd36b"/><path d="M58 78 Q61 68 64 78Z" fill="#ff9a3a"/></g></svg>
+          <b>Zauberkessel</b><small>Tränke brauen</small>
+        </button>
+        <button class="hx-beds" id="hxBeds" type="button" aria-label="Zum Kräutergarten">
+          <span class="hx-grid" id="hxGrid"></span>
+          <b>Kräuterbeete</b><small id="hxBedInfo">Pflanzen, gießen, ernten</small>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <section class="view" id="farmView" hidden>
     <header class="vhead">
       <div>
@@ -1017,24 +1108,28 @@ const MODES = ["Solo", "Zu zweit", "Zu fünft"];
 
 /* ---------- Kräuter und Tränke ---------- */
 const HERBS = {
-  mond:  { ic: "🌿", nm: "Mondkraut",    from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
+  mond:  { ic: "🌿", nm: "Mondkraut", time: "nacht",    from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
   tau:   { ic: "🍃", nm: "Tauwurz",      from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
   stern: { ic: "🌼", nm: "Sternblume",   from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
-  sonne: { ic: "🌻", nm: "Sonnenkraut",  from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
-  tulpe: { ic: "🌷", nm: "Mondtulpe",    from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
-  pilz:  { ic: "🍄", nm: "Glühpilz",     from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte, Geheimstädte" },
+  sonne: { ic: "🌻", nm: "Sonnenkraut", time: "tag",  from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
+  tulpe: { ic: "🌷", nm: "Mondtulpe", time: "nacht",    from: "Samenfunde in Abenteuern, Dank von Tieren, Ernte" },
+  pilz:  { ic: "🍄", nm: "Glühpilz", time: "nacht",     from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte, Geheimstädte" },
   kleeb: { ic: "🍀", nm: "Glücksklee",   from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte" },
-  feuer: { ic: "🌺", nm: "Feuerblüte",   from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte" },
+  feuer: { ic: "🌺", nm: "Feuerblüte", time: "tag",   from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte" },
   beere: { ic: "🫐", nm: "Nebelbeere",   from: "Etwas seltener: Samenfunde, Dank von Tieren, Ernte" },
   rose:  { ic: "🌹", nm: "Nebelrose",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
   klee:  { ic: "☘️", nm: "Kristallklee", from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
   frost: { ic: "❄️", nm: "Frostfarn",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
-  moos:  { ic: "🌟", nm: "Sternmoos",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
-  kirsch: { ic: "🌸", nm: "Kirschblüte",  from: "Nur im Frühling: Blütenfest", fest: true },
+  moos:  { ic: "🌟", nm: "Sternmoos", time: "nacht",    from: "Selten: Geheimstädte, Glücksfunde in Abenteuern, Ernte", rare: true },
+  kirsch: { ic: "🌸", nm: "Kirschblüte", time: "tag",  from: "Nur im Frühling: Blütenfest", fest: true },
   gluehb: { ic: "🍒", nm: "Glühkirsche",  from: "Nur im Sommer: Glühwürmchenfest", fest: true },
   kuerb:  { ic: "🎃", nm: "Kürbisranke",  from: "Nur im Herbst: Laternenfest", fest: true },
   eisbl:  { ic: "💠", nm: "Eisblüte",     from: "Nur im Winter: Schneedorf", fest: true }
 };
+// Tag und Nacht nach der echten Uhrzeit: Nacht ist von 19 bis 7 Uhr
+const isNight = (d = new Date()) => d.getHours() >= 19 || d.getHours() < 7;
+const timeOk = h => !HERBS[h].time || (HERBS[h].time === "nacht") === isNight();
+const timeIc = h => HERBS[h].time === "nacht" ? "🌙" : HERBS[h].time === "tag" ? "☀️" : "";
 const POTIONS = {
   gluck: { ic: "🍵", nm: "Glückstee",        eff: "Der nächste falsche Begleiter kostet kein Herz.", need: { mond: 1, tau: 1 } },
   spur:  { ic: "🔮", nm: "Spürsinn-Elixier", eff: "Zeigt in diesem Abenteuer über jedem Hindernis, wer helfen kann.", need: { stern: 1, tau: 1 } },
@@ -1437,7 +1532,7 @@ function show(id) {
   $("mtab-daily").setAttribute("aria-selected", String(id === "dailyView"));
   $("mtab-farm").setAttribute("aria-selected", String(id === "farmView"));
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
-  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView", "farmView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView", "farmView", "hexView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
 function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
@@ -1527,7 +1622,7 @@ const openNote = (s, was) => !was && secretOpen(s) ? `<br>🗝️ Alle Geheimauf
 function renderHouse() {
   const s = getSettlement(cur);
   if (selSeed && !H.seeds[selSeed]) selSeed = null;
-  $("hSub").textContent = `Dein Hexenhaus in ${s.name}.`;
+  $("hSub").textContent = `Dein Hexenhaus in ${s.name}. ${isNight() ? "🌙 Gerade ist Nacht: Nachtkräuter wachsen." : "☀️ Gerade ist Tag: Tagkräuter wachsen."}`;
   const pl = $("plots"); pl.innerHTML = "";
   H.plots.forEach((p, i) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "plot"; b.id = "plot-" + i;
@@ -1543,7 +1638,9 @@ function renderHouse() {
       if (p.pest === "weed") inner += `<span class="pest weed" aria-hidden="true">🌾</span>`;
       if (p.pest === "snail") inner += `<span class="pest snail" aria-hidden="true">🐌</span>`;
       const dots = `<span class="wdots" aria-label="${p.w} von 3 Mal gegossen">${[0, 1, 2].map(k => `<i class="${k < p.w ? "on" : ""}"></i>`).join("")}</span>`;
-      lab = p.pest === "weed" ? `${HERBS[p.h].nm}<br><b>✋ Unkraut zupfen</b>` : p.pest === "snail" ? `${HERBS[p.h].nm}<br><b>👋 Schnecke verscheuchen</b>` : `${HERBS[p.h].nm}<br>💧 Gießen ${dots}`;
+      const nm2 = `${HERBS[p.h].nm} ${timeIc(p.h)}`;
+      lab = p.pest === "weed" ? `${nm2}<br><b>✋ Unkraut zupfen</b>` : p.pest === "snail" ? `${nm2}<br><b>👋 Schnecke verscheuchen</b>` : !timeOk(p.h) ? `${nm2}<br>😴 schläft gerade ${dots}` : `${nm2}<br>💧 Gießen ${dots}`;
+      if (!timeOk(p.h) && !p.pest) b.classList.add("sleep");
       if (p.pest) b.classList.add("pesty");
     }
     else { soil = "dug"; b.classList.add("ready"); inner = `<span class="e" aria-hidden="true">${HERBS[p.h].ic}</span>`; lab = `${HERBS[p.h].nm}<br><b>🧺 Ernten!</b>`; }
@@ -1560,7 +1657,7 @@ function renderHouse() {
   seedKeys.forEach(k => {
     const c = document.createElement("button"); c.type = "button"; c.className = "chip"; c.id = "seed-" + k;
     c.setAttribute("aria-pressed", String(selSeed === k));
-    c.textContent = `${HERBS[k].ic} ${HERBS[k].nm} ×${H.seeds[k]}`;
+    c.textContent = `${HERBS[k].ic} ${HERBS[k].nm}${timeIc(k) ? " " + timeIc(k) : ""} ×${H.seeds[k]}`;
     c.addEventListener("click", () => { selSeed = selSeed === k ? null : k; renderHouse(); hsay(selSeed ? `${HERBS[k].ic} ${HERBS[k].nm} ausgewählt. Tippe auf ein leeres Beet.` : "Kein Samen ausgewählt."); });
     sb.appendChild(c);
   });
@@ -1619,6 +1716,11 @@ function plotClick(i) {
     p.pest = null; lastAct = { i, t: "shoo" }; SND.fx.shoo();
     fly("🐌", r, null, { dx: 110, dy: 10, ms: 1400, delay: 200 });
     hsay("👋 Die Schnecke kriecht beleidigt davon. Deine Blätter sind gerettet!");
+  } else if (p.w < 3 && !timeOk(p.h)) {
+    const night = HERBS[p.h].time === "nacht";
+    fly(night ? "😴" : "🌙", r, null, { dy: -40, ms: 900 });
+    hsay(night ? `🌙 ${HERBS[p.h].ic} ${HERBS[p.h].nm} ist ein <b>Nachtkraut</b>. Tagsüber schläft es und wächst nicht. Komm nach 19 Uhr wieder, dann kannst du es gießen.` : `☀️ ${HERBS[p.h].ic} ${HERBS[p.h].nm} ist ein <b>Tagkraut</b>. Nachts schläft es und wächst nicht. Ab 7 Uhr morgens kannst du es wieder gießen.`);
+    return;
   } else if (p.w < 3) {
     p.w++; lastAct = { i, t: p.w < 3 ? "water" : "ripe" }; SND.fx.water();
     for (let k = 0; k < 6; k++) fly("💧", r, null, { cls: "drop", ms: 650, delay: 300 + k * 70, jx: (Math.random() - .5) * (r ? r.width * .5 : 0) });
@@ -1681,7 +1783,7 @@ function openHouse(sec) {
 }
 $("toGarden").addEventListener("click", () => openHouse("gardenSec"));
 $("toAlchemy").addEventListener("click", () => openHouse("alchSec"));
-$("houseBack").addEventListener("click", showVillage);
+$("houseBack").addEventListener("click", () => openHex());
 $("houseSwitch").addEventListener("click", () => openHouse(houseSec === "gardenSec" ? "alchSec" : "gardenSec"));
 
 function secretWin() {
@@ -1919,6 +2021,7 @@ function renderWiki() {
   </section>
 
   <section class="wk-sec" id="wk-lichtung"><h2>🌳 Tierlichtung</h2>
+    <p>Garten und Kessel findest du im Ort unter <b>🍭 Hexenhaus</b>, einem Lebkuchenhaus. Darunter stehen links der Zauberkessel und rechts die Kräuterbeete, und auf einen Blick siehst du, ob etwas reif ist. Tagsüber scheint dort die Sonne, nachts leuchten die Fenster.</p>
     <p>Über <b>🌳 Lichtung</b> im Ort besuchst du alle Tiere, die du gerettet hast. Sie laufen über die Wiese und freuen sich, wenn du vorbeikommst.</p>
     <ul class="wk-tip">
       <li><b>Streicheln:</b> Tippe auf ein Tier, dann hüpft es und erzählt dir etwas. Jedes Tier hat seine eigene Stimme.</li>
@@ -1952,6 +2055,7 @@ function renderWiki() {
       <li>🌱 <b>Pflanzen:</b> Wähle unten einen Samen und tippe auf die lockere Erde.</li>
       <li>💧 <b>Gießen:</b> Dreimal gießen. Aus dem Keimling wird ein Pflänzchen, dann eine Knospe, dann blüht das Kraut.</li>
       <li>✋ <b>Unkraut</b> und 👋 <b>Schnecken:</b> Nach dem Gießen kann Unkraut wachsen oder eine Schnecke auftauchen. Dann musst du sie zuerst wegschaffen, bevor du wieder gießen kannst. Manchmal hängt im Unkraut sogar ein Samen.</li>
+      <li>🌙☀️ <b>Tag und Nacht:</b> Manche Kräuter wachsen nur nachts (🌙 Mondkraut, Mondtulpe, Glühpilz, Sternmoos), andere nur am Tag (☀️ Sonnenkraut, Feuerblüte, Kirschblüte). Es zählt die echte Uhrzeit: Nacht ist von 19 bis 7 Uhr. Pflanzen kannst du jederzeit, aber gießen nur, wenn das Kraut wach ist. Alle anderen Kräuter wachsen immer.</li>
       <li>🧺 <b>Ernten:</b> Du bekommst zwei Kräuter. Nur ab und zu (20 %) schenkt dir die Pflanze auch einen neuen Samen.</li>
     </ul>
     <p>Es gibt keine Wartezeit, alles geht sofort.</p>
@@ -3168,6 +3272,30 @@ function showFarm() {
 $("mtab-farm").addEventListener("click", showFarm);
 $("farmToGarden").addEventListener("click", () => openHouse("gardenSec"));
 $("farmToAlch").addEventListener("click", () => openHouse("alchSec"));
+
+/* ---------- Hexenhaus-Übersicht ---------- */
+function openHex() {
+  const night = isNight();
+  $("hxScene").classList.toggle("night", night);
+  $("hxSub").textContent = night ? "🌙 Es ist Nacht. Im Lebkuchenhaus brennt Licht, und die Nachtkräuter wachsen." : "☀️ Es ist Tag. Die Sonne scheint auf dein Lebkuchenhaus, und die Tagkräuter wachsen.";
+  const g = $("hxGrid"); g.innerHTML = "";
+  let ripe = 0, pest = 0, free = 0;
+  H.plots.forEach(p => {
+    const c = el("span");
+    if (!p) { c.className = "hx-hard"; free++; }
+    else if (p.soil) { c.textContent = "·"; free++; }
+    else if (p.w >= 3) { c.className = "hx-ready"; c.textContent = HERBS[p.h].ic; ripe++; }
+    else { if (p.pest) { c.className = "hx-pest"; pest++; } c.textContent = p.pest === "snail" ? "🐌" : p.pest === "weed" ? "🌾" : p.w === 0 ? "🌱" : "☘️"; }
+    g.appendChild(c);
+  });
+  $("hxBedInfo").textContent = ripe ? `✨ ${ripe} ${ripe === 1 ? "Beet ist" : "Beete sind"} reif!` : pest ? `🐌 ${pest} ${pest === 1 ? "Beet braucht" : "Beete brauchen"} Hilfe` : free === 9 ? "Alles frei, pflanze etwas!" : "Pflanzen, gießen, ernten";
+  show("hexView");
+}
+$("toHex").addEventListener("click", openHex);
+$("toHexCard").addEventListener("click", openHex);
+$("hexBack").addEventListener("click", showVillage);
+$("hxPot").addEventListener("click", () => openHouse("alchSec"));
+$("hxBeds").addEventListener("click", () => openHouse("gardenSec"));
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
