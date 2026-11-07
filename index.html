@@ -557,8 +557,8 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
 .mtab[aria-selected="true"] { background: var(--lantern); color: #1a1408; }
 .mtab { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px !important; border-radius: 16px !important; }
 .mtab .ti { font-size: 1.15rem; line-height: 1.1; }
-.mtab .tl { font-size: .74rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.maintabs { border-radius: 20px !important; grid-template-columns: 1.35fr 0.85fr 1fr 1fr 0.9fr !important; }
+.mtab .tl { font-size: .7rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.maintabs { border-radius: 20px !important; grid-template-columns: 1.4fr .8fr 1fr 1fr .8fr .8fr !important; gap: 2px !important; }
 .mtab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
 /* Spielfeld und Begleiter passen auf einen Bildschirm */
 .board { width: min(100%, calc((100vh - 395px) * .7)); width: min(100%, calc((100dvh - 395px) * .7)); min-width: min(100%, 240px); align-self: center; }
@@ -633,6 +633,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     <button class="mtab" id="mtab-time" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true">⏳</span><span class="tl">Zeit</span></button>
     <button class="mtab" id="mtab-daily" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true">🗓️</span><span class="tl">Täglich</span></button>
     <button class="mtab" id="mtab-farm" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true">🌿</span><span class="tl">Kräuter</span></button>
+    <button class="mtab" id="mtab-fest" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true" id="mtabFestIc">🎉</span><span class="tl">Fest</span></button>
     <button class="mtab" id="mtab-hex" type="button" role="tab" aria-selected="false"><span class="ti" aria-hidden="true">🍭</span><span class="tl">Haus</span></button>
   </nav>
 
@@ -979,6 +980,17 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </div>
   </section>
 
+  <section class="view" id="festView" hidden>
+    <header class="vhead">
+      <div>
+        <p class="eyebrow">Nebelpfad</p>
+        <h1>Fest des Monats</h1>
+        <p class="sub">Jeden Monat wird ein anderes Fest gefeiert.</p>
+      </div>
+    </header>
+    <div id="festBox"></div>
+  </section>
+
   <section class="view" id="dailyView" hidden>
     <header class="vhead">
       <div>
@@ -987,7 +999,6 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
         <p class="sub">Jeden Tag etwas Neues.</p>
       </div>
     </header>
-    <div id="festBox"></div>
     <div class="card" id="dailyCard"></div>
     <div class="card">
       <label for="dailyName">Dein Name für die Bestenliste</label>
@@ -1553,7 +1564,7 @@ function renderVillage() {
   const s = getSettlement(cur), T = TIERS[s.tier];
   $("vName").textContent = s.name;
   $("vSub").textContent = `${T.name} · Ort ${s.n}. Jedes Tier, das du rettest, findet hier ein Zuhause.`;
-  { const F = festNow(); $("vSub").textContent += ` ${F.ic} Gerade ist ${F.nm}! Schau in den Reiter Täglich.`; }
+  { const F = festNow(); $("vSub").textContent += ` ${F.ic} Gerade ist ${F.nm}! Schau in den Reiter Fest.`; }
 
   const max = unlockedMax(), pl = $("places"); pl.innerHTML = "";
   for (let n = 1; n <= max; n++) {
@@ -1647,12 +1658,13 @@ $("rmOk").addEventListener("click", () => {
 
 function show(id) {
   if (id !== "dungeonView") stopTimer();
-  $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView" || id === "farmView" || id === "hexView");
+  $("mainTabs").hidden = !(id === "villageView" || id === "timeView" || id === "dailyView" || id === "farmView" || id === "hexView" || id === "festView");
+  $("mtab-fest").setAttribute("aria-selected", String(id === "festView"));
   $("mtab-hex").setAttribute("aria-selected", String(id === "hexView"));
   $("mtab-daily").setAttribute("aria-selected", String(id === "dailyView"));
   $("mtab-farm").setAttribute("aria-selected", String(id === "farmView"));
   $("mtab-ort").setAttribute("aria-selected", String(id === "villageView"));
-  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView", "farmView", "hexView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
+  $("mtab-time").setAttribute("aria-selected", String(id === "timeView")); ["villageView", "dungeonView", "wikiView", "houseView", "socialView", "timeView", "beastView", "coopView", "gladeView", "dailyView", "diaryView", "wchatView", "farmView", "hexView", "festView"].forEach(v => { $(v).hidden = v !== id; }); scrollTo(0, 0);
   try { SND.setMood(id === "dungeonView" ? "dungeon" : id === "houseView" ? "haus" : "dorf", level && level.theme); } catch (e) {} }
 function showVillage() { renderVillage(); show("villageView"); }
 function showDungeon() { show("dungeonView"); if (level && level.timed && !done && !(level.coop && guestMode)) startTimer(); }
@@ -2123,7 +2135,7 @@ function renderWiki() {
   </section>
 
   <section class="wk-sec" id="wk-fest"><h2>🎉 Feste im Jahr</h2>
-    <p>Jeden Monat feiert das Land ein anderes Fest. Das aktuelle Fest findest du im Reiter <b>🗓️ Täglich</b>, und im Ort steht ein Hinweis.</p>
+    <p>Jeden Monat feiert das Land ein anderes Fest. Das aktuelle Fest findest du oben im Reiter <b>Fest</b>, und im Ort steht ein Hinweis.</p>
     <div class="wk-list">${Object.values(FESTS).map(F => row(F.ic, F.nm, `${F.txt} Festtiere: ${F.animals.map(a => a[0] + " " + a[1]).join(", ")}. Nur dann: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.`, F.mon)).join("")}</div>
     <ul class="wk-tip">
       <li>Im Festabenteuer schweben Blüten, Glühwürmchen, Laternen oder Schneeflocken über dem Spielfeld.</li>
@@ -2395,7 +2407,7 @@ $("wikiView").addEventListener("click", e => {
   const a = e.target.closest(".wk-nav a"); if (!a) return;
   e.preventDefault(); const t = document.querySelector(a.getAttribute("href")); if (t) t.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
 });
-const leaveDungeon = () => { if (level && level.farm) showFarm(); else if (level && (level.daily || level.fest)) showDaily(); else if (level && level.timed && !level.coop) showTime(); else showVillage(); };
+const leaveDungeon = () => { if (level && level.farm) showFarm(); else if (level && level.fest) showFest(); else if (level && level.daily) showDaily(); else if (level && level.timed && !level.coop) showTime(); else showVillage(); };
 $("back").addEventListener("click", leaveDungeon);
 $("home").addEventListener("click", leaveDungeon);
 
@@ -2909,7 +2921,7 @@ function showDaily() {
     dailyT0 = Date.now(); startLevel(dailyLevel());
   }, "btn");
   $("dailyCard").appendChild(b);
-  show("dailyView"); renderDailyBest(k); renderFest();
+  show("dailyView"); renderDailyBest(k);
 }
 async function renderDailyBest(k) {
   const l = (await dailyList(k)).filter(e => e && e.t).sort((a, b) => (b.hearts - a.hearts) || (a.tries - b.tries) || (a.t - b.t)).slice(0, 10);
@@ -2938,6 +2950,8 @@ function dailyWin() {
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
 $("mtab-daily").addEventListener("click", showDaily);
+function showFest() { renderFest(); show("festView"); }
+$("mtab-fest").addEventListener("click", showFest);
 $("mgX").addEventListener("click", mgClose);
 $("mgModal").addEventListener("keydown", e => { if (e.key === "Escape") mgClose(); });
 $("dailyName").addEventListener("change", () => { try { localStorage.setItem("nebelpfad-coopname", $("dailyName").value.trim().slice(0, 20)); } catch (e) {} });
