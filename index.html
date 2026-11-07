@@ -782,7 +782,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <div>
         <p class="eyebrow">Nebelpfad</p>
         <h1>Zeitdungeons</h1>
-        <p class="sub">Erreiche die Zeitsanduhr, bevor sie abläuft. Je schneller, desto besser die Medaille.</p>
+        <p class="sub">Erreiche die Zeitsanduhr, bevor sie abläuft. Je schneller, desto besser die Medaille. ⚖️ Jeden Tag sind die Wege für alle Spieler gleich, ohne Tierfähigkeiten und Haustiere.</p>
       </div>
     </header>
     <div class="trips" id="timeList"></div>
@@ -1461,12 +1461,14 @@ function showTime() {
   show("timeView");
 }
 function openTime(m) {
-  const keys = Object.keys(THEMES), tk = keys[Math.floor(Math.random() * keys.length)], th = THEMES[tk];
+  // Für alle Spieler gleich: Weg, Landschaft und Hindernisse hängen nur vom Tag und der Stufe ab
+  const seed = (daySeed(dayKey()) + 101 * (TIME_MODES.indexOf(m) + 1)) % 2147483647, rng = rngFor(seed);
+  const keys = Object.keys(THEMES), tk = keys[Math.floor(rng() * keys.length)], th = THEMES[tk];
   startLevel({
-    id: "t-" + m.id, timed: true, limit: m.limit, tm: m, mode: 0, gen: m.gen,
-    name: `${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: "⏳", theme: tk, wall: th.wall,
+    id: "t-" + m.id, timed: true, fair: true, seed, baseOnly: true, noSeeds: true, limit: m.limit, tm: m, mode: 0, gen: m.gen,
+    name: `${th.art} ${PREFIX[Math.floor(rng() * PREFIX.length)]}${th.noun}`, ic: "⏳", theme: tk, wall: th.wall,
     animal: "⏳", animalName: "Zeitsanduhr", who: "Die Zeitsanduhr", ring: "#9fd8ff",
-    intro: `⏳ <b>Zeitdungeon ${m.nm}:</b> Erreiche die Zeitsanduhr in ${m.limit} Sekunden! <b>Tippe auf ein Feld neben dir</b>, um zu laufen.`,
+    intro: `⏳ <b>Zeitdungeon ${m.nm}:</b> Erreiche die Zeitsanduhr in ${m.limit} Sekunden! ⚖️ Heute ist dieser Weg für alle Spieler gleich, ohne Tierfähigkeiten und Haustiere. So hat jeder dieselbe Chance. Morgen gibt es einen neuen.`,
     animalHint: "Die Zeitsanduhr, umhüllt von einem Zauber. Nur deine heilenden Hände können sie lösen."
   });
 }
@@ -1773,6 +1775,7 @@ function renderWiki() {
       <li>Jeder Ort hat einen <b>🌀 superschweren Irrgarten</b>. Er öffnet sich, wenn alle drei Tiere dort gerettet sind. Darin gibt es <b>mehrere Wege</b> zum Ziel, und überall warten Hindernisse. Such dir den Weg aus, der am besten zu deinen Begleitern und Tränken passt. Beim ersten Sieg gibt es das 🏆 Meisterabzeichen.</li>
       <li>Auch die Zeitdungeons sind Irrgärten mit mehreren Wegen. Der kürzeste Weg ist nicht immer der schnellste!</li>
       <li>In den <b>⏳ Zeitdungeons</b> läuft eine Sanduhr. Erreichst du die Zeitsanduhr rechtzeitig, gibt es je nach übriger Zeit Gold, Silber oder Bronze mit Samen als Belohnung, und deine Bestzeit wird gespeichert.</li>
+      <li>⚖️ <b>Gleiche Chancen:</b> Die Zeitdungeons und das Tagesrätsel sehen an einem Tag für alle Spieler gleich aus. Darin wirken keine Tierfähigkeiten, keine Tierkräfte und keine Haustiere, nur die fünf Grund-Begleiter. Tränke darfst du benutzen, die kann jeder brauen. Jeden Tag gibt es neue Wege.</li>
       <li>Gerettete Tiere haben <b>Fähigkeiten</b>. Alle geretteten Tiere helfen dir automatisch überall mit, zum Beispiel mit Extra-Herzen, mehr Samen oder mehr Zeit. Außerdem hat jedes Tier eine <b>Tierkraft zum Antippen</b>, einmal pro Abenteuer, über den Begleiter-Knöpfen. Im 🐾 Tierbuch siehst du, wer was kann.</li>
       <li>Jedes Abenteuer sieht bei jedem Betreten anders aus: neuer Weg, neue Hindernisse, neue Runen. Nur das allererste Mal in Mondtal ist der Weg fest.</li>
       <li>Jedes gerettete Tier zieht in deinen Ort. Sind alle drei gerettet, öffnet sich der nächste Ort.</li>
@@ -2027,7 +2030,8 @@ function renderActs() {
   const bar = $("actBar"); bar.innerHTML = "";
   const list = [...rescuedNames()].filter(n => ACT[n]).sort((a, b) => actUsed.has(a) - actUsed.has(b));
   const tg = $("tgActs"), open = !bar.hidden;
-  tg.hidden = !list.length;
+  tg.hidden = !list.length || !!(level && level.fair);
+  if (level && level.fair) { bar.hidden = true; return; }
   tg.textContent = `🐾 Kräfte · ${list.filter(n => !actUsed.has(n)).length} frei ${open ? "▴" : "▾"}`;
   if (!list.length) { bar.hidden = true; return; }
   list.forEach(n => {
@@ -2195,7 +2199,7 @@ function startLevel(l) {
   // Samenfunde: bei jedem Besuch neu verteilt, so kann man sie farmen
   const free = [];
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (grid[y][x] === "." && !(x === px && y === py)) free.push([x, y]);
-  const TF = teamFx();
+  const TF = l.fair ? { time: 0, seedSpots: 0, shield: 0, bright: 0, heart: 0, loot: 0, garden: 0, gardenSeed: 0, rareFind: 0, reveal: 0, freeze: 0, burn: 0 } : teamFx();
   for (let n = l.resume || l.noSeeds ? 0 : (l.farm ? 3 : 0) + 1 + Math.floor(Math.random() * 2) + (l.secret ? 1 : 0) + TF.seedSpots; n > 0 && free.length; n--) {
     const [sx, sy] = free.splice(Math.floor(Math.random() * free.length), 1)[0]; grid[sy][sx] = "S";
   }
@@ -2612,7 +2616,7 @@ function dailyLevel() {
   const keys = Object.keys(THEMES), tk = keys[Math.floor(rng() * keys.length)], th = THEMES[tk];
   const a = ANIMALS[Math.floor(rng() * ANIMALS.length)], [ench, ring] = ENCH[Math.floor(rng() * ENCH.length)];
   const name = `Tagesrätsel: ${th.art} ${PREFIX[Math.floor(rng() * PREFIX.length)]}${th.noun}`;
-  return { id: "tag-" + k, daily: k, seed: daySeed(k) + 17, baseOnly: true, noSeeds: true, name, ic: "🧩", theme: tk, wall: th.wall, mode: 0,
+  return { id: "tag-" + k, daily: k, fair: true, seed: daySeed(k) + 17, baseOnly: true, noSeeds: true, name, ic: "🧩", theme: tk, wall: th.wall, mode: 0,
     animal: a[0], animalName: a[1], who: a[2], ring, gen: { count: 10, tier: 1, maze: true },
     intro: `🧩 <b>Tagesrätsel vom ${k.split("-").reverse().join(".")}:</b> Heute sieht dieses Dungeon für alle Spieler gleich aus. Schaffst du es mit allen Herzen? Hier helfen nur die fünf Grund-Begleiter.`,
     animalHint: `${a[2]} ist gefangen in ${ench}. Nur die Heilerin kann den Zauber lösen.` };
