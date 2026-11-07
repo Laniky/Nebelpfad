@@ -2060,6 +2060,26 @@ function stream(x, y, t, bridge) {
   }
   if (bridge) { ctx.fillStyle = "#7a5634"; for (let i = 0; i < 5; i++) ctx.fillRect(x * S + 8 + i * 9, y * S + 4, 6, S - 8); ctx.fillStyle = "#5c3f25"; ctx.fillRect(x * S + 4, y * S + S / 2 - 3, S - 8, 6); }
 }
+function boulder(cx, cy, t, still) {
+      // Großer Felsbrocken: hell, mit Umriss, Rissen und Moos. Er wackelt leicht, als wolle er gleich rollen.
+      const tt = reduce || still ? 0 : t, wob = Math.sin(tt / 380) * 0.07 * (Math.sin(tt / 2300) > 0.3 ? 1 : 0.25), lift = Math.abs(Math.sin(tt / 380)) * (Math.sin(tt / 2300) > 0.3 ? 2 : 0);
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.beginPath(); ctx.ellipse(cx, cy + 20, 23 - lift, 6, 0, 0, 7); ctx.fill();
+      ctx.translate(cx, cy + 18); ctx.rotate(wob); ctx.translate(0, -18 - lift);
+      const rk = new Path2D("M-24 14 C-27 2 -22 -12 -10 -19 C0 -25 14 -22 21 -13 C27 -5 27 8 22 15 C14 21 -16 22 -24 14 Z");
+      const gr = ctx.createLinearGradient(-20, -22, 18, 20); gr.addColorStop(0, "#c9c2b4"); gr.addColorStop(.45, "#9a9384"); gr.addColorStop(1, "#5e5a52");
+      ctx.fillStyle = gr; ctx.fill(rk);
+      ctx.lineWidth = 2.5; ctx.strokeStyle = "#2a2722"; ctx.stroke(rk);
+      ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.beginPath(); ctx.ellipse(-9, -11, 8, 4, -.5, 0, 7); ctx.fill();
+      ctx.strokeStyle = "#3d3a33"; ctx.lineWidth = 1.6; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(4, -18); ctx.lineTo(1, -8); ctx.lineTo(7, -1); ctx.lineTo(4, 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-15, 4); ctx.lineTo(-8, 8); ctx.stroke();
+      ctx.fillStyle = "#5fa860"; ctx.beginPath(); ctx.ellipse(12, -15, 9, 4, .35, 0, 7); ctx.fill();
+      ctx.fillStyle = "#7cc477"; ctx.beginPath(); ctx.ellipse(10, -17, 4, 2, .35, 0, 7); ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = "#8d877b"; [[-22, 20, 3], [24, 19, 2.5], [18, 23, 2]].forEach(([dx, dy, r]) => { ctx.beginPath(); ctx.arc(cx + dx, cy + dy, r, 0, 7); ctx.fill(); });
+      if (lift > 1.5 && !reduce) { ctx.fillStyle = "rgba(210,200,180,.35)"; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(cx - 20 + i * 20, cy + 22 - lift * 2, 2.5, 0, 7); ctx.fill(); } }
+}
 function animalTile(cx, cy, t, emoji, ring) {
   ctx.fillStyle = "#06080e"; ctx.beginPath(); ctx.arc(cx, cy, 25, 0, 7); ctx.fill();
   ctx.strokeStyle = ring; ctx.lineWidth = 3;
@@ -2166,11 +2186,7 @@ function draw(t) {
       ctx.strokeStyle = "#3a2f5a"; ctx.lineWidth = 2;
       for (let i = 0; i < 3; i++) { const s0 = (reduce ? 0 : t / (700 + i * 200)) + i; ctx.beginPath(); ctx.arc(cx, cy, 8 + i * 7, s0, s0 + 2); ctx.stroke(); }
     }
-    if (c === "R") {
-      ctx.fillStyle = "#4a5058"; ctx.beginPath(); ctx.ellipse(cx, cy + 4, 22, 17, 0, 0, 7); ctx.fill();
-      ctx.fillStyle = "#5c636c"; ctx.beginPath(); ctx.ellipse(cx - 5, cy - 1, 13, 9, -.3, 0, 7); ctx.fill();
-      ctx.fillStyle = "#3f6b45"; ctx.beginPath(); ctx.ellipse(cx + 6, cy - 10, 10, 4, .2, 0, 7); ctx.fill();
-    }
+    if (c === "R") boulder(cx, cy, t);
     if (c === "N") {
       const lit = (stage[k] || 0) > 0;
       for (let i = 0; i < 4; i++) {
@@ -2243,13 +2259,20 @@ function draw(t) {
       }
     }
   };
-  const now = performance.now();
+  const now = performance.now(), rolling = [];
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
     cell(grid[y][x], x, y);
     // altes Feld blendet langsam aus
     const an = anims.find(a => a.x === x && a.y === y && a.from);
-    if (an) { const p = (now - an.t0) / an.dur; if (p < .75) { ctx.save(); ctx.globalAlpha = 1 - p / .75; cell(an.from, x, y, true); ctx.restore(); } }
+    if (an) { const p = (now - an.t0) / an.dur;
+      if (an.from === "R") {
+        // Bruno rollt den Felsbrocken weg: erst ruckeln, dann rollt er aus dem Feld
+        const q = Math.max(0, (p - .15) / .7), shake = p < .15 ? Math.sin(p * 120) * 2.5 : 0, cx0 = x * S + S / 2, cy0 = y * S + S / 2;
+        if (q < 1) rolling.push(() => { ctx.save(); ctx.globalAlpha = q < .6 ? 1 : 1 - (q - .6) / .4;
+          ctx.translate(cx0 + shake + q * q * S * 1.1, cy0 + 4); ctx.rotate(q * q * 3.2); ctx.translate(-cx0, -cy0 - 4); boulder(cx0, cy0, now, true); ctx.restore(); });
+      } else if (p < .75) { ctx.save(); ctx.globalAlpha = 1 - p / .75; cell(an.from, x, y, true); ctx.restore(); } }
   }
+  rolling.forEach(f => f());
   drawAnims(now);
   // Heilerin mit Laterne
   const lx = px * S + S / 2, ly = py * S + S / 2;
