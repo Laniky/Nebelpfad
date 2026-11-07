@@ -2506,6 +2506,12 @@ function paintRoles() { ROLES.forEach(r => $("role-" + r.id).setAttribute("aria-
 
 function startLevel(l) {
   try { stopWalk(); } catch (e) {}
+  // Schon gerettetes Tier: Beim erneuten Besuch wartet ein Dankeschön statt des Tieres
+  if (!l.replay && !l.resume && !l.coop && !l.fest && !l.daily && !l.timed && !l.farm && !l.superD && !l.weaver && !l.secret && l.id && rescued[l.id] && l.animalName) {
+    l = { ...l, replay: true, thanks: { ic: l.animal, nm: l.animalName, who: l.who }, animalTile: null, animal: "🎁", animalName: "Dankeschön", ring: "#f2c76b",
+      intro: `${l.name}: Hier hast du ${akk(l.who)} schon gerettet. ${({ Der: "Er", Die: "Sie", Das: "Es" })[l.who.split(" ")[0]] || "Es"} wohnt jetzt bei dir, aber am Ende des Weges hat ${({ Der: "er", Die: "sie", Das: "es" })[l.who.split(" ")[0]] || "es"} dir zum Dank ein <b>🎁 Geschenk</b> versteckt.`,
+      animalHint: "Ein kleines Geschenk mit einer Schleife, von einem Zauber verschnürt. Deine Hände öffnen es." };
+  }
   level = l; theme = THEMES[l.theme];
   buildRoles();
   // Mondtal beim ersten Mal wie gebaut, danach (und überall sonst) jedes Mal neu
@@ -2673,7 +2679,18 @@ function escapeWin(n) {
   $("home").textContent = `Zurück nach ${s.name}`;
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
+function replayWin() {
+  done = true;
+  const s = getSettlement(cur), T = level.thanks, gift = [rollDrop(0.15), rollDrop(0.15)]; gift.forEach(k => add(H.seeds, k));
+  const food = addFood(1); saveH();
+  $("winIcon").textContent = T.ic;
+  $("winTitle").textContent = `Ein Dankeschön ${T.who.replace(/^Der /, "vom ").replace(/^Das /, "vom ").replace(/^Die /, "von der ")}!`;
+  $("winText").innerHTML = `${T.who} wohnt schon bei dir und freut sich, dass du noch einmal vorbeikommst. Im Geschenk liegen: ${gift.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen und ${FOODS[food[0]].ic} ${FOODS[food[0]].nm} für die Lichtung.` + perfectBonus() + weaverHint();
+  $("home").textContent = `Zurück nach ${s.name}`;
+  setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+}
 function rescue() {
+  if (level.replay) { replayWin(); return; }
   if (level.coop) { coopWin(); return; }
   if (level.farm) { farmWin(); return; }
   if (level.weaver) { weaverWin(); return; }
@@ -3726,6 +3743,7 @@ function xpFlush() {
 function winXp() {
   if (!level) return 0;
   if (window.__escaped) { window.__escaped = false; return 12; }
+  if (level.replay) return 12;
   if (level.coop) return 20; if (level.weaver) return 60; if (level.superD) return 50; if (level.secret) return 40;
   if (level.daily) return 25; if (level.timed) return 15; if (level.farm) return 8; if (level.fest) return level.festReplay ? 10 : 25;
   return 30;
