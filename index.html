@@ -415,6 +415,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 @keyframes flake { to { transform: rotate(360deg); } }
 @keyframes flakeGlow { 50% { filter: drop-shadow(0 0 7px #e6f6ff) brightness(1.25); } }
 @media (prefers-reduced-motion: reduce) { .cic-winter { animation: none; } }
+.fest-done { margin: 0; background: #2a2414; border: 1px solid var(--lantern); border-radius: 12px; padding: 8px 10px; }
 .fest h2 .span { font-size: .62em; color: var(--muted); font-weight: 400; white-space: nowrap; }
 .pieces { display: flex; gap: 6px; } .pieces span { font-size: 1.5rem; filter: grayscale(1) opacity(.3); transition: filter .3s; } .pieces span.on { filter: none; }
 .pieces.bump { animation: shake .4s; }
@@ -2143,7 +2144,7 @@ function renderWiki() {
       <li><b>Die Minispiele:</b> 🃏 <b>Paare finden</b> (6 Paare, höchstens 8 Irrtümer), 🧺 <b>Auffangen</b> (12 Festteile in 30 Sekunden antippen, die 🌫️ Nebelwolken kosten Zeit) und 🎶 <b>Melodie merken</b> (die Lichter leuchten nacheinander auf, tippe sie in der gleichen Reihenfolge nach, bis zu 6 Töne).</li>
       <li><b>🛍️ Festwährung und Festmarkt:</b> Jedes Fest hat seine eigene Währung, zum Beispiel 🐞 Glückskäfer beim Blütenfest, 🌰 Kastanien beim Laternenfest oder 🍪 Lebkuchen beim Lichtermarkt. Du bekommst sie in jedem Minispiel (3 bis 5 für einen Sieg, 1 als Trost) und im Festabenteuer. Auf dem Festmarkt kaufst du damit Festsamen, seltene Samen, Futterkörbe, Herztränke, Diamanten, besonderen Schmuck für die Lichtung und <b>Festkleidung</b> für deine Begleiter, bei jedem Fest eine andere: ${Object.values(FESTS).map(f => f.cos[0] + " " + f.cos[1]).join(", ")}.</li>
       <li>Jedes gerettete Festtier zieht auf deine Tierlichtung und bleibt dort für immer.</li>
-      <li>Nach allen drei Festtieren kannst du weiterspielen, um mehr Festsamen zu sammeln.</li>
+      <li>Nach allen drei Festtieren kannst du mit „Noch einmal feiern“ weiterspielen. Dann wartet am Ende kein Tier mehr, sondern ein 🎁 <b>Festgeschenk</b> mit Festwährung und Festsamen.</li>
     </ul>
   </section>
 
@@ -2988,15 +2989,28 @@ const festYear = (d = new Date()) => d.getFullYear();
 function festState() { const F = festNow(), id = F.k + "-" + festYear(); H.fest = H.fest || {}; H.fest[id] = H.fest[id] || { done: [] }; return { F, id, st: H.fest[id] }; }
 function festLevel() {
   const { F, st } = festState(), th = THEMES[F.theme];
-  const next = F.animals.find(a => !st.done.includes(a[1])) || F.animals[Math.floor(Math.random() * 3)];
-  return { id: "fest-" + F.k, fest: F.k, name: `${F.ic} ${F.nm}: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: F.ic, theme: F.theme, wall: th.wall, mode: 0,
+  const next0 = F.animals.find(a => !st.done.includes(a[1]));
+  // Alle Festtiere gerettet: Beim Weiterfeiern wartet ein Festgeschenk statt eines Tieres
+  const replay = !next0, next = next0 || [F.ic, "Festgeschenk", "Das Festgeschenk"];
+  return { id: "fest-" + F.k, fest: F.k, festReplay: replay, name: `${F.ic} ${F.nm}: ${th.art} ${PREFIX[Math.floor(Math.random() * PREFIX.length)]}${th.noun}`, ic: F.ic, theme: F.theme, wall: th.wall, mode: 0,
     animal: next[0], animalName: next[1], who: next[2],
     ring: F.col, gen: { count: 9, tier: 1 },
-    intro: `${F.ic} <b>${F.nm}!</b> ${F.txt} Irgendwo hier wartet <b>${next[2].replace(/^D/, "d")}</b> auf dich.`,
-    animalHint: `${next[2]} ist in einem Festzauber gefangen. Nur die Heilerin kann den Zauber lösen.` };
+    animalTile: null,
+    intro: replay ? `${F.ic} <b>${F.nm}!</b> ${F.txt} Alle Festtiere sind schon gerettet. Am Ende des Weges wartet ein <b>Festgeschenk</b> mit ${FEST_COIN[F.k][1]} und Festsamen auf dich.` : `${F.ic} <b>${F.nm}!</b> ${F.txt} Irgendwo hier wartet <b>${next[2].replace(/^D/, "d")}</b> auf dich.`,
+    animalHint: replay ? "Ein schön verpacktes Festgeschenk, mit einem Zauberband verschnürt. Nur deine Hände können es öffnen." : `${next[2]} ist in einem Festzauber gefangen. Nur die Heilerin kann den Zauber lösen.` };
 }
 function festWin() {
   done = true;
+  if (level.festReplay) {
+    const { F } = festState(), sd = Math.random() < 0.5 ? 2 : 1; add(H.seeds, F.seed, sd);
+    const extra = rollDrop(0.2); add(H.seeds, extra); addFood(1);
+    const coinTxt = coinGain(5 + Math.floor(Math.random() * 3)); saveH();
+    $("winIcon").textContent = "🎁"; $("winTitle").textContent = `${F.nm}: Festgeschenk geöffnet!`;
+    $("winText").innerHTML = `Im Geschenk liegen:<br>${coinTxt}<br>🎁 ${sd}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} und ${HERBS[extra].ic} ${HERBS[extra].nm} als Samen, dazu ein Leckerbissen für die Lichtung.`;
+    $("home").textContent = "Zurück";
+    setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
+    return;
+  }
   const { F, st } = festState(), nm = level.animalName, first = !st.done.includes(nm);
   if (first) st.done.push(nm);
   H.festAnimals = H.festAnimals || []; if (!H.festAnimals.some(a => a.nm === nm)) H.festAnimals.push({ ic: level.animal, nm });
@@ -3005,9 +3019,9 @@ function festWin() {
   const coinTxt = coinGain(first ? 8 : 4);
   let txt = `${level.animal} <b>${nm}</b> zieht auf deine Tierlichtung 🌳<br><br>${coinTxt}<br>🎁 Belohnung: ${n}× ${HERBS[F.seed].ic} ${HERBS[F.seed].nm} (gibt es nur zu diesem Fest!) und ${extra.map(k => HERBS[k].ic + " " + HERBS[k].nm).join(", ")} als Samen.`;
   H.festDeco = H.festDeco || []; if (!H.festDeco.includes(F.k)) { H.festDeco.push(F.k); txt += `<br>${F.deco[0]} Neu für die Lichtung: <b>${F.deco[1]}</b>.`; }
-  if (first && st.done.length === 3) txt += `<br><br>🌟 Du hast alle drei Festtiere des ${F.nm}s gerettet! Weiterspielen kannst du trotzdem, für Festsamen.`;
+  if (first && st.done.length === 3) txt = `${level.animal} <b>${nm}</b> ist frei, und damit hast du <b>alle drei Festtiere</b> gerettet: ${F.animals.map(a => a[0] + " " + a[1]).join(", ")}. Sie wohnen jetzt alle auf deiner Tierlichtung 🌳` + txt.slice(txt.indexOf("<br><br>")) + `<br><br>🎁 Ab jetzt findest du beim Weiterfeiern Festgeschenke mit ${FEST_COIN[F.k][1]} und Festsamen.`;
   saveH();
-  $("winIcon").textContent = level.animal; $("winTitle").textContent = `${F.nm}: ${nm} ist frei!`; $("winText").innerHTML = txt; $("home").textContent = "Zurück";
+  $("winIcon").textContent = level.animal; $("winTitle").textContent = first && st.done.length === 3 ? `🌟 ${F.nm} abgeschlossen!` : `${F.nm}: ${nm} ist frei!`; $("winText").innerHTML = txt; $("home").textContent = "Zurück";
   setTimeout(() => { $("win").hidden = false; }, reduce ? 0 : 1100);
 }
 const FEST_PIECE = Object.fromEntries(Object.entries(FESTS).map(([k, f]) => [k, f.piece]));
@@ -3037,7 +3051,7 @@ function renderFest() {
   box.className = "card fest fest-" + F.k; box.style.borderColor = F.col; box.style.background = `linear-gradient(160deg, ${F.col}2e, var(--panel) 70%)`;
   box.innerHTML = `<h2>${F.ic} ${F.nm} <small class="span">(${FEST_SPAN[F.k]})</small></h2><p class="sub" style="margin:0">${F.txt}</p>
     <p style="margin:0">Festtiere: ${F.animals.map(a => st.done.includes(a[1]) ? `${a[0]} ${a[1]} ✅` : `❔ ${a[1]}`).join(" · ")}</p>
-    ${allDone ? "" : `<p style="margin:0">Um <b>${next[1]}</b> zu finden, brauchst du <b>${FEST_NEED} ${P[1]}</b>. Die bekommst du in den Fest-Minispielen.</p>
+    ${allDone ? `<p class="fest-done">🌟 <b>${F.nm} abgeschlossen!</b> Du hast alle drei Festtiere gerettet, sie wohnen jetzt auf deiner Tierlichtung. Feier ruhig weiter: Am Ende jedes Weges wartet jetzt ein 🎁 Festgeschenk mit ${FEST_COIN[F.k][1]} und Festsamen.</p>` : `<p style="margin:0">Um <b>${next[1]}</b> zu finden, brauchst du <b>${FEST_NEED} ${P[1]}</b>. Die bekommst du in den Fest-Minispielen.</p>
     <div class="pieces" aria-label="${have} von ${FEST_NEED} ${P[1]}">${Array.from({ length: FEST_NEED }, (_, i) => `<span class="${i < have ? "on" : ""}">${P[0]}</span>`).join("")}</div>`}
     <p class="sub" style="margin:0">Nur jetzt: ${HERBS[F.seed].ic} ${HERBS[F.seed].nm}-Samen und ${F.deco[0]} ${F.deco[1]} für die Lichtung.</p>
     <p style="margin:0">Festwährung: <b class="coins">${cic(F.k)} ${coinsOf(st)} ${FEST_COIN[F.k][1]}</b></p>`;
@@ -3045,7 +3059,7 @@ function renderFest() {
   MINIGAMES.forEach(g => games.appendChild(btnEl(`${g.ic} ${g.nm}`, () => openMinigame(g.id), "chip")));
   box.appendChild(games);
   const ready = allDone || have >= FEST_NEED;
-  const go2 = btnEl(allDone ? "Noch einmal feiern" : ready ? `${P[0]} Festabenteuer starten` : `🔒 Festabenteuer (${have}/${FEST_NEED} ${P[1]})`, () => {
+  const go2 = btnEl(allDone ? "🎁 Weiterfeiern und Festgeschenk suchen" : ready ? `${P[0]} Festabenteuer starten` : `🔒 Festabenteuer (${have}/${FEST_NEED} ${P[1]})`, () => {
     if (!ready) { $("festBox").querySelector(".pieces").classList.remove("bump"); void box.offsetWidth; $("festBox").querySelector(".pieces").classList.add("bump"); return; }
     if (!allDone) { st.pieces = have - FEST_NEED; saveH(); }
     startLevel(festLevel());
