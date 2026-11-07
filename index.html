@@ -116,6 +116,10 @@ canvas { display: block; width: 100%; height: auto; touch-action: manipulation; 
 .win { position: absolute; inset: 0; background: #0b0f18ee; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 10px; text-align: center; padding: 20px; }
 .win h2 { font-size: 1.7rem; }
+/* Bei langem Text: Inhalt scrollt, der Knopf bleibt immer unten sichtbar */
+.win { justify-content: flex-start !important; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 0 !important; }
+.win::before, .win::after { content: ""; flex: 1 0 0; }
+.win-foot { position: sticky; bottom: 0; flex-shrink: 0; align-self: stretch; margin: 0 -20px; padding: 14px 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; background: linear-gradient(180deg, #0b0f1800, #0b0f18f7 30%); z-index: 2; }
 .win p { margin: 0; max-width: 32ch; }
 .win b { color: var(--lantern); }
 .win .big { font-size: 3.4rem; filter: drop-shadow(0 0 16px #f2c76b80); }
@@ -572,14 +576,14 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
         <div class="big" id="winIcon">🦊</div>
         <h2 id="winTitle">Frei!</h2>
         <p id="winText"></p>
-        <button class="btn" id="home" type="button">Zurück</button>
+        <div class="win-foot"><button class="btn" id="home" type="button">Zurück</button></div>
       </div>
       <div class="win" id="fail" hidden>
         <div class="big">🌫️</div>
         <h2>Der Nebel holt dich zurück</h2>
         <p id="failText">Drei Versuche sind aufgebraucht. Ein sanfter Wind trägt dich zurück an den Anfang. Der Weg ist wieder verschlossen, aber du kennst ihn jetzt schon ein bisschen.</p>
-        <button class="btn" id="retry" type="button">Neu beginnen</button>
-        <button class="back" id="failHome" type="button">Zurück zum Ort</button>
+        <div class="win-foot"><button class="btn" id="retry" type="button">Neu beginnen</button>
+        <button class="back" id="failHome" type="button">Zurück zum Ort</button></div>
       </div>
       <div class="shoutFx" id="shoutFx" aria-live="polite"></div>
     </div>
