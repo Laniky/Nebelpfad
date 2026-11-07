@@ -96,6 +96,11 @@ canvas { display: block; width: 100%; height: auto; touch-action: manipulation; 
 .role .ic { font-size: 1.5rem; line-height: 1; }
 .role .nm { font-size: .72rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .role { position: relative; }
+.role .cos { position: absolute; top: 4px; left: 50%; transform: translateX(-125%) rotate(-14deg); font-size: .95rem; line-height: 1; pointer-events: none; filter: drop-shadow(0 1px 1px #000); }
+.cosrow { flex-wrap: wrap; }
+.cosrow .bx { display: flex; flex-wrap: wrap; gap: 4px; flex-basis: 100%; }
+.cosrow .chip { padding: 4px 7px; font-size: .9rem; }
+.cosrow .chip.lk { opacity: .45; }
 .role .rn { position: absolute; top: -7px; right: -4px; font-size: .95rem; line-height: 1; background: #0b0f18; border: 1.5px solid var(--lantern); border-radius: 99px; padding: 3px 4px; }
 .runes { font-size: 1.5em; letter-spacing: .05em; white-space: nowrap; }
 .role .rl { font-size: .64rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -552,7 +557,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </header>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
-      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-weber">Nebelweber</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
+      <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-weber">Nebelweber</a><a href="#wk-kostuem">Kostüme</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a>
     </nav>
     <div id="wikiBody" style="display:flex;flex-direction:column;gap:22px"></div>
   </section>
@@ -652,6 +657,11 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <button class="back" id="beastBack" type="button">Zurück</button>
     </header>
     <div class="msg" id="beastMsg" aria-live="polite">Nimm bis zu 3 gerettete Tiere als Gefährten mit. Ihre Fähigkeiten helfen dir in jedem Abenteuer.</div>
+    <div class="card">
+      <h2>🧣 Kostüme für deine Begleiter</h2>
+      <p class="sub" style="margin:0" id="costSum"></p>
+      <div class="wk-list" id="costList"></div>
+    </div>
     <h2 id="teamHead">Dein Team</h2>
     <div class="bag" id="teamChips"></div>
     <h2>Gerettete Tiere</h2>
@@ -1684,6 +1694,7 @@ function renderWiki() {
     <p>Nebelpfad spielt ruhige, weiche Hintergrundklänge. Nur ab und zu erklingt eine kurze, sanfte Flötenmelodie, danach ist es wieder lange still. Im Ort klingt sie warm und fröhlich, im Haus ruhig und in den Abenteuern geheimnisvoll. Jede Landschaft hat ihre eigene Tonart. Die Musik wird jedes Mal neu gespielt, darum klingt sie nie ganz gleich.</p>
     <ul class="wk-tip">
       <li>Der Knopf 🎵 schaltet weiter: <b>Musik an</b> → <b>nur Geräusche</b> 🔔 → <b>Ton aus</b> 🔇. Am Computer geht das auch mit der Taste <b>M</b>.</li>
+      <li>Gerettete Tiere haben eine eigene Stimme: Du hörst sie bei der Rettung und wenn du sie auf der Tierlichtung antippst.</li>
       <li>Jeder Begleiter hat seinen eigenen Klang, wenn er ein Hindernis löst. Auch Samen, Gießen, Ernten und das Blubbern im Kessel hörst du.</li>
       <li>Die Musik erzeugt das Spiel selbst. Sie enthält keine fremden Lieder und darf deshalb frei mit dem Spiel veröffentlicht werden.</li>
     </ul>
@@ -1695,6 +1706,12 @@ function renderWiki() {
 
   <section class="wk-sec" id="wk-mit"><h2>Mitspieler</h2>
     <p>Über <b>👥 Mitspieler</b> im Ort findest du den Dungeonbrowser: Wähle eine Mission „Zu zweit“ oder „Zu fünft“ und deine Rolle, dann sucht das Spiel automatisch eine passende Gruppe oder erstellt eine neue. Mitspieler kannst du als Freunde hinzufügen, ihnen schreiben und sie in deine Gruppe einladen. Im Weltchat triffst du alle, die gerade spielen.</p>
+  </section>
+
+  <section class="wk-sec" id="wk-kostuem"><h2>🧣 Kostüme</h2>
+    <p>Im <b>🐾 Tierbuch</b> ziehst du deinen Begleitern Kostüme an. Sie tragen sie auf den Knöpfen unter dem Spielfeld und auch, wenn sie im Abenteuer ein Hindernis lösen.</p>
+    <p>Kostüme schaltest du mit Sternen frei. Jedes Abenteuer, das du ohne verlorenes Herz schaffst, gibt einen ⭐, und jede Sternentruhe zählt doppelt.</p>
+    <div class="wk-list">${Object.values(COSTUMES).map(c => row(c.ic, c.nm, "", `ab ${c.stars} ⭐`)).join("")}</div>
   </section>
 
   <section class="wk-sec" id="wk-weber"><h2>🕸️ Der Nebelweber und das Tagebuch</h2>
@@ -1907,6 +1924,7 @@ function toggleTeam(n) {
   saveH(); renderBeasts(true);
 }
 function renderBeasts(keepMsg) {
+  try { renderCostumes(); } catch (e) {}
   const homes = {};
   Object.keys(rescued).forEach(id => {
     let n = 1, l = MONDTAL.find(x => x.id === id);
@@ -1997,7 +2015,7 @@ function buildRoles() {
   ROLES.forEach(r => {
     const b = document.createElement("button");
     b.type = "button"; b.className = "role"; b.id = "role-" + r.id;
-    b.innerHTML = `<span class="ic" aria-hidden="true">${r.ic}</span><span class="nm">${r.nm}</span><span class="rl">${r.rl}</span>${RUNE[r.id] ? `<span class="rn" title="Runenzeichen">${RUNE[r.id]}</span>` : ""}`;
+    b.innerHTML = `<span class="ic" aria-hidden="true">${r.ic}</span>${cosOf(r.id) ? `<span class="cos" aria-hidden="true">${cosOf(r.id).ic}</span>` : ""}<span class="nm">${r.nm}</span><span class="rl">${r.rl}</span>${RUNE[r.id] ? `<span class="rn" title="Runenzeichen">${RUNE[r.id]}</span>` : ""}`;
     if (HOVER) { const idx = ROLES.indexOf(r) + 1; b.insertAdjacentHTML("beforeend", `<span class="kb">${keyLabel("r" + idx)}</span>`); }
     const theirs = level && level.coop && !myRoles().includes(r.id);
     if (theirs) { b.classList.add("theirs"); b.insertAdjacentHTML("beforeend", `<span class="who" title="Das steuert ${seatName(seatOfRole(r.id))}">${seatIcon(seatOfRole(r.id))}</span>`); }
@@ -2374,7 +2392,7 @@ document.querySelectorAll(".sndBtn").forEach(b => b.addEventListener("click", SN
 SND.applyMode();
 addEventListener("keydown", e => { if ((e.key === "m" || e.key === "M") && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && !e.ctrlKey && !e.metaKey && !waitKey && !Object.values(KEYS).includes("m")) SND.cycle(); });
 // Gewinn- und Verlustbild hören (gilt für alle Spielarten, auch im Koop)
-new MutationObserver(() => { if (!$("win").hidden) SND.fx.win(); }).observe($("win"), { attributes: true, attributeFilter: ["hidden"] });
+new MutationObserver(() => { if (!$("win").hidden) { SND.fx.win(); if (level && level.animalName) setTimeout(() => SND.fx.voice(level.animalName), 900); } }).observe($("win"), { attributes: true, attributeFilter: ["hidden"] });
 new MutationObserver(() => { if (!$("fail").hidden) SND.fx.fail(); }).observe($("fail"), { attributes: true, attributeFilter: ["hidden"] });
 
 
@@ -2615,6 +2633,36 @@ function openDiary() {
 }
 $("toDiary").addEventListener("click", openDiary);
 $("diaryBack").addEventListener("click", showVillage);
+
+/* ---------- Kostüme: Belohnung für Sterne ---------- */
+const COSTUMES = {
+  schleife: { ic: "🎀", nm: "Schleife", stars: 1 }, schal: { ic: "🧣", nm: "Schal", stars: 3 }, kranz: { ic: "🌸", nm: "Blumenkranz", stars: 5 },
+  brille: { ic: "👓", nm: "Brille", stars: 7 }, muetze: { ic: "🧢", nm: "Mütze", stars: 9 }, hut: { ic: "🎩", nm: "Zylinder", stars: 12 },
+  zauber: { ic: "🪄", nm: "Zauberstab", stars: 15 }, krone: { ic: "👑", nm: "Krone", stars: 20 }
+};
+const starCount = () => Object.keys(H.stars || {}).length + Object.keys(H.starOrt || {}).length * 2;
+const cosOf = r => { const k = (H.costume || {})[r]; return k && COSTUMES[k] && starCount() >= COSTUMES[k].stars ? COSTUMES[k] : null; };
+function renderCostumes() {
+  const n = starCount(), box = $("costList"); if (!box) return;
+  const next = Object.values(COSTUMES).find(c => c.stars > n);
+  $("costSum").textContent = `Du hast ${n} ⭐ (jedes Abenteuer mit allen Herzen gibt einen Stern, eine Sternentruhe zählt doppelt).` + (next ? ` Nächstes Kostüm: ${next.ic} ${next.nm} ab ${next.stars} ⭐.` : " Du hast alle Kostüme freigeschaltet!");
+  box.innerHTML = "";
+  [...BASE_ROLES, ...PET_ROLES.filter(p => rescued[p.from])].forEach(r => {
+    const row = el("div", "wk-row cosrow"), c = cosOf(r.id);
+    row.innerHTML = `<span class="ic" aria-hidden="true">${r.ic}${c ? `<small>${c.ic}</small>` : ""}</span><span class="t"><strong>${r.nm}</strong><span>${c ? `trägt: ${c.nm}` : "noch ohne Kostüm"}</span></span>`;
+    const bx = el("div", "bx");
+    const none = btnEl("✖", () => { H.costume = H.costume || {}; delete H.costume[r.id]; saveH(); renderCostumes(); }); none.setAttribute("aria-label", "Kein Kostüm"); none.setAttribute("aria-pressed", String(!c)); bx.appendChild(none);
+    Object.entries(COSTUMES).forEach(([k, C]) => {
+      const ok = n >= C.stars, b = btnEl(C.ic, () => {
+        if (!ok) { $("beastMsg").textContent = `${C.ic} ${C.nm} gibt es ab ${C.stars} ⭐. Hol dir Sterne, indem du Abenteuer ohne verlorenes Herz schaffst.`; return; }
+        H.costume = H.costume || {}; H.costume[r.id] = k; saveH(); SND.fx.seed(); $("beastMsg").textContent = `${r.ic} ${r.nm} trägt jetzt ${C.ic} ${C.nm}. Steht ${r.id === "heil" ? "dir" : r.nm === "Luna" || r.nm === "Ole" ? "ihr" : "ihm"} super!`; renderCostumes();
+      }, "chip" + (ok ? "" : " lk"));
+      b.setAttribute("aria-label", `${C.nm}${ok ? "" : `, ab ${C.stars} Sternen`}`); b.setAttribute("aria-pressed", String(!!c && (H.costume || {})[r.id] === k)); b.title = ok ? C.nm : `${C.nm} · ab ${C.stars} ⭐`;
+      bx.appendChild(b);
+    });
+    row.appendChild(bx); box.appendChild(row);
+  });
+}
 /* ---------- Tierlichtung ---------- */
 const GL_DECO = {
   blume:  { ic: "🌸", nm: "Blumen", cost: 2, cls: "sm" }, sonne: { ic: "🌻", nm: "Sonnenblume", cost: 2 }, pilz: { ic: "🍄", nm: "Pilz", cost: 2, cls: "sm" },
@@ -2947,6 +2995,7 @@ function drawAnims(now) {
       ctx.shadowColor = "#000"; ctx.shadowBlur = 8;
       const bob = a.kind === "schutz" ? Math.sin(p * 40) * 3 * (1 - p) : a.kind === "bau" ? -Math.abs(Math.sin(p * 14)) * 6 : 0;
       ctx.font = `${Math.round(26 * sc)}px serif`; ctx.fillText(role.ic, cx + bob, cy - 8 - p * 12);
+      const cs = cosOf(a.kind); if (cs) { ctx.font = `${Math.round(15 * sc)}px serif`; ctx.fillText(cs.ic, cx + bob + 9 * sc, cy - 22 * sc - p * 12); }
       if (a.kind === "bau") { ctx.font = "16px serif"; ctx.fillText("🔨", cx + 14, cy - 18 + Math.abs(Math.sin(p * 14)) * 8); }
     }
     ctx.restore();
