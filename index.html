@@ -303,6 +303,20 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .card.fest-sommer { background: linear-gradient(160deg, #2c3a22, var(--panel) 70%); border-color: #e8ff8a; }
 .card.fest-herbst { background: linear-gradient(160deg, #3d2914, var(--panel) 70%); border-color: #ffb35a; }
 .card.fest-winter { background: linear-gradient(160deg, #22344a, var(--panel) 70%); border-color: #cfe8ff; }
+
+/* Spielstand zurücksetzen */
+.reset-all { text-decoration: none !important; font-size: .9rem !important; background: #7a1f2b !important; color: #fff !important; border: 1.5px solid #c9475a !important; border-radius: 12px !important; padding: 10px 16px !important; font-weight: 800 !important; cursor: pointer; opacity: 1 !important; }
+.reset-all:hover { background: #962636 !important; }
+.btn.danger { background: #c9475a; color: #fff; }
+.btn.danger:hover { background: #d9586b; }
+.modal { position: fixed; inset: 0; z-index: 90; background: #05070cd0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal[hidden] { display: none; }
+.modal-box { background: var(--panel); border: 1.5px solid #c9475a; border-radius: 18px; padding: 20px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px #000c; }
+.modal-box .big { font-size: 2.6rem; }
+.modal-box h2 { margin: 6px 0; color: #ff9aa8; }
+.modal-box p { color: var(--mist); line-height: 1.5; }
+.modal-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.modal-btns .btn { flex: 1; min-width: 120px; }
 /* Tagebuch */
 .diary { display: flex; flex-direction: column; gap: 10px; }
 .page { background: linear-gradient(180deg, #f3e6c8, #e6d3a8); color: #3a2a18; border-radius: 6px 14px 14px 6px; padding: 14px 16px 14px 22px; box-shadow: 0 6px 16px #0008, inset 6px 0 0 #c9b083; font-family: Georgia, "Times New Roman", serif; line-height: 1.55; position: relative; }
@@ -519,7 +533,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
       <button class="trip col" id="toGarden" type="button"><span class="ic" aria-hidden="true">🌱</span><span class="t"><strong>Kräutergarten</strong><span>Pflanzen, gießen, ernten</span></span></button>
       <button class="trip col" id="toAlchemy" type="button"><span class="ic" aria-hidden="true">⚗️</span><span class="t"><strong>Alchemietisch</strong><span>Tränke brauen</span></span></button>
     </div>
-    <button class="reset-all" id="resetAll" type="button">Spielstand zurücksetzen</button>
+    <button class="reset-all" id="resetAll" type="button">🗑️ Spielstand zurücksetzen</button>
   </section>
 
   <!-- DUNGEON -->
@@ -841,6 +855,14 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
     </section>
   </section>
   <div id="fxLayer" aria-hidden="true"></div>
+  <div class="modal" id="resetModal" role="alertdialog" aria-modal="true" aria-labelledby="rmTitle" aria-describedby="rmText" hidden>
+    <div class="modal-box">
+      <div class="big" id="rmIcon" aria-hidden="true">⚠️</div>
+      <h2 id="rmTitle"></h2>
+      <p id="rmText"></p>
+      <div class="modal-btns"><button class="btn" id="rmCancel" type="button">Abbrechen</button><button class="btn danger" id="rmOk" type="button"></button></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1335,7 +1357,31 @@ function renderVillage() {
   sb.onclick = () => { if (open) startLevel(sec); };
 }
 $("travel").addEventListener("click", () => { cur = getSettlement(cur).n + 1; save(); renderVillage(); scrollTo(0, 0); });
-$("resetAll").addEventListener("click", () => { rescued = {}; cur = 1; save(); H = defaultH(); saveH(); renderVillage(); });
+// Zwei Warnungen, bevor wirklich alles gelöscht wird
+let resetStep = 0;
+function resetDialog(step) {
+  resetStep = step;
+  const m = $("resetModal");
+  if (step === 1) {
+    $("rmIcon").textContent = "⚠️"; $("rmTitle").textContent = "Spielstand zurücksetzen?";
+    $("rmText").innerHTML = "Damit fängst du ganz von vorne an, im Mondtal. Möchtest du das wirklich?";
+    $("rmOk").textContent = "Ja, weiter";
+  } else {
+    $("rmIcon").textContent = "🛑"; $("rmTitle").textContent = "Bist du dir ganz sicher?";
+    $("rmText").innerHTML = "<b>Das kann man nicht rückgängig machen!</b><br>Alle geretteten Tiere, Sterne, Samen, Kräuter, Tränke, Rezepte, die Tierlichtung, Tagebuchseiten, Kostüme und deine Bestzeiten sind dann weg.";
+    $("rmOk").textContent = "Ja, alles löschen";
+  }
+  m.hidden = false; $("rmCancel").focus();
+}
+$("resetAll").addEventListener("click", () => resetDialog(1));
+$("rmCancel").addEventListener("click", () => { $("resetModal").hidden = true; resetStep = 0; });
+$("resetModal").addEventListener("keydown", e => { if (e.key === "Escape") { $("resetModal").hidden = true; resetStep = 0; } });
+$("rmOk").addEventListener("click", () => {
+  if (resetStep === 1) { resetDialog(2); return; }
+  $("resetModal").hidden = true; resetStep = 0;
+  rescued = {}; cur = 1; save(); H = defaultH(); saveH(); renderVillage();
+  $("vSub").textContent = "🌱 Dein Spielstand wurde zurückgesetzt. Willkommen zurück im Mondtal!";
+});
 
 function show(id) {
   if (id !== "dungeonView") stopTimer();
