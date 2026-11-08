@@ -587,7 +587,7 @@ select:focus-visible, .chatform input:focus-visible, .tab:focus-visible { outlin
 .maintabs { border-radius: 20px !important; grid-template-columns: 1.4fr .8fr 1fr 1fr .8fr .8fr !important; gap: 2px !important; }
 .mtab:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; }
 /* Spielfeld und Begleiter passen auf einen Bildschirm */
-.board { width: min(100%, calc((100vh - 395px) * .7)); width: min(100%, calc((100dvh - 395px) * .7)); min-width: min(100%, 240px); align-self: center; }
+.board { width: min(100%, calc((100vh - 300px) * .7)); width: min(100%, calc((100dvh - 300px) * .7)); min-width: min(100%, 300px); align-self: center; }
 .dock { display: flex; flex-direction: column; gap: 6px; margin-top: -4px; }
 .dock .roles { padding-top: 6px; }
 .dock-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 1.6rem; }
@@ -4512,8 +4512,8 @@ function draw(t) {
 
   // Nebel rund um die Laterne
   const fr = fx.bright ? 1.9 : 1;
-  const fog = ctx.createRadialGradient(lx, ly, S * 1.4 * fr, lx, ly, S * 3.2 * fr);
-  fog.addColorStop(0, "#0b0f1800"); fog.addColorStop(1, OPT.clear ? "#0b0f18b0" : "#0b0f18f2");
+  const fog = ctx.createRadialGradient(lx, ly, S * 1.7 * fr, lx, ly, S * 3.9 * fr);
+  fog.addColorStop(0, "#0b0f1800"); fog.addColorStop(1, OPT.clear ? "#0b0f1890" : "#0b0f18d6");
   ctx.fillStyle = fog; ctx.fillRect(0, 0, cv.width, cv.height);
   if (!reduce) for (let i = 0; i < 4; i++) {
     const fx = ((t / (90 + i * 30)) + i * 120) % (cv.width + 200) - 100, fy = 80 + i * 140;

@@ -284,8 +284,8 @@ function draw(t) {
 
   // Nebel rund um die Laterne
   const fr = fx.bright ? 1.9 : 1;
-  const fog = ctx.createRadialGradient(lx, ly, S * 1.4 * fr, lx, ly, S * 3.2 * fr);
-  fog.addColorStop(0, "#0b0f1800"); fog.addColorStop(1, OPT.clear ? "#0b0f18b0" : "#0b0f18f2");
+  const fog = ctx.createRadialGradient(lx, ly, S * 1.7 * fr, lx, ly, S * 3.9 * fr);
+  fog.addColorStop(0, "#0b0f1800"); fog.addColorStop(1, OPT.clear ? "#0b0f1890" : "#0b0f18d6");
   ctx.fillStyle = fog; ctx.fillRect(0, 0, cv.width, cv.height);
   if (!reduce) for (let i = 0; i < 4; i++) {
     const fx = ((t / (90 + i * 30)) + i * 120) % (cv.width + 200) - 100, fy = 80 + i * 140;
