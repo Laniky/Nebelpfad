@@ -700,3 +700,7 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
   #dungeonView .topbar .back { padding: 6px 10px; }
   #dungeonView { gap: 10px; }
 }
+/* Kein blaues Aufblitzen und kein Markieren beim Antippen auf dem Handy */
+html { -webkit-tap-highlight-color: transparent; }
+.board, canvas { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+canvas:focus { outline: none; }
