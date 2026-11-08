@@ -697,6 +697,13 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .wk-float .btn { box-shadow: 0 6px 20px #000a; }
 .wk-float .chip { box-shadow: 0 6px 20px #000a; padding: 8px 13px; }
 #wikiView { padding-bottom: 70px; }
+/* Handy: Spielfeld immer so groß wie möglich, bis an den Rand */
+@media (max-width: 560px) {
+  .board { width: calc(100% + 20px); min-width: 0; margin-inline: -10px; border-radius: 10px; }
+  #dungeonView .topbar h1 { font-size: 1.25rem; }
+  #dungeonView .topbar .back { padding: 6px 10px; }
+  #dungeonView { gap: 10px; }
+}
 </style>
 
 <div class="wrap">
