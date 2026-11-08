@@ -1,0 +1,2 @@
+showVillage();
+requestAnimationFrame(loop);

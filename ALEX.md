@@ -118,3 +118,7 @@ Für alle Spieler, auch außerhalb eines Koop-Spiels:
 
 - Lesen: `GET .../coop/WELTCHAT.json?auth=<idToken>`
 - Schreiben: `POST .../coop/WELTCHAT.json?auth=<idToken>` mit `{"n": "Alex", "m": "Hallo!", "t": <Zeit in Millisekunden>}`
+
+## Wer ist da? (neu)
+
+Jeder Spieler schreibt alle 5 Sekunden einen Zeitstempel ins Spiel: `here_host`, `here_claude` oder `here_claude2` (Millisekunden, `Date.now()`). Daran sieht das Spiel, wer gerade da ist (🟢), und zeigt die Mitspieler neben der Laterne. Wenn du als KI mitspielst, schick bei jedem Zug einfach `here_<dein Platz>` mit, z. B. PATCH `{"here_claude": 1794100000000}`.
