@@ -689,3 +689,7 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .who-chip.on { color: var(--mist); border-color: #4d7a60; }
 .win-foot .share { margin-top: -2px; }
 .tb-row.me strong { color: var(--lantern); }
+.wk-float { position: fixed; z-index: 60; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); margin: 0 auto; width: fit-content; display: flex; gap: 8px; align-items: center; }
+.wk-float .btn { box-shadow: 0 6px 20px #000a; }
+.wk-float .chip { box-shadow: 0 6px 20px #000a; padding: 8px 13px; }
+#wikiView { padding-bottom: 70px; }

@@ -183,6 +183,8 @@ function openWiki(from) {
 }
 $("wikiFromVillage").addEventListener("click", () => openWiki("village"));
 $("wikiFromDungeon").addEventListener("click", () => openWiki("dungeon"));
+$("wikiBack2").addEventListener("click", () => $("wikiBack").click());
+$("wikiTop").addEventListener("click", () => scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }));
 $("wikiBack").addEventListener("click", () => { if (wikiFrom === "dungeon") { buildRoles(); paintRoles(); showDungeon(); } else showVillage(); });
 $("wikiView").addEventListener("click", e => {
   const a = e.target.closest(".wk-nav a"); if (!a) return;

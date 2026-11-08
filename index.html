@@ -693,6 +693,10 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .who-chip.on { color: var(--mist); border-color: #4d7a60; }
 .win-foot .share { margin-top: -2px; }
 .tb-row.me strong { color: var(--lantern); }
+.wk-float { position: fixed; z-index: 60; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); margin: 0 auto; width: fit-content; display: flex; gap: 8px; align-items: center; }
+.wk-float .btn { box-shadow: 0 6px 20px #000a; }
+.wk-float .chip { box-shadow: 0 6px 20px #000a; padding: 8px 13px; }
+#wikiView { padding-bottom: 70px; }
 </style>
 
 <div class="wrap">
@@ -790,6 +794,7 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
       </div>
       <button class="back" id="wikiBack" type="button">Zurück</button>
     </header>
+    <div class="wk-float"><button class="btn" id="wikiBack2" type="button">← Zurück</button><button class="chip" id="wikiTop" type="button" aria-label="Nach oben">⬆</button></div>
     <nav class="wk-nav" aria-label="Wiki-Kapitel">
       <a href="#wk-start">Grundlagen</a><a href="#wk-begleiter">Begleiter</a><a href="#wk-hind">Hindernisse</a>
       <a href="#wk-runen">Runen</a><a href="#wk-orte">Orte</a><a href="#wk-land">Landschaften</a><a href="#wk-mit">Mitspieler</a><a href="#wk-koop">Koop</a><a href="#wk-lichtung">Lichtung</a><a href="#wk-tag">Tagesrätsel</a><a href="#wk-fest">Feste</a><a href="#wk-weber">Nebelweber</a><a href="#wk-kostuem">Kostüme</a><a href="#wk-denk">Denk-Rätsel</a><a href="#wk-lvl">Level</a><a href="#wk-geheim">Geheimstädte</a><a href="#wk-garten">Garten</a><a href="#wk-alch">Alchemie</a><a href="#wk-tiere">Tierbuch</a><a href="#wk-keys">Tastatur</a><a href="#wk-ton">Musik</a><a href="#wk-set">Einstellungen</a><a href="#wk-erfolge">Erfolge</a>
@@ -2580,6 +2585,8 @@ function openWiki(from) {
 }
 $("wikiFromVillage").addEventListener("click", () => openWiki("village"));
 $("wikiFromDungeon").addEventListener("click", () => openWiki("dungeon"));
+$("wikiBack2").addEventListener("click", () => $("wikiBack").click());
+$("wikiTop").addEventListener("click", () => scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }));
 $("wikiBack").addEventListener("click", () => { if (wikiFrom === "dungeon") { buildRoles(); paintRoles(); showDungeon(); } else showVillage(); });
 $("wikiView").addEventListener("click", e => {
   const a = e.target.closest(".wk-nav a"); if (!a) return;
